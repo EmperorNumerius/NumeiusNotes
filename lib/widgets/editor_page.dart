@@ -46,6 +46,9 @@ class _EditorPageState extends State<EditorPage> {
   @override
   Widget build(BuildContext context) {
     final docMgr = context.watch<DocumentManager>();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 768;
+    final topBarHeight = isTablet ? 48.0 : 42.0;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A1A),
@@ -66,7 +69,7 @@ class _EditorPageState extends State<EditorPage> {
           child: Column(
             children: [
               // Top: Tab bar + back button
-              _buildTopBar(docMgr),
+              _buildTopBar(docMgr, topBarHeight),
               // Middle: Canvas/PDF + Transcription panel
               Expanded(
                 child: Row(
@@ -78,8 +81,8 @@ class _EditorPageState extends State<EditorPage> {
                               pdfPath: docMgr.activeDocument!.pdfPath!)
                           : const CanvasPage(),
                     ),
-                    // Right: Live transcription panel
-                    const TranscriptionPanel(),
+                    // Right: Live transcription panel (auto-hide on small screens)
+                    if (screenWidth >= 600) const TranscriptionPanel(),
                   ],
                 ),
               ),
@@ -92,9 +95,9 @@ class _EditorPageState extends State<EditorPage> {
     );
   }
 
-  Widget _buildTopBar(DocumentManager docMgr) {
+  Widget _buildTopBar(DocumentManager docMgr, double barHeight) {
     return Container(
-      height: 42,
+      height: barHeight,
       decoration: BoxDecoration(
         color: const Color(0xFF0F0F23),
         border: Border(
@@ -112,8 +115,8 @@ class _EditorPageState extends State<EditorPage> {
                 Navigator.of(context).pop();
               },
               child: Container(
-                width: 42,
-                height: 42,
+                width: barHeight,
+                height: barHeight,
                 alignment: Alignment.center,
                 child: Icon(Icons.arrow_back_rounded,
                     color: Colors.white.withAlpha(150), size: 18),

@@ -9,6 +9,8 @@ import 'package:notes_app/models/content_block.dart';
 import 'package:notes_app/models/stroke.dart';
 import 'package:notes_app/widgets/code_block.dart';
 import 'package:notes_app/widgets/latex_block.dart';
+import 'package:notes_app/widgets/chemistry_block.dart';
+import 'package:notes_app/widgets/calculator_block.dart';
 import 'package:uuid/uuid.dart';
 
 /// The main canvas — free-form drawing + draggable content blocks.
@@ -118,6 +120,18 @@ class _CanvasPageState extends State<CanvasPage> {
             color: const Color(0xFF7C3AED),
             onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.latex),
           ),
+          _paletteItem(
+            icon: Icons.science_rounded,
+            label: 'Chemistry',
+            color: const Color(0xFF38D9A9),
+            onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.chemistry, width: 680),
+          ),
+          _paletteItem(
+            icon: Icons.calculate_rounded,
+            label: 'Calculator',
+            color: const Color(0xFFFFAA5C),
+            onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.calculator, width: 320),
+          ),
           const Spacer(),
         ],
       ),
@@ -167,15 +181,16 @@ class _CanvasPageState extends State<CanvasPage> {
     );
   }
 
-  void _addBlockAtCenter(dynamic doc, DocumentManager docMgr, ContentBlockType type) {
+  void _addBlockAtCenter(dynamic doc, DocumentManager docMgr, ContentBlockType type, {double? width}) {
     // Stack blocks vertically, offset from each other
     final existingCount = doc.blocks.length as int;
+    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : 360);
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
       x: 80.0 + (existingCount % 3) * 30.0,
       y: 80.0 + existingCount * 60.0,
-      blockWidth: type == ContentBlockType.code ? 500 : 360,
+      blockWidth: defaultWidth,
     );
     doc.blocks.add(block);
     docMgr.saveActiveDocument();
@@ -332,6 +347,14 @@ class _CanvasPageState extends State<CanvasPage> {
         typeColor = const Color(0xFF7C3AED);
         typeIcon = Icons.functions_rounded;
         typeLabel = 'LaTeX';
+      case ContentBlockType.chemistry:
+        typeColor = const Color(0xFF38D9A9);
+        typeIcon = Icons.science_rounded;
+        typeLabel = 'Chemistry';
+      case ContentBlockType.calculator:
+        typeColor = const Color(0xFFFFAA5C);
+        typeIcon = Icons.calculate_rounded;
+        typeLabel = 'Calculator';
     }
 
     return Container(
@@ -420,6 +443,22 @@ class _CanvasPageState extends State<CanvasPage> {
         );
       case ContentBlockType.latex:
         return LatexBlockWidget(block: block);
+      case ContentBlockType.chemistry:
+        return ChemistryBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
+      case ContentBlockType.calculator:
+        return CalculatorBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
     }
   }
 
@@ -506,13 +545,15 @@ class _CanvasPageState extends State<CanvasPage> {
             onTap: () => ctrl.setTool(DrawingTool.partialEraser),
           ),
           _separator(),
-          // Colors
+          // Colors — current + picker
           _colorDot(ctrl, Colors.white),
           _colorDot(ctrl, const Color(0xFF00D2FF)),
           _colorDot(ctrl, const Color(0xFFFF6B6B)),
           _colorDot(ctrl, const Color(0xFF51CF66)),
           _colorDot(ctrl, const Color(0xFFFFD43B)),
           _colorDot(ctrl, const Color(0xFF7C3AED)),
+          const SizedBox(width: 2),
+          _colorPickerButton(ctrl),
           _separator(),
           // Width slider
           SizedBox(
@@ -610,6 +651,127 @@ class _CanvasPageState extends State<CanvasPage> {
     );
   }
 
+  Widget _colorPickerButton(CanvasController ctrl) {
+    return GestureDetector(
+      onTap: () => _showColorPickerDialog(ctrl),
+      child: Container(
+        width: 18,
+        height: 18,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const SweepGradient(
+            colors: [Colors.red, Colors.yellow, Colors.green, Colors.cyan, Colors.blue, Colors.purple, Colors.red],
+          ),
+          border: Border.all(color: Colors.white.withAlpha(40), width: 1.5),
+        ),
+        child: Icon(Icons.add, size: 10, color: Colors.white.withAlpha(200)),
+      ),
+    );
+  }
+
+  void _showColorPickerDialog(CanvasController ctrl) {
+    HSVColor hsv = HSVColor.fromColor(ctrl.currentColor);
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (_, setD) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF141428),
+              title: const Text('Pick a color', style: TextStyle(color: Colors.white, fontSize: 14)),
+              content: SizedBox(
+                width: 260,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Hue bar
+                    _hueBar(hsv, (h) => setD(() => hsv = hsv.withHue(h))),
+                    const SizedBox(height: 12),
+                    // Saturation / Value grid
+                    _svPicker(hsv, (s, v) => setD(() => hsv = hsv.withSaturation(s).withValue(v))),
+                    const SizedBox(height: 12),
+                    // Preview
+                    Row(
+                      children: [
+                        Container(
+                          width: 36, height: 36,
+                          decoration: BoxDecoration(
+                            color: hsv.toColor(),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white24),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            '#${hsv.toColor().value.toRadixString(16).substring(2).toUpperCase()}',
+                            style: TextStyle(color: Colors.white.withAlpha(120), fontFamily: 'Courier New', fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.white38)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    ctrl.setColor(hsv.toColor());
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Apply', style: TextStyle(color: Color(0xFF00D2FF))),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _hueBar(HSVColor hsv, ValueChanged<double> onChanged) {
+    return SizedBox(
+      height: 20,
+      child: GestureDetector(
+        onPanDown: (d) => onChanged(_hueFromPosition(d.localPosition.dx, 260)),
+        onPanUpdate: (d) => onChanged(_hueFromPosition(d.localPosition.dx, 260)),
+        child: CustomPaint(
+          painter: _HueBarPainter(selectedHue: hsv.hue),
+          size: const Size(260, 20),
+        ),
+      ),
+    );
+  }
+
+  double _hueFromPosition(double x, double width) {
+    return (x / width * 360).clamp(0, 359).toDouble();
+  }
+
+  Widget _svPicker(HSVColor hsv, void Function(double s, double v) onChanged) {
+    return SizedBox(
+      width: 260,
+      height: 150,
+      child: GestureDetector(
+        onPanDown: (d) => onChanged(
+          (d.localPosition.dx / 260).clamp(0, 1).toDouble(),
+          (1 - d.localPosition.dy / 150).clamp(0, 1).toDouble(),
+        ),
+        onPanUpdate: (d) => onChanged(
+          (d.localPosition.dx / 260).clamp(0, 1).toDouble(),
+          (1 - d.localPosition.dy / 150).clamp(0, 1).toDouble(),
+        ),
+        child: CustomPaint(
+          painter: _SVPickerPainter(hue: hsv.hue, sat: hsv.saturation, val: hsv.value),
+          size: const Size(260, 150),
+        ),
+      ),
+    );
+  }
+
   Widget _iconBtn(IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -652,4 +814,84 @@ class _GridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _HueBarPainter extends CustomPainter {
+  final double selectedHue;
+  _HueBarPainter({required this.selectedHue});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final List<Color> colors = [];
+    for (int i = 0; i <= 360; i += 10) {
+      colors.add(HSVColor.fromAHSV(1, i.toDouble(), 1, 1).toColor());
+    }
+    final gradient = LinearGradient(colors: colors);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(10)),
+      Paint()..shader = gradient.createShader(rect),
+    );
+    // Selection indicator
+    final x = selectedHue / 360 * size.width;
+    canvas.drawCircle(
+      Offset(x.clamp(6, size.width - 6), size.height / 2),
+      7,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _HueBarPainter old) => old.selectedHue != selectedHue;
+}
+
+class _SVPickerPainter extends CustomPainter {
+  final double hue;
+  final double sat;
+  final double val;
+  _SVPickerPainter({required this.hue, required this.sat, required this.val});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final rr = RRect.fromRectAndRadius(rect, const Radius.circular(8));
+    // Base hue fill
+    canvas.drawRRect(rr, Paint()..color = HSVColor.fromAHSV(1, hue, 1, 1).toColor());
+    // White → transparent horizontal gradient (saturation)
+    canvas.drawRRect(
+      rr,
+      Paint()
+        ..shader = const LinearGradient(
+          colors: [Colors.white, Colors.transparent],
+        ).createShader(rect),
+    );
+    // Transparent → black vertical gradient (value)
+    canvas.drawRRect(
+      rr,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.transparent, Colors.black],
+        ).createShader(rect),
+    );
+    // Selection circle
+    final x = sat * size.width;
+    final y = (1 - val) * size.height;
+    canvas.drawCircle(
+      Offset(x.clamp(6, size.width - 6), y.clamp(6, size.height - 6)),
+      8,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SVPickerPainter old) =>
+      old.hue != hue || old.sat != sat || old.val != val;
 }

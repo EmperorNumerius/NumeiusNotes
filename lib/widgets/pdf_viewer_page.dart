@@ -11,9 +11,11 @@ import 'package:notes_app/models/content_block.dart';
 import 'package:notes_app/models/stroke.dart';
 import 'package:notes_app/widgets/code_block.dart';
 import 'package:notes_app/widgets/latex_block.dart';
+import 'package:notes_app/widgets/chemistry_block.dart';
+import 'package:notes_app/widgets/calculator_block.dart';
 import 'package:uuid/uuid.dart';
 
-/// PDF viewer with full annotation — ink drawing + draggable text/code/LaTeX blocks.
+/// PDF viewer with full annotation — ink drawing + draggable content blocks.
 class PdfViewerPage extends StatefulWidget {
   final String pdfPath;
 
@@ -181,6 +183,18 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             color: const Color(0xFF7C3AED),
             onTap: () => _addBlock(doc, docMgr, ContentBlockType.latex),
           ),
+          _paletteItem(
+            icon: Icons.science_rounded,
+            label: 'Chemistry',
+            color: const Color(0xFF38D9A9),
+            onTap: () => _addBlock(doc, docMgr, ContentBlockType.chemistry, width: 680),
+          ),
+          _paletteItem(
+            icon: Icons.calculate_rounded,
+            label: 'Calculator',
+            color: const Color(0xFFFFAA5C),
+            onTap: () => _addBlock(doc, docMgr, ContentBlockType.calculator, width: 320),
+          ),
           const Spacer(),
         ],
       ),
@@ -227,14 +241,15 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     );
   }
 
-  void _addBlock(dynamic doc, DocumentManager docMgr, ContentBlockType type) {
+  void _addBlock(dynamic doc, DocumentManager docMgr, ContentBlockType type, {double? width}) {
     final count = doc.blocks.length as int;
+    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : 360);
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
       x: 80.0 + (count % 3) * 30.0,
       y: 80.0 + count * 60.0,
-      blockWidth: type == ContentBlockType.code ? 500 : 360,
+      blockWidth: defaultWidth,
     );
     doc.blocks.add(block);
     docMgr.saveActiveDocument();
@@ -314,6 +329,14 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         typeColor = const Color(0xFF7C3AED);
         typeIcon = Icons.functions_rounded;
         typeLabel = 'LaTeX';
+      case ContentBlockType.chemistry:
+        typeColor = const Color(0xFF38D9A9);
+        typeIcon = Icons.science_rounded;
+        typeLabel = 'Chemistry';
+      case ContentBlockType.calculator:
+        typeColor = const Color(0xFFFFAA5C);
+        typeIcon = Icons.calculate_rounded;
+        typeLabel = 'Calculator';
     }
 
     return Container(
@@ -383,11 +406,27 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         return CodeBlockWidget(block: block);
       case ContentBlockType.latex:
         return LatexBlockWidget(block: block);
+      case ContentBlockType.chemistry:
+        return ChemistryBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
+      case ContentBlockType.calculator:
+        return CalculatorBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
     }
   }
 
   // ═══════════════════════════════════════════════════════
-  // TOOLBAR
+  // TOOLBAR — with color dots + color picker
   // ═══════════════════════════════════════════════════════
 
   Widget _buildToolbar(CanvasController ctrl) {
@@ -442,6 +481,36 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               ctrl.currentTool == DrawingTool.partialEraser,
               () => ctrl.setTool(DrawingTool.partialEraser)),
           _divider(),
+          // Colors
+          _colorDot(ctrl, Colors.white),
+          _colorDot(ctrl, const Color(0xFF00D2FF)),
+          _colorDot(ctrl, const Color(0xFFFF6B6B)),
+          _colorDot(ctrl, const Color(0xFF51CF66)),
+          _colorDot(ctrl, const Color(0xFFFFD43B)),
+          _colorDot(ctrl, const Color(0xFF7C3AED)),
+          const SizedBox(width: 2),
+          _colorPickerButton(ctrl),
+          _divider(),
+          // Width slider
+          SizedBox(
+            width: 80,
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 2,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+                activeTrackColor: const Color(0xFF00D2FF),
+                thumbColor: Colors.white,
+                inactiveTrackColor: Colors.white12,
+              ),
+              child: Slider(
+                value: ctrl.currentWidth,
+                min: 1,
+                max: 8,
+                onChanged: (v) => ctrl.setWidth(v),
+              ),
+            ),
+          ),
+          _divider(),
           // Undo/Redo
           GestureDetector(
             onTap: ctrl.undo,
@@ -492,4 +561,220 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       ),
     );
   }
+
+  Widget _colorDot(CanvasController ctrl, Color color) {
+    final isSelected =
+        ctrl.currentColor == color && ctrl.currentTool != DrawingTool.eraser;
+    return GestureDetector(
+      onTap: () => ctrl.setColor(color),
+      child: Container(
+        width: 16,
+        height: 16,
+        margin: const EdgeInsets.symmetric(horizontal: 2),
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.transparent,
+            width: 2,
+          ),
+          boxShadow: isSelected
+              ? [BoxShadow(color: color.withAlpha(80), blurRadius: 6)]
+              : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _colorPickerButton(CanvasController ctrl) {
+    return GestureDetector(
+      onTap: () => _showColorPickerDialog(ctrl),
+      child: Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const SweepGradient(
+            colors: [Colors.red, Colors.yellow, Colors.green, Colors.cyan, Colors.blue, Colors.purple, Colors.red],
+          ),
+          border: Border.all(color: Colors.white.withAlpha(40), width: 1.5),
+        ),
+        child: Icon(Icons.add, size: 8, color: Colors.white.withAlpha(200)),
+      ),
+    );
+  }
+
+  void _showColorPickerDialog(CanvasController ctrl) {
+    HSVColor hsv = HSVColor.fromColor(ctrl.currentColor);
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (_, setD) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF141428),
+              title: const Text('Pick a color', style: TextStyle(color: Colors.white, fontSize: 14)),
+              content: SizedBox(
+                width: 260,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Hue bar
+                    SizedBox(
+                      height: 20,
+                      child: GestureDetector(
+                        onPanDown: (d) {
+                          final h = (d.localPosition.dx / 260 * 360).clamp(0, 359).toDouble();
+                          setD(() => hsv = hsv.withHue(h));
+                        },
+                        onPanUpdate: (d) {
+                          final h = (d.localPosition.dx / 260 * 360).clamp(0, 359).toDouble();
+                          setD(() => hsv = hsv.withHue(h));
+                        },
+                        child: CustomPaint(
+                          painter: _HueBarPainter(selectedHue: hsv.hue),
+                          size: const Size(260, 20),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // SV picker
+                    SizedBox(
+                      width: 260,
+                      height: 150,
+                      child: GestureDetector(
+                        onPanDown: (d) => setD(() => hsv = hsv
+                            .withSaturation((d.localPosition.dx / 260).clamp(0, 1).toDouble())
+                            .withValue((1 - d.localPosition.dy / 150).clamp(0, 1).toDouble())),
+                        onPanUpdate: (d) => setD(() => hsv = hsv
+                            .withSaturation((d.localPosition.dx / 260).clamp(0, 1).toDouble())
+                            .withValue((1 - d.localPosition.dy / 150).clamp(0, 1).toDouble())),
+                        child: CustomPaint(
+                          painter: _SVPickerPainter(hue: hsv.hue, sat: hsv.saturation, val: hsv.value),
+                          size: const Size(260, 150),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Preview
+                    Row(
+                      children: [
+                        Container(
+                          width: 36, height: 36,
+                          decoration: BoxDecoration(
+                            color: hsv.toColor(),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white24),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            '#${hsv.toColor().value.toRadixString(16).substring(2).toUpperCase()}',
+                            style: TextStyle(color: Colors.white.withAlpha(120), fontFamily: 'Courier New', fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.white38)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    ctrl.setColor(hsv.toColor());
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Apply', style: TextStyle(color: Color(0xFF00D2FF))),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Color picker painters
+// ═══════════════════════════════════════════════════════
+
+class _HueBarPainter extends CustomPainter {
+  final double selectedHue;
+  _HueBarPainter({required this.selectedHue});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final List<Color> colors = [];
+    for (int i = 0; i <= 360; i += 10) {
+      colors.add(HSVColor.fromAHSV(1, i.toDouble(), 1, 1).toColor());
+    }
+    final gradient = LinearGradient(colors: colors);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(10)),
+      Paint()..shader = gradient.createShader(rect),
+    );
+    final x = selectedHue / 360 * size.width;
+    canvas.drawCircle(
+      Offset(x.clamp(6, size.width - 6), size.height / 2),
+      7,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _HueBarPainter old) => old.selectedHue != selectedHue;
+}
+
+class _SVPickerPainter extends CustomPainter {
+  final double hue;
+  final double sat;
+  final double val;
+  _SVPickerPainter({required this.hue, required this.sat, required this.val});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final rr = RRect.fromRectAndRadius(rect, const Radius.circular(8));
+    canvas.drawRRect(rr, Paint()..color = HSVColor.fromAHSV(1, hue, 1, 1).toColor());
+    canvas.drawRRect(
+      rr,
+      Paint()
+        ..shader = const LinearGradient(
+          colors: [Colors.white, Colors.transparent],
+        ).createShader(rect),
+    );
+    canvas.drawRRect(
+      rr,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.transparent, Colors.black],
+        ).createShader(rect),
+    );
+    final x = sat * size.width;
+    final y = (1 - val) * size.height;
+    canvas.drawCircle(
+      Offset(x.clamp(6, size.width - 6), y.clamp(6, size.height - 6)),
+      8,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SVPickerPainter old) =>
+      old.hue != hue || old.sat != sat || old.val != val;
 }
