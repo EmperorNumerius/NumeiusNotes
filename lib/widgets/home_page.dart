@@ -4,6 +4,7 @@ import 'package:notes_app/controllers/document_manager.dart';
 import 'package:notes_app/models/folder.dart';
 import 'package:notes_app/models/document.dart';
 import 'package:notes_app/services/pdf_service.dart';
+import 'package:notes_app/widgets/ai_settings_dialog.dart';
 
 /// Home page — folder grid, recent notes, subject sidebar, search.
 class HomePage extends StatefulWidget {
@@ -137,11 +138,24 @@ class _HomePageState extends State<HomePage> {
                 )),
           ],
           const Spacer(),
-          // Settings placeholder
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: _sidebarItem(
+              icon: Icons.settings,
+              label: 'AI Settings',
+              selected: false,
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => const AiSettingsDialog(),
+                );
+              },
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'v2.0',
+              'v2.1',
               style: TextStyle(color: Colors.white.withAlpha(40), fontSize: 11),
             ),
           ),

@@ -6,6 +6,8 @@ import 'package:uuid/uuid.dart';
 import 'package:notes_app/models/document.dart';
 import 'package:notes_app/models/folder.dart';
 import 'package:notes_app/models/content_block.dart';
+import 'package:notes_app/models/quiz.dart';
+import 'package:notes_app/models/flashcard.dart';
 
 /// Manages documents, folders, persistence, and active tab state.
 class DocumentManager extends ChangeNotifier {
@@ -193,6 +195,7 @@ class DocumentManager extends ChangeNotifier {
     _openTabs.removeWhere((d) => d.id == docId);
     _documents.removeWhere((d) => d.id == docId);
     _deleteFile(docId);
+    _deleteGeneratedFiles(docId);
     if (_activeTabIndex >= _openTabs.length && _openTabs.isNotEmpty) {
       _activeTabIndex = _openTabs.length - 1;
     }
@@ -267,6 +270,50 @@ class DocumentManager extends ChangeNotifier {
     }
   }
 
+
+
+  Future<void> saveQuizSet(QuizSet quizSet) async {
+    final file = await _generatedFile(quizSet.sourceDocId, 'quizzes.json');
+    final existing = await loadQuizSets(quizSet.sourceDocId);
+    final updated = [quizSet, ...existing.where((q) => q.id != quizSet.id)];
+    await file.writeAsString(jsonEncode(updated.map((q) => q.toJson()).toList()));
+  }
+
+  Future<List<QuizSet>> loadQuizSets(String docId) async {
+    final file = await _generatedFile(docId, 'quizzes.json', create: false);
+    if (file == null || !file.existsSync()) return [];
+    try {
+      final list = jsonDecode(await file.readAsString()) as List;
+      return list
+          .map((item) => QuizSet.fromJson(item as Map<String, dynamic>))
+          .toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveFlashcardSet(FlashcardSet flashcardSet) async {
+    final file = await _generatedFile(flashcardSet.sourceDocId, 'flashcards.json');
+    final existing = await loadFlashcardSets(flashcardSet.sourceDocId);
+    final updated = [flashcardSet, ...existing.where((f) => f.id != flashcardSet.id)];
+    await file.writeAsString(jsonEncode(updated.map((f) => f.toJson()).toList()));
+  }
+
+  Future<List<FlashcardSet>> loadFlashcardSets(String docId) async {
+    final file = await _generatedFile(docId, 'flashcards.json', create: false);
+    if (file == null || !file.existsSync()) return [];
+    try {
+      final list = jsonDecode(await file.readAsString()) as List;
+      return list
+          .map((item) => FlashcardSet.fromJson(item as Map<String, dynamic>))
+          .toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    } catch (_) {
+      return [];
+    }
+  }
+
   Future<void> _saveFolders() async {
     final dir = await _docDir();
     if (!dir.existsSync()) dir.createSync(recursive: true);
@@ -280,4 +327,26 @@ class DocumentManager extends ChangeNotifier {
     final file = File('${dir.path}/$id.json');
     if (file.existsSync()) file.deleteSync();
   }
+
+  Future<File?> _generatedFile(String docId, String fileName, {bool create = true}) async {
+    final dir = await _generatedDir(docId);
+    if (create && !dir.existsSync()) {
+      dir.createSync(recursive: true);
+    }
+    if (!create && !dir.existsSync()) return null;
+    return File('${dir.path}/$fileName');
+  }
+
+  Future<Directory> _generatedDir(String docId) async {
+    final root = await _docDir();
+    return Directory('${root.path}/generated/$docId');
+  }
+
+  Future<void> _deleteGeneratedFiles(String docId) async {
+    final dir = await _generatedDir(docId);
+    if (dir.existsSync()) {
+      dir.deleteSync(recursive: true);
+    }
+  }
+
 }

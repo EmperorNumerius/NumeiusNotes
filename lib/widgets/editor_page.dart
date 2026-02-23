@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
+import 'package:notes_app/controllers/ai_settings_controller.dart';
 import 'package:notes_app/controllers/canvas_controller.dart';
 import 'package:notes_app/controllers/document_manager.dart';
+import 'package:notes_app/models/content_block.dart';
+import 'package:notes_app/models/flashcard.dart';
+import 'package:notes_app/models/quiz.dart';
+import 'package:notes_app/services/ai_generation_service.dart';
+import 'package:notes_app/widgets/flashcard_study_page.dart';
+import 'package:notes_app/widgets/quiz_study_page.dart';
 import 'package:notes_app/widgets/tab_manager.dart';
 import 'package:notes_app/widgets/canvas_page.dart';
 import 'package:notes_app/widgets/pdf_viewer_page.dart';
@@ -18,6 +26,9 @@ class EditorPage extends StatefulWidget {
 }
 
 class _EditorPageState extends State<EditorPage> {
+  bool _isGeneratingQuiz = false;
+  bool _isGeneratingFlashcards = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +52,128 @@ class _EditorPageState extends State<EditorPage> {
         canvasCtrl.loadStrokes(activeDoc.strokes);
       }
     });
+  }
+
+  AiGenerationContext? _buildGenerationContext() {
+    final doc = context.read<DocumentManager>().activeDocument;
+    if (doc == null) return null;
+
+    final textBlocks = doc.blocks
+        .where((b) => b.type == ContentBlockType.text)
+        .map((b) => b.content)
+        .join('\n');
+
+    final allBlocks = doc.blocks
+        .map((b) => '[${b.type.name}] ${b.content} ${_metadataText(b)}')
+        .join('\n');
+
+    return AiGenerationContext(
+      noteTitle: doc.title,
+      noteText: textBlocks,
+      transcription: doc.transcription,
+      blockText: allBlocks,
+    );
+  }
+
+  String _metadataText(ContentBlock block) {
+    if (block.metadata.isEmpty) return '';
+    return block.metadata.entries.map((e) => '${e.key}:${e.value}').join(', ');
+  }
+
+  Future<void> _generateQuiz() async {
+    setState(() => _isGeneratingQuiz = true);
+    try {
+      final contextData = _buildGenerationContext();
+      final settings = context.read<AiSettingsController>();
+      final service = settings.buildService();
+      final docMgr = context.read<DocumentManager>();
+      final doc = docMgr.activeDocument;
+
+      if (contextData == null || doc == null) {
+        throw AiGenerationException(
+          'No active document',
+          userMessage: 'No active note found.',
+        );
+      }
+
+      if (service == null) {
+        throw AiGenerationException(
+          'No provider configured',
+          userMessage: 'Configure AI provider credentials in AI Settings first.',
+        );
+      }
+
+      final questions = await service.generateQuiz(contextData);
+      final set = QuizSet(
+        id: const Uuid().v4(),
+        sourceDocId: doc.id,
+        questions: questions,
+      );
+      await docMgr.saveQuizSet(set);
+
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => QuizStudyPage(quizSet: set)),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      final message = error is AiGenerationException
+          ? error.userMessage
+          : 'Something went wrong while generating the quiz.';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() => _isGeneratingQuiz = false);
+      }
+    }
+  }
+
+  Future<void> _generateFlashcards() async {
+    setState(() => _isGeneratingFlashcards = true);
+    try {
+      final contextData = _buildGenerationContext();
+      final settings = context.read<AiSettingsController>();
+      final service = settings.buildService();
+      final docMgr = context.read<DocumentManager>();
+      final doc = docMgr.activeDocument;
+
+      if (contextData == null || doc == null) {
+        throw AiGenerationException(
+          'No active document',
+          userMessage: 'No active note found.',
+        );
+      }
+
+      if (service == null) {
+        throw AiGenerationException(
+          'No provider configured',
+          userMessage: 'Configure AI provider credentials in AI Settings first.',
+        );
+      }
+
+      final cards = await service.generateFlashcards(contextData);
+      final set = FlashcardSet(
+        id: const Uuid().v4(),
+        sourceDocId: doc.id,
+        cards: cards,
+      );
+      await docMgr.saveFlashcardSet(set);
+
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => FlashcardStudyPage(flashcardSet: set)),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      final message = error is AiGenerationException
+          ? error.userMessage
+          : 'Something went wrong while generating flashcards.';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() => _isGeneratingFlashcards = false);
+      }
+    }
   }
 
   @override
@@ -123,8 +256,31 @@ class _EditorPageState extends State<EditorPage> {
               ),
             ),
           ),
-          // Tab manager takes the rest
           const Expanded(child: TabManager()),
+          TextButton.icon(
+            onPressed: _isGeneratingQuiz ? null : _generateQuiz,
+            icon: _isGeneratingQuiz
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.quiz_outlined),
+            label: const Text('Generate Quiz'),
+          ),
+          const SizedBox(width: 8),
+          TextButton.icon(
+            onPressed: _isGeneratingFlashcards ? null : _generateFlashcards,
+            icon: _isGeneratingFlashcards
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.style_outlined),
+            label: const Text('Generate Flashcards'),
+          ),
+          const SizedBox(width: 10),
         ],
       ),
     );
