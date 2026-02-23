@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
@@ -13,6 +14,7 @@ import 'package:notes_app/widgets/code_block.dart';
 import 'package:notes_app/widgets/latex_block.dart';
 import 'package:notes_app/widgets/chemistry_block.dart';
 import 'package:notes_app/widgets/calculator_block.dart';
+import 'package:notes_app/widgets/draggable_block_shell.dart';
 import 'package:uuid/uuid.dart';
 
 /// PDF viewer with full annotation — ink drawing + draggable content blocks.
@@ -29,6 +31,11 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   late PdfViewerController _pdfController;
   final _uuid = const Uuid();
   String? _draggingBlockId;
+  final Map<String, TextEditingController> _textControllers = {};
+  final Map<String, FocusNode> _textFocusNodes = {};
+  final Map<String, Timer> _textSaveDebouncers = {};
+
+  static const _textSaveDebounce = Duration(milliseconds: 700);
 
   @override
   void initState() {
@@ -38,6 +45,15 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
 
   @override
   void dispose() {
+    for (final timer in _textSaveDebouncers.values) {
+      timer.cancel();
+    }
+    for (final controller in _textControllers.values) {
+      controller.dispose();
+    }
+    for (final focusNode in _textFocusNodes.values) {
+      focusNode.dispose();
+    }
     super.dispose();
   }
 
@@ -68,6 +84,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             style: TextStyle(color: Colors.white38)),
       );
     }
+
+    _syncTextEditingResources(doc.blocks.cast<ContentBlock>());
 
     return Row(
       children: [
@@ -267,114 +285,29 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     return Positioned(
       left: block.x,
       top: block.y,
-      child: GestureDetector(
-        onPanStart: (_) => setState(() => _draggingBlockId = block.id),
-        onPanUpdate: (details) {
+      child: DraggableBlockShell(
+        block: block,
+        isDragging: isDragging,
+        backgroundColor: const Color(0xFF141428).withAlpha(230),
+        onDragStart: (_) => setState(() => _draggingBlockId = block.id),
+        onDragUpdate: (details) {
           setState(() {
             block.x += details.delta.dx;
             block.y += details.delta.dy;
           });
         },
-        onPanEnd: (_) {
+        onDragEnd: (_) {
           _draggingBlockId = null;
           docMgr.saveActiveDocument();
           setState(() {});
         },
-        child: Container(
-          width: block.blockWidth,
-          decoration: BoxDecoration(
-            color: const Color(0xFF141428).withAlpha(230),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isDragging
-                  ? const Color(0xFF00D2FF).withAlpha(120)
-                  : Colors.white.withAlpha(12),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(60),
-                blurRadius: 12,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildBlockHeader(block, doc, docMgr),
-              _buildBlockContent(block, doc, docMgr),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBlockHeader(ContentBlock block, dynamic doc, DocumentManager docMgr) {
-    Color typeColor;
-    IconData typeIcon;
-    String typeLabel;
-
-    switch (block.type) {
-      case ContentBlockType.text:
-        typeColor = const Color(0xFF00D2FF);
-        typeIcon = Icons.text_fields_rounded;
-        typeLabel = 'Text';
-      case ContentBlockType.code:
-        typeColor = const Color(0xFF51CF66);
-        typeIcon = Icons.code_rounded;
-        typeLabel = 'Code';
-      case ContentBlockType.latex:
-        typeColor = const Color(0xFF7C3AED);
-        typeIcon = Icons.functions_rounded;
-        typeLabel = 'LaTeX';
-      case ContentBlockType.chemistry:
-        typeColor = const Color(0xFF38D9A9);
-        typeIcon = Icons.science_rounded;
-        typeLabel = 'Chemistry';
-      case ContentBlockType.calculator:
-        typeColor = const Color(0xFFFFAA5C);
-        typeIcon = Icons.calculate_rounded;
-        typeLabel = 'Calculator';
-    }
-
-    return Container(
-      height: 28,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: typeColor.withAlpha(10),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withAlpha(6)),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.drag_indicator_rounded,
-              size: 14, color: Colors.white.withAlpha(40)),
-          const SizedBox(width: 4),
-          Icon(typeIcon, size: 12, color: typeColor.withAlpha(150)),
-          const SizedBox(width: 4),
-          Text(typeLabel,
-              style: TextStyle(
-                  color: typeColor.withAlpha(150),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600)),
-          const Spacer(),
-          GestureDetector(
-            onTap: () {
-              doc.blocks.remove(block);
-              docMgr.saveActiveDocument();
-              setState(() {});
-            },
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: Icon(Icons.close_rounded,
-                  size: 13, color: Colors.white.withAlpha(50)),
-            ),
-          ),
-        ],
+        onDelete: () {
+          _disposeTextEditingResources(block.id);
+          doc.blocks.remove(block);
+          docMgr.saveActiveDocument();
+          setState(() {});
+        },
+        content: _buildBlockContent(block, doc, docMgr),
       ),
     );
   }
@@ -385,11 +318,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         return Padding(
           padding: const EdgeInsets.all(10),
           child: TextField(
-            controller: TextEditingController(text: block.content)
-              ..selection = TextSelection.collapsed(offset: block.content.length),
+            controller: _controllerForBlock(block),
+            focusNode: _focusNodeForBlock(block.id, docMgr),
             onChanged: (val) {
               block.content = val;
               doc.touch();
+              _scheduleTextBlockSave(block.id, docMgr);
             },
             maxLines: null,
             style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.6),
@@ -422,6 +356,72 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             docMgr.saveActiveDocument();
           },
         );
+    }
+  }
+
+  TextEditingController _controllerForBlock(ContentBlock block) {
+    final controller = _textControllers.putIfAbsent(
+      block.id,
+      () => TextEditingController(text: block.content),
+    );
+    final focusNode = _textFocusNodes[block.id];
+    if (controller.text != block.content && (focusNode == null || !focusNode.hasFocus)) {
+      controller.value = controller.value.copyWith(
+        text: block.content,
+        selection: TextSelection.collapsed(offset: block.content.length),
+        composing: TextRange.empty,
+      );
+    }
+    return controller;
+  }
+
+  FocusNode _focusNodeForBlock(String blockId, DocumentManager docMgr) {
+    return _textFocusNodes.putIfAbsent(blockId, () {
+      final focusNode = FocusNode();
+      focusNode.addListener(() {
+        if (!focusNode.hasFocus) {
+          _flushTextBlockSave(blockId, docMgr);
+        }
+      });
+      return focusNode;
+    });
+  }
+
+  void _scheduleTextBlockSave(String blockId, DocumentManager docMgr) {
+    _textSaveDebouncers[blockId]?.cancel();
+    _textSaveDebouncers[blockId] = Timer(_textSaveDebounce, () {
+      if (!mounted) {
+        return;
+      }
+      docMgr.saveActiveDocument();
+    });
+  }
+
+  void _flushTextBlockSave(String blockId, DocumentManager docMgr) {
+    _textSaveDebouncers.remove(blockId)?.cancel();
+    docMgr.saveActiveDocument();
+  }
+
+  void _disposeTextEditingResources(String blockId) {
+    _textSaveDebouncers.remove(blockId)?.cancel();
+    _textControllers.remove(blockId)?.dispose();
+    _textFocusNodes.remove(blockId)?.dispose();
+  }
+
+  void _syncTextEditingResources(List<ContentBlock> blocks) {
+    final textBlockIds = blocks
+        .where((block) => block.type == ContentBlockType.text)
+        .map((block) => block.id)
+        .toSet();
+
+    final staleIds = <String>{
+      ..._textControllers.keys,
+      ..._textFocusNodes.keys,
+      ..._textSaveDebouncers.keys,
+    }.difference(textBlockIds);
+
+    for (final blockId in staleIds) {
+      _disposeTextEditingResources(blockId);
     }
   }
 
