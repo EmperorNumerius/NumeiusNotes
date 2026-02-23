@@ -442,7 +442,13 @@ class _CanvasPageState extends State<CanvasPage> {
           },
         );
       case ContentBlockType.latex:
-        return LatexBlockWidget(block: block);
+        return LatexBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
       case ContentBlockType.chemistry:
         return ChemistryBlockWidget(
           block: block,
