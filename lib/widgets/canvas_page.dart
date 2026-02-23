@@ -11,6 +11,7 @@ import 'package:notes_app/widgets/code_block.dart';
 import 'package:notes_app/widgets/latex_block.dart';
 import 'package:notes_app/widgets/chemistry_block.dart';
 import 'package:notes_app/widgets/calculator_block.dart';
+import 'package:notes_app/widgets/flashcard_block.dart';
 import 'package:uuid/uuid.dart';
 
 /// The main canvas — free-form drawing + draggable content blocks.
@@ -131,6 +132,12 @@ class _CanvasPageState extends State<CanvasPage> {
             label: 'Calculator',
             color: const Color(0xFFFFAA5C),
             onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.calculator, width: 320),
+          ),
+          _paletteItem(
+            icon: Icons.style_rounded,
+            label: 'Flashcard',
+            color: const Color(0xFFFF6B9A),
+            onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.flashcard, width: 460),
           ),
           const Spacer(),
         ],
@@ -355,6 +362,10 @@ class _CanvasPageState extends State<CanvasPage> {
         typeColor = const Color(0xFFFFAA5C);
         typeIcon = Icons.calculate_rounded;
         typeLabel = 'Calculator';
+      case ContentBlockType.flashcard:
+        typeColor = const Color(0xFFFF6B9A);
+        typeIcon = Icons.style_rounded;
+        typeLabel = 'Flashcard';
     }
 
     return Container(
@@ -453,6 +464,14 @@ class _CanvasPageState extends State<CanvasPage> {
         );
       case ContentBlockType.calculator:
         return CalculatorBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
+      case ContentBlockType.flashcard:
+        return FlashcardBlockWidget(
           block: block,
           onChanged: () {
             doc.touch();
