@@ -18,29 +18,46 @@ class EditorPage extends StatefulWidget {
 }
 
 class _EditorPageState extends State<EditorPage> {
+  late final DocumentManager _docMgr;
+  late final CanvasController _canvasCtrl;
+  late final VoidCallback _docListener;
+  bool _isDocListenerRegistered = false;
+
   @override
   void initState() {
     super.initState();
+    _docListener = _handleDocumentChanged;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isDocListenerRegistered) return;
+
+    _docMgr = context.read<DocumentManager>();
+    _canvasCtrl = context.read<CanvasController>();
+    _docMgr.addListener(_docListener);
+    _isDocListenerRegistered = true;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _syncCanvasToDocument();
+      if (!mounted) return;
+      _handleDocumentChanged();
     });
   }
 
-  void _syncCanvasToDocument() {
-    final docMgr = context.read<DocumentManager>();
-    final canvasCtrl = context.read<CanvasController>();
-    final doc = docMgr.activeDocument;
+  void _handleDocumentChanged() {
+    final doc = _docMgr.activeDocument;
     if (doc != null) {
-      canvasCtrl.loadStrokes(doc.strokes);
+      _canvasCtrl.loadStrokes(doc.strokes);
     }
+  }
 
-    docMgr.addListener(() {
-      if (!mounted) return;
-      final activeDoc = docMgr.activeDocument;
-      if (activeDoc != null) {
-        canvasCtrl.loadStrokes(activeDoc.strokes);
-      }
-    });
+  @override
+  void dispose() {
+    if (_isDocListenerRegistered) {
+      _docMgr.removeListener(_docListener);
+    }
+    super.dispose();
   }
 
   @override
