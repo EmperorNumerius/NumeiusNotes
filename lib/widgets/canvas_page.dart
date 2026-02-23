@@ -11,6 +11,8 @@ import 'package:notes_app/widgets/code_block.dart';
 import 'package:notes_app/widgets/latex_block.dart';
 import 'package:notes_app/widgets/chemistry_block.dart';
 import 'package:notes_app/widgets/calculator_block.dart';
+import 'package:notes_app/widgets/image_block.dart';
+import 'package:notes_app/services/image_service.dart';
 import 'package:uuid/uuid.dart';
 
 /// The main canvas — free-form drawing + draggable content blocks.
@@ -132,6 +134,12 @@ class _CanvasPageState extends State<CanvasPage> {
             color: const Color(0xFFFFAA5C),
             onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.calculator, width: 320),
           ),
+          _paletteItem(
+            icon: Icons.image_rounded,
+            label: 'Image',
+            color: const Color(0xFF4DABF7),
+            onTap: () => _addImageBlock(doc, docMgr),
+          ),
           const Spacer(),
         ],
       ),
@@ -184,7 +192,7 @@ class _CanvasPageState extends State<CanvasPage> {
   void _addBlockAtCenter(dynamic doc, DocumentManager docMgr, ContentBlockType type, {double? width}) {
     // Stack blocks vertically, offset from each other
     final existingCount = doc.blocks.length as int;
-    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : 360);
+    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : type == ContentBlockType.image ? 420 : 360);
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
@@ -193,6 +201,30 @@ class _CanvasPageState extends State<CanvasPage> {
       blockWidth: defaultWidth,
     );
     doc.blocks.add(block);
+    docMgr.saveActiveDocument();
+    setState(() {});
+  }
+
+  Future<void> _addImageBlock(dynamic doc, DocumentManager docMgr) async {
+    final imagePath = await ImageService.importImage();
+    if (imagePath == null) return;
+
+    final existingCount = doc.blocks.length as int;
+    final block = ContentBlock(
+      id: _uuid.v4(),
+      type: ContentBlockType.image,
+      content: '',
+      x: 80.0 + (existingCount % 3) * 30.0,
+      y: 80.0 + existingCount * 60.0,
+      blockWidth: 420,
+      metadata: {
+        'imagePath': imagePath,
+        'imageHeight': 240.0,
+      },
+    );
+
+    doc.blocks.add(block);
+    doc.touch();
     docMgr.saveActiveDocument();
     setState(() {});
   }
@@ -330,32 +362,20 @@ class _CanvasPageState extends State<CanvasPage> {
   }
 
   Widget _buildBlockHeader(ContentBlock block, dynamic doc, DocumentManager docMgr) {
-    Color typeColor;
-    IconData typeIcon;
-    String typeLabel;
-
-    switch (block.type) {
-      case ContentBlockType.text:
-        typeColor = const Color(0xFF00D2FF);
-        typeIcon = Icons.text_fields_rounded;
-        typeLabel = 'Text';
-      case ContentBlockType.code:
-        typeColor = const Color(0xFF51CF66);
-        typeIcon = Icons.code_rounded;
-        typeLabel = 'Code';
-      case ContentBlockType.latex:
-        typeColor = const Color(0xFF7C3AED);
-        typeIcon = Icons.functions_rounded;
-        typeLabel = 'LaTeX';
-      case ContentBlockType.chemistry:
-        typeColor = const Color(0xFF38D9A9);
-        typeIcon = Icons.science_rounded;
-        typeLabel = 'Chemistry';
-      case ContentBlockType.calculator:
-        typeColor = const Color(0xFFFFAA5C);
-        typeIcon = Icons.calculate_rounded;
-        typeLabel = 'Calculator';
-    }
+    final (typeColor, typeIcon, typeLabel) = switch (block.type) {
+      ContentBlockType.text =>
+        (const Color(0xFF00D2FF), Icons.text_fields_rounded, 'Text'),
+      ContentBlockType.code =>
+        (const Color(0xFF51CF66), Icons.code_rounded, 'Code'),
+      ContentBlockType.latex =>
+        (const Color(0xFF7C3AED), Icons.functions_rounded, 'LaTeX'),
+      ContentBlockType.chemistry =>
+        (const Color(0xFF38D9A9), Icons.science_rounded, 'Chemistry'),
+      ContentBlockType.calculator =>
+        (const Color(0xFFFFAA5C), Icons.calculate_rounded, 'Calculator'),
+      ContentBlockType.image =>
+        (const Color(0xFF4DABF7), Icons.image_rounded, 'Image'),
+    };
 
     return Container(
       height: 28,
@@ -453,6 +473,14 @@ class _CanvasPageState extends State<CanvasPage> {
         );
       case ContentBlockType.calculator:
         return CalculatorBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
+      case ContentBlockType.image:
+        return ImageBlockWidget(
           block: block,
           onChanged: () {
             doc.touch();
