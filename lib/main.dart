@@ -5,6 +5,7 @@ import 'package:notes_app/controllers/document_manager.dart';
 import 'package:notes_app/controllers/audio_controller.dart';
 import 'package:notes_app/widgets/home_page.dart';
 import 'package:notes_app/widgets/editor_page.dart';
+import 'package:notes_app/widgets/flashcard_review_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,6 +50,7 @@ class NotesApp extends StatelessWidget {
         routes: {
           '/': (_) => const HomePage(),
           '/editor': (_) => const EditorPage(),
+          '/flashcards': (_) => const FlashcardReviewPage(cards: []),
         },
       ),
     );
