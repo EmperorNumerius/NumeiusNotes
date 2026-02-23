@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:notes_app/models/document.dart';
 import 'package:notes_app/models/folder.dart';
 import 'package:notes_app/models/content_block.dart';
+import 'package:notes_app/services/study_context_service.dart';
 
 /// Manages documents, folders, persistence, and active tab state.
 class DocumentManager extends ChangeNotifier {
@@ -279,5 +280,31 @@ class DocumentManager extends ChangeNotifier {
     final dir = await _docDir();
     final file = File('${dir.path}/$id.json');
     if (file.existsSync()) file.deleteSync();
+  }
+
+  /// Shared context input for quiz generation across providers.
+  StudyContextResult buildQuizGenerationContext({
+    NoteDocument? document,
+    StudyContextBuildOptions options = const StudyContextBuildOptions(),
+  }) {
+    final target = document ?? activeDocument;
+    if (target == null) {
+      return const StudyContextResult(
+        preview: '',
+        payload: {
+          'note': {'id': null, 'title': '', 'subject': ''},
+          'sections': [],
+        },
+      );
+    }
+    return StudyContextService.build(target, options: options);
+  }
+
+  /// Shared context input for flashcard generation across providers.
+  StudyContextResult buildFlashcardGenerationContext({
+    NoteDocument? document,
+    StudyContextBuildOptions options = const StudyContextBuildOptions(),
+  }) {
+    return buildQuizGenerationContext(document: document, options: options);
   }
 }
