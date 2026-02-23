@@ -11,7 +11,13 @@ class NoteDocument {
   List<ContentBlock> blocks;
   String? audioPath;
   String? pdfPath; // path to imported PDF for annotation
+  String? annotatedPdfPath;
   String transcription; // lecture transcription text
+  DateTime? lastPdfExportAt;
+  String? lastPdfExportStatus;
+  String? lastPdfExportMessage;
+  double? pdfViewportWidth;
+  double? pdfViewportHeight;
   DateTime createdAt;
   DateTime updatedAt;
 
@@ -24,7 +30,13 @@ class NoteDocument {
     List<ContentBlock>? blocks,
     this.audioPath,
     this.pdfPath,
+    this.annotatedPdfPath,
     this.transcription = '',
+    this.lastPdfExportAt,
+    this.lastPdfExportStatus,
+    this.lastPdfExportMessage,
+    this.pdfViewportWidth,
+    this.pdfViewportHeight,
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : strokes = strokes ?? [],
@@ -43,7 +55,13 @@ class NoteDocument {
         'blocks': blocks.map((b) => b.toJson()).toList(),
         'audioPath': audioPath,
         'pdfPath': pdfPath,
+        'annotatedPdfPath': annotatedPdfPath,
         'transcription': transcription,
+        'lastPdfExportAt': lastPdfExportAt?.toIso8601String(),
+        'lastPdfExportStatus': lastPdfExportStatus,
+        'lastPdfExportMessage': lastPdfExportMessage,
+        'pdfViewportWidth': pdfViewportWidth,
+        'pdfViewportHeight': pdfViewportHeight,
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
       };
@@ -64,7 +82,15 @@ class NoteDocument {
           [],
       audioPath: json['audioPath'] as String?,
       pdfPath: json['pdfPath'] as String?,
+      annotatedPdfPath: json['annotatedPdfPath'] as String?,
       transcription: json['transcription'] as String? ?? '',
+      lastPdfExportAt: json['lastPdfExportAt'] != null
+          ? DateTime.parse(json['lastPdfExportAt'] as String)
+          : null,
+      lastPdfExportStatus: json['lastPdfExportStatus'] as String?,
+      lastPdfExportMessage: json['lastPdfExportMessage'] as String?,
+      pdfViewportWidth: (json['pdfViewportWidth'] as num?)?.toDouble(),
+      pdfViewportHeight: (json['pdfViewportHeight'] as num?)?.toDouble(),
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
           : DateTime.now(),

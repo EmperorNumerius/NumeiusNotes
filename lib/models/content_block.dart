@@ -15,6 +15,13 @@ class ContentBlock {
   double y;
   double blockWidth;
 
+  /// Target page index in the PDF.
+  int pageIndex;
+
+  /// Optional normalized anchor ([0,1]) relative to page width/height.
+  double? normalizedX;
+  double? normalizedY;
+
   /// Flexible metadata map — used by chemistry blocks to store compound data,
   /// calculator blocks to store history, etc.
   Map<String, dynamic> metadata;
@@ -28,6 +35,9 @@ class ContentBlock {
     this.x = 100,
     this.y = 100,
     this.blockWidth = 360,
+    this.pageIndex = 0,
+    this.normalizedX,
+    this.normalizedY,
     Map<String, dynamic>? metadata,
   }) : metadata = metadata ?? {};
 
@@ -40,6 +50,9 @@ class ContentBlock {
         'x': x,
         'y': y,
         'blockWidth': blockWidth,
+        'pageIndex': pageIndex,
+        'normalizedX': normalizedX,
+        'normalizedY': normalizedY,
         'metadata': metadata,
       };
 
@@ -53,7 +66,22 @@ class ContentBlock {
       x: (json['x'] as num?)?.toDouble() ?? 100,
       y: (json['y'] as num?)?.toDouble() ?? 100,
       blockWidth: (json['blockWidth'] as num?)?.toDouble() ?? 360,
+      pageIndex: (json['pageIndex'] as num?)?.toInt() ?? 0,
+      normalizedX: (json['normalizedX'] as num?)?.toDouble(),
+      normalizedY: (json['normalizedY'] as num?)?.toDouble(),
       metadata: (json['metadata'] as Map<String, dynamic>?) ?? {},
     );
+  }
+
+  void updateNormalizedAnchor({
+    required double viewportWidth,
+    required double viewportHeight,
+    int? page,
+  }) {
+    final vw = viewportWidth <= 0 ? 1.0 : viewportWidth;
+    final vh = viewportHeight <= 0 ? 1.0 : viewportHeight;
+    normalizedX = (x / vw).clamp(0.0, 1.0);
+    normalizedY = (y / vh).clamp(0.0, 1.0);
+    if (page != null) pageIndex = page;
   }
 }
