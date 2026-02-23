@@ -5,12 +5,26 @@ import 'package:notes_app/controllers/document_manager.dart';
 import 'package:notes_app/controllers/audio_controller.dart';
 import 'package:notes_app/widgets/home_page.dart';
 import 'package:notes_app/widgets/editor_page.dart';
+import 'package:notes_app/config/app_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final docManager = DocumentManager();
   await docManager.init();
+
+  final codeUrl = AppConfig.endpoints.codeRunnerBaseUrl.isEmpty
+      ? 'disabled'
+      : AppConfig.endpoints.codeRunnerBaseUrl;
+  final latexUrl =
+      AppConfig.endpoints.latexApiUrl.isEmpty ? 'disabled' : AppConfig.endpoints.latexApiUrl;
+  debugPrint(
+    '[AppConfig] env=${AppConfig.environmentLabel} '
+    'codeMock=${AppConfig.isExecutionMocked} '
+    'latexMock=${AppConfig.isLatexMocked} '
+    'codeUrl=$codeUrl '
+    'latexUrl=$latexUrl',
+  );
 
   runApp(NotesApp(docManager: docManager));
 }
