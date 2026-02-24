@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:notes_app/services/ai_generation_service.dart';
 import 'package:notes_app/services/providers/fallback_client.dart';
 import 'package:notes_app/services/providers/huggingface_client.dart';
@@ -13,8 +13,6 @@ class AiSettingsController extends ChangeNotifier {
   static const _fallbackEndpointKey = 'fallback_endpoint';
   static const _fallbackModelKey = 'fallback_model';
 
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
-
   AiProviderType provider = AiProviderType.huggingFace;
   String huggingFaceApiKey = '';
   String fallbackApiKey = '';
@@ -22,26 +20,31 @@ class AiSettingsController extends ChangeNotifier {
   String fallbackModel = 'meta-llama/llama-3.1-8b-instruct:free';
 
   Future<void> init() async {
-    final p = await _storage.read(key: _providerKey);
+    final prefs = await SharedPreferences.getInstance();
+
+    final p = prefs.getString(_providerKey);
     if (p == AiProviderType.fallback.name) {
       provider = AiProviderType.fallback;
     }
-    huggingFaceApiKey = await _storage.read(key: _hfKey) ?? '';
-    fallbackApiKey = await _storage.read(key: _fallbackKey) ?? '';
-    fallbackEndpoint = await _storage.read(key: _fallbackEndpointKey) ?? fallbackEndpoint;
-    fallbackModel = await _storage.read(key: _fallbackModelKey) ?? fallbackModel;
+    huggingFaceApiKey = prefs.getString(_hfKey) ?? '';
+    fallbackApiKey = prefs.getString(_fallbackKey) ?? '';
+    fallbackEndpoint =
+        prefs.getString(_fallbackEndpointKey) ?? fallbackEndpoint;
+    fallbackModel = prefs.getString(_fallbackModelKey) ?? fallbackModel;
     notifyListeners();
   }
 
   Future<void> updateProvider(AiProviderType value) async {
     provider = value;
-    await _storage.write(key: _providerKey, value: value.name);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_providerKey, value.name);
     notifyListeners();
   }
 
   Future<void> updateHuggingFaceApiKey(String value) async {
     huggingFaceApiKey = value.trim();
-    await _storage.write(key: _hfKey, value: huggingFaceApiKey);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_hfKey, huggingFaceApiKey);
     notifyListeners();
   }
 
@@ -54,9 +57,10 @@ class AiSettingsController extends ChangeNotifier {
     fallbackEndpoint = endpoint.trim();
     fallbackModel = model.trim();
 
-    await _storage.write(key: _fallbackKey, value: fallbackApiKey);
-    await _storage.write(key: _fallbackEndpointKey, value: fallbackEndpoint);
-    await _storage.write(key: _fallbackModelKey, value: fallbackModel);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_fallbackKey, fallbackApiKey);
+    await prefs.setString(_fallbackEndpointKey, fallbackEndpoint);
+    await prefs.setString(_fallbackModelKey, fallbackModel);
     notifyListeners();
   }
 
@@ -66,7 +70,9 @@ class AiSettingsController extends ChangeNotifier {
       return HuggingFaceClient(apiKey: huggingFaceApiKey);
     }
 
-    if (fallbackApiKey.isEmpty || fallbackEndpoint.isEmpty || fallbackModel.isEmpty) {
+    if (fallbackApiKey.isEmpty ||
+        fallbackEndpoint.isEmpty ||
+        fallbackModel.isEmpty) {
       return null;
     }
 

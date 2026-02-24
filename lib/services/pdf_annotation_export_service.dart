@@ -54,8 +54,8 @@ class PdfAnnotationExportService {
         final pageSize = Size(page.size.width, page.size.height);
         final fallbackViewport =
             (doc.pdfViewportWidth != null && doc.pdfViewportHeight != null)
-                ? Size(doc.pdfViewportWidth!, doc.pdfViewportHeight!)
-                : null;
+            ? Size(doc.pdfViewportWidth!, doc.pdfViewportHeight!)
+            : null;
 
         final pageStrokes = doc.strokes.where((s) => s.pageIndex == pageIndex);
         for (final stroke in pageStrokes) {
@@ -68,10 +68,10 @@ class PdfAnnotationExportService {
 
           final pen = PdfPen(
             PdfColor(
-              stroke.color.red,
-              stroke.color.green,
-              stroke.color.blue,
-              stroke.color.alpha,
+              (stroke.color.r * 255).round(),
+              (stroke.color.g * 255).round(),
+              (stroke.color.b * 255).round(),
+              (stroke.color.a * 255).round(),
             ),
             width: stroke.width,
           );
@@ -90,10 +90,14 @@ class PdfAnnotationExportService {
               .where((b) => b.pageIndex == pageIndex)
               .where((b) => b.content.trim().isNotEmpty);
           for (final block in pageBlocks) {
-            final x = ((block.normalizedX ?? 0) * pageSize.width)
-                .clamp(0.0, pageSize.width - 1);
-            final y = ((block.normalizedY ?? 0) * pageSize.height)
-                .clamp(0.0, pageSize.height - 1);
+            final x = ((block.normalizedX ?? 0) * pageSize.width).clamp(
+              0.0,
+              pageSize.width - 1,
+            );
+            final y = ((block.normalizedY ?? 0) * pageSize.height).clamp(
+              0.0,
+              pageSize.height - 1,
+            );
             final width = block.blockWidth.clamp(80.0, pageSize.width - x);
             final font = PdfStandardFont(PdfFontFamily.helvetica, 12);
             page.graphics.drawString(

@@ -825,7 +825,7 @@ class _CanvasPageState extends State<CanvasPage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            '#${hsv.toColor().value.toRadixString(16).substring(2).toUpperCase()}',
+                            '#${hsv.toColor().toARGB32().toRadixString(16).substring(2).toUpperCase()}',
                             style: TextStyle(
                               color: Colors.white.withAlpha(120),
                               fontFamily: 'Courier New',
