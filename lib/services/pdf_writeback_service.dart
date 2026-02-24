@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:notes_app/models/anchor_type.dart';
+import 'package:notes_app/models/content_block.dart';
 import 'package:notes_app/models/document.dart';
 import 'package:path/path.dart' as p;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -196,7 +197,7 @@ class PdfWritebackService {
     return p.join(p.dirname(sourcePath), '${name}_working$ext');
   }
 
-  String _blockTextForWriteback(dynamic block) {
+  String _blockTextForWriteback(ContentBlock block) {
     if (block.type.name == 'chemistry') {
       final formula = block.metadata['formula'];
       if (formula is String && formula.trim().isNotEmpty) {
@@ -206,4 +207,3 @@ class PdfWritebackService {
     return (block.content as String?) ?? '';
   }
 }
-

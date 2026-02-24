@@ -12,8 +12,7 @@ import 'package:notes_app/services/ai_generation_service.dart';
 import 'package:notes_app/widgets/flashcard_study_page.dart';
 import 'package:notes_app/widgets/quiz_study_page.dart';
 import 'package:notes_app/widgets/tab_manager.dart';
-import 'package:notes_app/widgets/canvas_page.dart';
-import 'package:notes_app/widgets/pdf_viewer_page.dart';
+import 'package:notes_app/widgets/document_surface_page.dart';
 import 'package:notes_app/widgets/audio_toolbar.dart';
 import 'package:notes_app/widgets/transcription_panel.dart';
 import 'package:notes_app/widgets/flashcard_review_page.dart';
@@ -226,10 +225,7 @@ class _EditorPageState extends State<EditorPage> {
                   children: [
                     // Main editor area (canvas or PDF)
                     Expanded(
-                      child: (docMgr.activeDocument?.pdfPath != null)
-                          ? PdfViewerPage(
-                              pdfPath: docMgr.activeDocument!.pdfPath!)
-                          : const CanvasPage(),
+                      child: const DocumentSurfacePage(),
                     ),
                     // Right: Live transcription panel (auto-hide on small screens)
                     if (screenWidth >= 600) const TranscriptionPanel(),

@@ -194,7 +194,7 @@ class _CanvasPageState extends State<CanvasPage> {
   // LEFT SIDEBAR — Block Palette
   // ═══════════════════════════════════════════════════════════
 
-  Widget _buildBlockPalette(dynamic doc, DocumentManager docMgr) {
+  Widget _buildBlockPalette(NoteDocument doc, DocumentManager docMgr) {
     return Container(
       width: 56,
       decoration: BoxDecoration(
@@ -324,7 +324,7 @@ class _CanvasPageState extends State<CanvasPage> {
   }
 
   void _addBlockAtCenter(
-    dynamic doc,
+    NoteDocument doc,
     DocumentManager docMgr,
     ContentBlockType type, {
     double? width,
@@ -342,16 +342,28 @@ class _CanvasPageState extends State<CanvasPage> {
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
-      x: 80.0 + (existingCount % 3) * 30.0,
-      y: 80.0 + existingCount * 60.0,
+      x: (_worldWidth / 2) - 360 + (existingCount % 3) * 30.0,
+      y: 220.0 + existingCount * 60.0,
       blockWidth: defaultWidth,
     );
+    if (doc.hasPdf) {
+      final maybeHit = _pdfHitTest(doc, Offset(block.x, block.y));
+      if (maybeHit != null) {
+        final page = maybeHit.page;
+        final localTopY = page.height - maybeHit.offset.y;
+        block.anchorType = AnchorType.pdfPage;
+        block.pageIndex = page.pageNumber - 1;
+        block.normalizedX = (maybeHit.offset.x / page.width).clamp(0.0, 1.0);
+        block.normalizedY = (localTopY / page.height).clamp(0.0, 1.0);
+      }
+    }
     doc.blocks.add(block);
     docMgr.saveActiveDocument();
+    _queuePdfWriteback(docMgr);
     setState(() {});
   }
 
-  Future<void> _addImageBlock(dynamic doc, DocumentManager docMgr) async {
+  Future<void> _addImageBlock(NoteDocument doc, DocumentManager docMgr) async {
     final imagePath = await ImageService.importImage();
     if (imagePath == null) return;
 
@@ -360,8 +372,8 @@ class _CanvasPageState extends State<CanvasPage> {
       id: _uuid.v4(),
       type: ContentBlockType.image,
       content: '',
-      x: 80.0 + (existingCount % 3) * 30.0,
-      y: 80.0 + existingCount * 60.0,
+      x: (_worldWidth / 2) - 360 + (existingCount % 3) * 30.0,
+      y: 220.0 + existingCount * 60.0,
       blockWidth: 420,
       metadata: {'imagePath': imagePath, 'imageHeight': 240.0},
     );
@@ -369,6 +381,7 @@ class _CanvasPageState extends State<CanvasPage> {
     doc.blocks.add(block);
     doc.touch();
     docMgr.saveActiveDocument();
+    _queuePdfWriteback(docMgr);
     setState(() {});
   }
 
@@ -380,23 +393,99 @@ class _CanvasPageState extends State<CanvasPage> {
     CanvasController ctrl,
     DocumentManager docMgr,
     AudioController audioCtrl,
-    dynamic doc,
+    NoteDocument doc,
   ) {
+    final panelRect = _pdfPanelRect();
+    final pdfPath = doc.activePdfPath;
+    final hasPdfFile = pdfPath != null && File(pdfPath).existsSync();
+
     return InteractiveViewer(
       minScale: 0.5,
       maxScale: 3.0,
       constrained: false,
       child: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        height: 3000,
+        width: _worldWidth,
+        height: _worldHeight,
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
             // Grid background
             Positioned.fill(child: _buildGrid()),
+            if (hasPdfFile)
+              Positioned(
+                left: panelRect.left,
+                top: panelRect.top,
+                width: panelRect.width,
+                height: panelRect.height,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0B0B1A),
+                      border: Border.all(color: Colors.white.withAlpha(18)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: PdfViewer.file(
+                      pdfPath!,
+                      controller: _pdfController,
+                      params: PdfViewerParams(
+                        backgroundColor: const Color(0xFF0A0A1A),
+                        enableTextSelection: !ctrl.isDrawingToolActive,
+                        pagePaintCallbacks: [
+                          (canvas, pageRect, page) {
+                            final pageStrokes = doc.strokes.where(
+                              (s) =>
+                                  s.anchorType == AnchorType.pdfPage &&
+                                  s.pageIndex == page.pageNumber - 1 &&
+                                  s.normalizedPoints != null &&
+                                  s.normalizedPoints!.length >= 2,
+                            );
+                            for (final stroke in pageStrokes) {
+                              final paint = Paint()
+                                ..color = stroke.color
+                                ..strokeWidth = stroke.width
+                                ..style = PaintingStyle.stroke
+                                ..strokeCap = StrokeCap.round
+                                ..strokeJoin = StrokeJoin.round;
+                              final path = Path();
+                              final pts = stroke.normalizedPoints!
+                                  .map(
+                                    (p) => Offset(
+                                      pageRect.left + p.dx * pageRect.width,
+                                      pageRect.top + p.dy * pageRect.height,
+                                    ),
+                                  )
+                                  .toList();
+                              path.moveTo(pts.first.dx, pts.first.dy);
+                              for (var i = 1; i < pts.length; i++) {
+                                path.lineTo(pts[i].dx, pts[i].dy);
+                              }
+                              canvas.drawPath(path, paint);
+                            }
+                          },
+                        ],
+                        pageOverlaysBuilder: (context, pageRect, page) {
+                          return _buildPdfPageOverlayBlocks(
+                            pageRect: pageRect,
+                            page: page,
+                            doc: doc,
+                            docMgr: docMgr,
+                            panelRect: panelRect,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
 
             // Positioned content blocks
-            ...doc.blocks.asMap().entries.map<Widget>((entry) {
-              final block = entry.value as ContentBlock;
+            ...doc.blocks
+                .where((b) => !hasPdfFile || b.anchorType == AnchorType.canvas)
+                .asMap()
+                .entries
+                .map<Widget>((entry) {
+              final block = entry.value;
               return _buildPositionedBlock(block, doc, docMgr);
             }),
 
@@ -411,6 +500,21 @@ class _CanvasPageState extends State<CanvasPage> {
                       final ts = audioCtrl.isRecording
                           ? audioCtrl.elapsedRecordingMs
                           : null;
+                      final hit = _pdfHitTest(doc, e.localPosition);
+                      if (hit != null) {
+                        _activePdfStrokePageIndex = hit.page.pageNumber - 1;
+                        _activePdfStrokePageSize =
+                            Size(hit.page.width, hit.page.height);
+                        _activePdfStrokePoints
+                          ..clear()
+                          ..add(
+                            Offset(hit.offset.x, hit.page.height - hit.offset.y),
+                          );
+                      } else {
+                        _activePdfStrokePageIndex = null;
+                        _activePdfStrokePageSize = null;
+                        _activePdfStrokePoints.clear();
+                      }
                       ctrl.startStroke(
                         e.localPosition,
                         relativeTimestamp: ts,
@@ -421,19 +525,63 @@ class _CanvasPageState extends State<CanvasPage> {
                   onPointerMove: (e) {
                     if (_shouldDraw(e, ctrl) && ctrl.currentStroke != null) {
                       ctrl.addPoint(e.localPosition, pressure: e.pressure);
+                      if (_activePdfStrokePageIndex != null) {
+                        final hit = _pdfHitTest(doc, e.localPosition);
+                        if (hit != null &&
+                            hit.page.pageNumber - 1 == _activePdfStrokePageIndex) {
+                          _activePdfStrokePoints.add(
+                            Offset(hit.offset.x, hit.page.height - hit.offset.y),
+                          );
+                        }
+                      }
                     }
                   },
                   onPointerUp: (e) {
                     if (ctrl.currentStroke != null) {
                       ctrl.endStroke();
-                      doc.strokes = List<Stroke>.from(ctrl.strokes);
+                      final strokes = List<Stroke>.from(ctrl.strokes);
+                      final idx = strokes.length - 1;
+                      if (idx >= 0) {
+                        if (_activePdfStrokePageIndex != null &&
+                            _activePdfStrokePageSize != null &&
+                            _activePdfStrokePoints.length >= 2) {
+                          final size = _activePdfStrokePageSize!;
+                          final normalized = _activePdfStrokePoints
+                              .map(
+                                (p) => Offset(
+                                  (p.dx / size.width).clamp(0.0, 1.0),
+                                  (p.dy / size.height).clamp(0.0, 1.0),
+                                ),
+                              )
+                              .toList();
+                          strokes[idx] = strokes[idx].copyWith(
+                            anchorType: AnchorType.pdfPage,
+                            pageIndex: _activePdfStrokePageIndex,
+                            normalizedPoints: normalized,
+                          );
+                          _queuePdfWriteback(docMgr, immediate: true);
+                        } else {
+                          strokes[idx] = strokes[idx].copyWith(
+                            anchorType: AnchorType.canvas,
+                            clearNormalizedPoints: true,
+                            pageIndex: 0,
+                          );
+                        }
+                      }
+                      ctrl.loadStrokes(strokes);
+                      doc.strokes = strokes;
                       docMgr.saveActiveDocument();
+                      _activePdfStrokePageIndex = null;
+                      _activePdfStrokePageSize = null;
+                      _activePdfStrokePoints.clear();
                     }
                   },
                   child: RepaintBoundary(
                     child: CustomPaint(
                       painter: InkPainter(
-                        strokes: ctrl.visibleStrokes,
+                        strokes: ctrl.visibleStrokes
+                            .where((s) => s.anchorType == AnchorType.canvas)
+                            .toList(),
                         currentStroke: ctrl.currentStroke,
                       ),
                       size: Size.infinite,
@@ -452,9 +600,72 @@ class _CanvasPageState extends State<CanvasPage> {
   // POSITIONED BLOCK — draggable container with header
   // ═══════════════════════════════════════════════════════════
 
+  List<Widget> _buildPdfPageOverlayBlocks({
+    required Rect pageRect,
+    required PdfPage page,
+    required NoteDocument doc,
+    required DocumentManager docMgr,
+    required Rect panelRect,
+  }) {
+    final pageIndex = page.pageNumber - 1;
+    final blocks = doc.blocks.where(
+      (b) => b.anchorType == AnchorType.pdfPage && b.pageIndex == pageIndex,
+    );
+
+    return blocks.map((block) {
+      final left = pageRect.left + (block.normalizedX ?? 0) * pageRect.width;
+      final top = pageRect.top + (block.normalizedY ?? 0) * pageRect.height;
+      final isDragging = _draggingBlockId == block.id;
+
+      return Positioned(
+        left: left,
+        top: top,
+        child: DraggableBlockShell(
+          key: ValueKey('pdf_${block.id}'),
+          block: block,
+          isDragging: isDragging,
+          backgroundColor: const Color(0xFF141428).withAlpha(235),
+          onDragStart: (_) => setState(() => _draggingBlockId = block.id),
+          onDragUpdate: (details) {
+            final rawX = (block.normalizedX ?? 0) + (details.delta.dx / pageRect.width);
+            final rawY = (block.normalizedY ?? 0) + (details.delta.dy / pageRect.height);
+            setState(() {
+              if (rawX < -0.12 || rawX > 1.12 || rawY < -0.12 || rawY > 1.12) {
+                final worldX = panelRect.left + pageRect.left + rawX * pageRect.width;
+                final worldY = panelRect.top + pageRect.top + rawY * pageRect.height;
+                block.updateCanvasAnchor(worldX: worldX, worldY: worldY);
+              } else {
+                block.anchorType = AnchorType.pdfPage;
+                block.normalizedX = rawX.clamp(0.0, 1.0);
+                block.normalizedY = rawY.clamp(0.0, 1.0);
+                block.pageIndex = pageIndex;
+              }
+            });
+          },
+          onDragEnd: (_) {
+            _draggingBlockId = null;
+            doc.touch();
+            docMgr.saveActiveDocument();
+            _queuePdfWriteback(docMgr);
+            setState(() {});
+          },
+          onDelete: () {
+            _disposeTextEditingResources(block.id);
+            doc.blocks.remove(block);
+            doc.touch();
+            docMgr.saveActiveDocument();
+            _queuePdfWriteback(docMgr);
+            setState(() {});
+          },
+          content: _buildBlockContent(block, doc, docMgr),
+        ),
+      );
+    }).toList();
+  }
+
   Widget _buildPositionedBlock(
     ContentBlock block,
-    dynamic doc,
+    NoteDocument doc,
     DocumentManager docMgr,
   ) {
     final isDragging = _draggingBlockId == block.id;
@@ -473,14 +684,31 @@ class _CanvasPageState extends State<CanvasPage> {
           });
         },
         onDragEnd: (_) {
+          if (doc.hasPdf) {
+            final hit = _pdfHitTest(
+              doc,
+              Offset(block.x + block.blockWidth / 2, block.y + 28),
+            );
+            if (hit != null) {
+              final topY = hit.page.height - hit.offset.y;
+              block.anchorType = AnchorType.pdfPage;
+              block.pageIndex = hit.page.pageNumber - 1;
+              block.normalizedX = (hit.offset.x / hit.page.width).clamp(0.0, 1.0);
+              block.normalizedY = (topY / hit.page.height).clamp(0.0, 1.0);
+            }
+          }
           _draggingBlockId = null;
+          doc.touch();
           docMgr.saveActiveDocument();
+          _queuePdfWriteback(docMgr);
           setState(() {});
         },
         onDelete: () {
           _disposeTextEditingResources(block.id);
           doc.blocks.remove(block);
+          doc.touch();
           docMgr.saveActiveDocument();
+          _queuePdfWriteback(docMgr);
           setState(() {});
         },
         content: _buildBlockContent(block, doc, docMgr),
@@ -490,7 +718,7 @@ class _CanvasPageState extends State<CanvasPage> {
 
   Widget _buildBlockContent(
     ContentBlock block,
-    dynamic doc,
+    NoteDocument doc,
     DocumentManager docMgr,
   ) {
     switch (block.type) {
@@ -520,18 +748,23 @@ class _CanvasPageState extends State<CanvasPage> {
           ),
         );
       case ContentBlockType.code:
-        return CodeBlockWidget(
-          block: block,
-          onChanged: (val) {
-            block.content = val;
-            doc.touch();
-            docMgr.saveActiveDocument();
-          },
-          onDelete: () {
-            doc.blocks.remove(block);
-            docMgr.saveActiveDocument();
-            setState(() {});
-          },
+        return KeyedSubtree(
+          key: ValueKey('code_${block.id}'),
+          child: CodeBlockWidget(
+            block: block,
+            onChanged: (val) {
+              block.content = val;
+              doc.touch();
+              docMgr.saveActiveDocument();
+              _queuePdfWriteback(docMgr);
+            },
+            onDelete: () {
+              doc.blocks.remove(block);
+              docMgr.saveActiveDocument();
+              _queuePdfWriteback(docMgr);
+              setState(() {});
+            },
+          ),
         );
       case ContentBlockType.latex:
         return LatexBlockWidget(
@@ -539,6 +772,7 @@ class _CanvasPageState extends State<CanvasPage> {
           onChanged: () {
             doc.touch();
             docMgr.saveActiveDocument();
+            _queuePdfWriteback(docMgr);
           },
         );
       case ContentBlockType.markdown:
@@ -547,6 +781,7 @@ class _CanvasPageState extends State<CanvasPage> {
           onChanged: () {
             doc.touch();
             docMgr.saveActiveDocument();
+            _queuePdfWriteback(docMgr);
           },
         );
       case ContentBlockType.chemistry:
@@ -555,6 +790,7 @@ class _CanvasPageState extends State<CanvasPage> {
           onChanged: () {
             doc.touch();
             docMgr.saveActiveDocument();
+            _queuePdfWriteback(docMgr);
           },
         );
       case ContentBlockType.calculator:
@@ -563,6 +799,7 @@ class _CanvasPageState extends State<CanvasPage> {
           onChanged: () {
             doc.touch();
             docMgr.saveActiveDocument();
+            _queuePdfWriteback(docMgr);
           },
         );
       case ContentBlockType.image:
@@ -571,6 +808,7 @@ class _CanvasPageState extends State<CanvasPage> {
           onChanged: () {
             doc.touch();
             docMgr.saveActiveDocument();
+            _queuePdfWriteback(docMgr);
           },
         );
       case ContentBlockType.flashcard:
@@ -579,6 +817,7 @@ class _CanvasPageState extends State<CanvasPage> {
           onChanged: () {
             doc.touch();
             docMgr.saveActiveDocument();
+            _queuePdfWriteback(docMgr);
           },
         );
     }
@@ -620,12 +859,14 @@ class _CanvasPageState extends State<CanvasPage> {
         return;
       }
       docMgr.saveActiveDocument();
+      _queuePdfWriteback(docMgr);
     });
   }
 
   void _flushTextBlockSave(String blockId, DocumentManager docMgr) {
     _textSaveDebouncers.remove(blockId)?.cancel();
     docMgr.saveActiveDocument();
+    _queuePdfWriteback(docMgr);
   }
 
   void _disposeTextEditingResources(String blockId) {
@@ -655,7 +896,11 @@ class _CanvasPageState extends State<CanvasPage> {
   // FLOATING TOOLBAR
   // ═══════════════════════════════════════════════════════════
 
-  Widget _buildFloatingToolbar(CanvasController ctrl) {
+  Widget _buildFloatingToolbar(
+    CanvasController ctrl,
+    DocumentManager docMgr,
+    NoteDocument doc,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
@@ -765,8 +1010,32 @@ class _CanvasPageState extends State<CanvasPage> {
           ),
           _separator(),
           // Undo / Redo
-          _iconBtn(Icons.undo_rounded, () => ctrl.undo()),
-          _iconBtn(Icons.redo_rounded, () => ctrl.redo()),
+          _iconBtn(Icons.undo_rounded, () {
+            ctrl.undo();
+            doc.strokes = List<Stroke>.from(ctrl.strokes);
+            docMgr.saveActiveDocument();
+            _queuePdfWriteback(docMgr, immediate: true);
+          }),
+          _iconBtn(Icons.redo_rounded, () {
+            ctrl.redo();
+            doc.strokes = List<Stroke>.from(ctrl.strokes);
+            docMgr.saveActiveDocument();
+            _queuePdfWriteback(docMgr, immediate: true);
+          }),
+          if (doc.hasPdf) ...[
+            _separator(),
+            _toolButton(
+              icon: _isWritingBackPdf
+                  ? Icons.hourglass_top_rounded
+                  : Icons.picture_as_pdf_rounded,
+              label: _writebackMessage ?? 'Force PDF Rebuild',
+              isActive: false,
+              onTap: _isWritingBackPdf
+                  ? null
+                  : () => _queuePdfWriteback(docMgr, immediate: true),
+              activeColor: const Color(0xFF38D9A9),
+            ),
+          ],
         ],
       ),
     );
@@ -783,7 +1052,7 @@ class _CanvasPageState extends State<CanvasPage> {
     required IconData icon,
     required String label,
     required bool isActive,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
     Color? activeColor,
   }) {
     final color = activeColor ?? const Color(0xFF00D2FF);
@@ -805,7 +1074,9 @@ class _CanvasPageState extends State<CanvasPage> {
           child: Icon(
             icon,
             size: 16,
-            color: isActive ? color : Colors.white.withAlpha(120),
+            color: onTap == null
+                ? Colors.white.withAlpha(70)
+                : (isActive ? color : Colors.white.withAlpha(120)),
           ),
         ),
       ),
