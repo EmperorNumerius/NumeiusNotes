@@ -164,7 +164,7 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
               SizedBox(
                 width: 120,
                 child: DropdownButtonFormField<int>(
-                  value: _difficulty,
+                  initialValue: _difficulty,
                   items: List.generate(
                     5,
                     (i) => DropdownMenuItem(

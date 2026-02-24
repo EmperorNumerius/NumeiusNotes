@@ -25,8 +25,8 @@ class DocumentManager extends ChangeNotifier {
 
   NoteDocument? get activeDocument =>
       _openTabs.isNotEmpty && _activeTabIndex < _openTabs.length
-          ? _openTabs[_activeTabIndex]
-          : null;
+      ? _openTabs[_activeTabIndex]
+      : null;
 
   // ─── Initialization ───────────────────────────────────────────
 
@@ -40,15 +40,15 @@ class DocumentManager extends ChangeNotifier {
       try {
         final list = jsonDecode(await folderFile.readAsString()) as List;
         _folders.addAll(
-            list.map((f) => NoteFolder.fromJson(f as Map<String, dynamic>)));
+          list.map((f) => NoteFolder.fromJson(f as Map<String, dynamic>)),
+        );
       } catch (_) {}
     }
 
     // Load documents
-    final files = dir
-        .listSync()
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.json') && !f.path.endsWith('_folders.json'));
+    final files = dir.listSync().whereType<File>().where(
+      (f) => f.path.endsWith('.json') && !f.path.endsWith('_folders.json'),
+    );
     for (final file in files) {
       try {
         final json = jsonDecode(await file.readAsString());
@@ -70,11 +70,7 @@ class DocumentManager extends ChangeNotifier {
   // ─── Folder CRUD ──────────────────────────────────────────────
 
   NoteFolder createFolder({String? parentId, String name = 'New Folder'}) {
-    final folder = NoteFolder(
-      id: _uuid.v4(),
-      name: name,
-      parentId: parentId,
-    );
+    final folder = NoteFolder(id: _uuid.v4(), name: name, parentId: parentId);
     _folders.add(folder);
     _saveFolders();
     notifyListeners();
@@ -149,8 +145,9 @@ class DocumentManager extends ChangeNotifier {
       final bodyMatch = d.blocks.any((block) {
         if (block.content.toLowerCase().contains(q)) return true;
         if (block.output.toLowerCase().contains(q)) return true;
-        return _metadataStrings(block.metadata)
-            .any((value) => value.contains(q));
+        return _metadataStrings(
+          block.metadata,
+        ).any((value) => value.contains(q));
       });
 
       if (!titleMatch && !subjectMatch && !bodyMatch) continue;
@@ -158,8 +155,8 @@ class DocumentManager extends ChangeNotifier {
       final rank = titleMatch
           ? 0
           : subjectMatch
-              ? 1
-              : 2;
+          ? 1
+          : 2;
       ranked.add((doc: d, rank: rank));
     }
 
@@ -224,9 +221,7 @@ class DocumentManager extends ChangeNotifier {
       title: 'Note ${_documents.length + 1}',
       folderId: folderId,
       pdfPath: pdfPath,
-      blocks: [
-        ContentBlock(id: _uuid.v4(), type: ContentBlockType.text),
-      ],
+      blocks: [ContentBlock(id: _uuid.v4(), type: ContentBlockType.text)],
     );
     _documents.insert(0, doc);
     saveDocument(doc);
@@ -330,13 +325,13 @@ class DocumentManager extends ChangeNotifier {
     }
   }
 
-
-
   Future<void> saveQuizSet(QuizSet quizSet) async {
     final file = await _generatedFile(quizSet.sourceDocId, 'quizzes.json');
     final existing = await loadQuizSets(quizSet.sourceDocId);
     final updated = [quizSet, ...existing.where((q) => q.id != quizSet.id)];
-    await file.writeAsString(jsonEncode(updated.map((q) => q.toJson()).toList()));
+    await file!.writeAsString(
+      jsonEncode(updated.map((q) => q.toJson()).toList()),
+    );
   }
 
   Future<List<QuizSet>> loadQuizSets(String docId) async {
@@ -354,10 +349,18 @@ class DocumentManager extends ChangeNotifier {
   }
 
   Future<void> saveFlashcardSet(FlashcardSet flashcardSet) async {
-    final file = await _generatedFile(flashcardSet.sourceDocId, 'flashcards.json');
+    final file = await _generatedFile(
+      flashcardSet.sourceDocId,
+      'flashcards.json',
+    );
     final existing = await loadFlashcardSets(flashcardSet.sourceDocId);
-    final updated = [flashcardSet, ...existing.where((f) => f.id != flashcardSet.id)];
-    await file.writeAsString(jsonEncode(updated.map((f) => f.toJson()).toList()));
+    final updated = [
+      flashcardSet,
+      ...existing.where((f) => f.id != flashcardSet.id),
+    ];
+    await file!.writeAsString(
+      jsonEncode(updated.map((f) => f.toJson()).toList()),
+    );
   }
 
   Future<List<FlashcardSet>> loadFlashcardSets(String docId) async {
@@ -379,7 +382,8 @@ class DocumentManager extends ChangeNotifier {
     if (!dir.existsSync()) dir.createSync(recursive: true);
     final file = File('${dir.path}/_folders.json');
     await file.writeAsString(
-        jsonEncode(_folders.map((f) => f.toJson()).toList()));
+      jsonEncode(_folders.map((f) => f.toJson()).toList()),
+    );
   }
 
   Future<void> _deleteFile(String id) async {
@@ -388,7 +392,11 @@ class DocumentManager extends ChangeNotifier {
     if (file.existsSync()) file.deleteSync();
   }
 
-  Future<File?> _generatedFile(String docId, String fileName, {bool create = true}) async {
+  Future<File?> _generatedFile(
+    String docId,
+    String fileName, {
+    bool create = true,
+  }) async {
     final dir = await _generatedDir(docId);
     if (create && !dir.existsSync()) {
       dir.createSync(recursive: true);

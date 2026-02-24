@@ -23,26 +23,30 @@ class FallbackProviderClient implements AiGenerationService {
   }
 
   @override
-  Future<List<Flashcard>> generateFlashcards(AiGenerationContext context) async {
+  Future<List<Flashcard>> generateFlashcards(
+    AiGenerationContext context,
+  ) async {
     final jsonText = await _chatCompletion(_flashcardPrompt(context));
     return parseAndValidateFlashcards(jsonText);
   }
 
   Future<String> _chatCompletion(String prompt) async {
-    final response = await http.post(
-      Uri.parse(endpoint),
-      headers: {
-        'Authorization': 'Bearer $apiKey',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'model': model,
-        'messages': [
-          {'role': 'user', 'content': prompt}
-        ],
-        'temperature': 0.2,
-      }),
-    ).timeout(const Duration(seconds: 60));
+    final response = await http
+        .post(
+          Uri.parse(endpoint),
+          headers: {
+            'Authorization': 'Bearer $apiKey',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'model': model,
+            'messages': [
+              {'role': 'user', 'content': prompt},
+            ],
+            'temperature': 0.2,
+          }),
+        )
+        .timeout(const Duration(seconds: 60));
 
     if (response.statusCode == 429) {
       throw AiGenerationException(
@@ -54,16 +58,23 @@ class FallbackProviderClient implements AiGenerationService {
     if (response.statusCode >= 400) {
       throw AiGenerationException(
         'Fallback provider request failed: ${response.statusCode} ${response.body}',
-        userMessage: 'Fallback provider request failed. Check endpoint, model, and key.',
+        userMessage:
+            'Fallback provider request failed. Check endpoint, model, and key.',
       );
     }
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
     final choices = decoded['choices'] as List?;
-    final first = (choices != null && choices.isNotEmpty) ? choices.first : null;
-    final content = first is Map<String, dynamic>
-        ? (first['message'] as Map<String, dynamic>?)?['content']
-        : null;
+    String? content;
+    if (choices != null && choices.isNotEmpty) {
+      final firstChoice = choices.first;
+      if (firstChoice is Map) {
+        final message = firstChoice['message'];
+        if (message is Map) {
+          content = message['content'] as String?;
+        }
+      }
+    }
     if (content is String && content.trim().isNotEmpty) {
       return content;
     }
@@ -75,7 +86,8 @@ class FallbackProviderClient implements AiGenerationService {
   }
 }
 
-String _quizPrompt(AiGenerationContext context) => '''
+String _quizPrompt(AiGenerationContext context) =>
+    '''
 Return STRICT JSON ONLY.
 {"questions":[{"question":"...","options":["...","...","...","..."],"correctAnswerIndex":0,"explanation":"..."}]}
 
@@ -83,7 +95,8 @@ Use this context:
 ${context.toPrompt()}
 ''';
 
-String _flashcardPrompt(AiGenerationContext context) => '''
+String _flashcardPrompt(AiGenerationContext context) =>
+    '''
 Return STRICT JSON ONLY.
 {"flashcards":[{"front":"...","back":"...","easeFactor":250,"intervalDays":1,"repetitions":0,"nextReviewAt":null}]}
 

@@ -1,5 +1,14 @@
 /// Types of content that can exist in a document.
-enum ContentBlockType { text, code, latex, chemistry, calculator, flashcard, markdown }
+enum ContentBlockType {
+  text,
+  code,
+  latex,
+  chemistry,
+  calculator,
+  flashcard,
+  markdown,
+  image,
+}
 
 /// A block of typed content (text, code, LaTeX, chemistry, or calculator) in a document.
 /// Each block has a free-form position on the canvas.
@@ -42,19 +51,19 @@ class ContentBlock {
   }) : metadata = metadata ?? {};
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type.name,
-        'content': content,
-        'language': language,
-        'output': output,
-        'x': x,
-        'y': y,
-        'blockWidth': blockWidth,
-        'pageIndex': pageIndex,
-        'normalizedX': normalizedX,
-        'normalizedY': normalizedY,
-        'metadata': metadata,
-      };
+    'id': id,
+    'type': type.name,
+    'content': content,
+    'language': language,
+    'output': output,
+    'x': x,
+    'y': y,
+    'blockWidth': blockWidth,
+    'pageIndex': pageIndex,
+    'normalizedX': normalizedX,
+    'normalizedY': normalizedY,
+    'metadata': metadata,
+  };
 
   factory ContentBlock.fromJson(Map<String, dynamic> json) {
     final typeName = json['type'] as String?;
@@ -75,8 +84,6 @@ class ContentBlock {
       normalizedX: (json['normalizedX'] as num?)?.toDouble(),
       normalizedY: (json['normalizedY'] as num?)?.toDouble(),
       metadata: (json['metadata'] as Map<String, dynamic>?) ?? {},
-      metadata:
-          Map<String, dynamic>.from(json['metadata'] as Map? ?? const {}),
     );
   }
 

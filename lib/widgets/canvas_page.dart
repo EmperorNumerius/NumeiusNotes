@@ -149,7 +149,7 @@ class _CanvasPageState extends State<CanvasPage> {
             onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.latex),
           ),
           _paletteItem(
-            icon: Icons.markdown_rounded,
+            icon: Icons.article_rounded,
             label: 'Markdown',
             color: const Color(0xFFFF6B6B),
             onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.markdown, width: 460),
@@ -171,6 +171,8 @@ class _CanvasPageState extends State<CanvasPage> {
             label: 'Image',
             color: const Color(0xFF4DABF7),
             onTap: () => _addImageBlock(doc, docMgr),
+          ),
+          _paletteItem(
             icon: Icons.style_rounded,
             label: 'Flashcard',
             color: const Color(0xFFFF6B9A),
@@ -228,8 +230,12 @@ class _CanvasPageState extends State<CanvasPage> {
   void _addBlockAtCenter(dynamic doc, DocumentManager docMgr, ContentBlockType type, {double? width}) {
     // Stack blocks vertically, offset from each other
     final existingCount = doc.blocks.length as int;
-    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : type == ContentBlockType.markdown ? 460 : 360);
-    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : type == ContentBlockType.image ? 420 : 360);
+    final defaultWidth = width ??
+        (type == ContentBlockType.code
+            ? 500
+            : type == ContentBlockType.markdown || type == ContentBlockType.image
+                ? 460
+                : 360);
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
@@ -407,54 +413,16 @@ class _CanvasPageState extends State<CanvasPage> {
   }
 
   Widget _buildBlockHeader(ContentBlock block, dynamic doc, DocumentManager docMgr) {
-    final (typeColor, typeIcon, typeLabel) = switch (block.type) {
-      ContentBlockType.text =>
-        (const Color(0xFF00D2FF), Icons.text_fields_rounded, 'Text'),
-      ContentBlockType.code =>
-        (const Color(0xFF51CF66), Icons.code_rounded, 'Code'),
-      ContentBlockType.latex =>
-        (const Color(0xFF7C3AED), Icons.functions_rounded, 'LaTeX'),
-      ContentBlockType.chemistry =>
-        (const Color(0xFF38D9A9), Icons.science_rounded, 'Chemistry'),
-      ContentBlockType.calculator =>
-        (const Color(0xFFFFAA5C), Icons.calculate_rounded, 'Calculator'),
-      ContentBlockType.image =>
-        (const Color(0xFF4DABF7), Icons.image_rounded, 'Image'),
+    final (Color typeColor, IconData typeIcon, String typeLabel) = switch (block.type) {
+      ContentBlockType.text => (const Color(0xFF00D2FF), Icons.text_fields_rounded, 'Text'),
+      ContentBlockType.code => (const Color(0xFF51CF66), Icons.code_rounded, 'Code'),
+      ContentBlockType.latex => (const Color(0xFF7C3AED), Icons.functions_rounded, 'LaTeX'),
+      ContentBlockType.chemistry => (const Color(0xFF38D9A9), Icons.science_rounded, 'Chemistry'),
+      ContentBlockType.calculator => (const Color(0xFFFFAA5C), Icons.calculate_rounded, 'Calculator'),
+      ContentBlockType.image => (const Color(0xFF4DABF7), Icons.image_rounded, 'Image'),
+      ContentBlockType.markdown => (const Color(0xFFFF6B6B), Icons.article_rounded, 'Markdown'),
+      ContentBlockType.flashcard => (const Color(0xFFFF6B9A), Icons.style_rounded, 'Flashcard'),
     };
-    Color typeColor;
-    IconData typeIcon;
-    String typeLabel;
-
-    switch (block.type) {
-      case ContentBlockType.text:
-        typeColor = const Color(0xFF00D2FF);
-        typeIcon = Icons.text_fields_rounded;
-        typeLabel = 'Text';
-      case ContentBlockType.code:
-        typeColor = const Color(0xFF51CF66);
-        typeIcon = Icons.code_rounded;
-        typeLabel = 'Code';
-      case ContentBlockType.latex:
-        typeColor = const Color(0xFF7C3AED);
-        typeIcon = Icons.functions_rounded;
-        typeLabel = 'LaTeX';
-      case ContentBlockType.markdown:
-        typeColor = const Color(0xFFFF6B6B);
-        typeIcon = Icons.markdown_rounded;
-        typeLabel = 'Markdown';
-      case ContentBlockType.chemistry:
-        typeColor = const Color(0xFF38D9A9);
-        typeIcon = Icons.science_rounded;
-        typeLabel = 'Chemistry';
-      case ContentBlockType.calculator:
-        typeColor = const Color(0xFFFFAA5C);
-        typeIcon = Icons.calculate_rounded;
-        typeLabel = 'Calculator';
-      case ContentBlockType.flashcard:
-        typeColor = const Color(0xFFFF6B9A);
-        typeIcon = Icons.style_rounded;
-        typeLabel = 'Flashcard';
-    }
 
     return Container(
       height: 28,

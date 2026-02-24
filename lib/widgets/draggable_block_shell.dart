@@ -92,14 +92,15 @@ class _BlockHeader extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withAlpha(10),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withAlpha(6)),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.white.withAlpha(6))),
       ),
       child: Row(
         children: [
-          Icon(Icons.drag_indicator_rounded,
-              size: 14, color: Colors.white.withAlpha(40)),
+          Icon(
+            Icons.drag_indicator_rounded,
+            size: 14,
+            color: Colors.white.withAlpha(40),
+          ),
           const SizedBox(width: 4),
           Icon(icon, size: 12, color: color.withAlpha(150)),
           const SizedBox(width: 4),
@@ -116,8 +117,11 @@ class _BlockHeader extends StatelessWidget {
             onTap: onDelete,
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
-              child: Icon(Icons.close_rounded,
-                  size: 13, color: Colors.white.withAlpha(50)),
+              child: Icon(
+                Icons.close_rounded,
+                size: 13,
+                color: Colors.white.withAlpha(50),
+              ),
             ),
           ),
         ],
@@ -169,6 +173,24 @@ _BlockMetadata _blockMetadata(ContentBlockType type) {
         color: Color(0xFFFFAA5C),
         icon: Icons.calculate_rounded,
         label: 'Calculator',
+      );
+    case ContentBlockType.flashcard:
+      return const _BlockMetadata(
+        color: Color(0xFFFF6B9A),
+        icon: Icons.style_rounded,
+        label: 'Flashcard',
+      );
+    case ContentBlockType.markdown:
+      return const _BlockMetadata(
+        color: Color(0xFFFF6B6B),
+        icon: Icons.article_rounded,
+        label: 'Markdown',
+      );
+    case ContentBlockType.image:
+      return const _BlockMetadata(
+        color: Color(0xFF4DABF7),
+        icon: Icons.image_rounded,
+        label: 'Image',
       );
   }
 }

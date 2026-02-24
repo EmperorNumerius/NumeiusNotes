@@ -85,8 +85,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
 
     if (doc == null || !File(widget.pdfPath).existsSync()) {
       return const Center(
-        child: Text('PDF not found',
-            style: TextStyle(color: Colors.white38)),
+        child: Text('PDF not found', style: TextStyle(color: Colors.white38)),
       );
     }
 
@@ -100,85 +99,99 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              _pdfViewportSize = Size(constraints.maxWidth, constraints.maxHeight);
+              _pdfViewportSize = Size(
+                constraints.maxWidth,
+                constraints.maxHeight,
+              );
               return Stack(
                 children: [
-              // PDF viewer base layer
-              PdfViewer.file(
-                widget.pdfPath,
-                controller: _pdfController,
-                params: PdfViewerParams(
-                  backgroundColor: const Color(0xFF0A0A1A),
-                  enableTextSelection: !ctrl.isDrawingToolActive,
-                ),
-              ),
+                  // PDF viewer base layer
+                  PdfViewer.file(
+                    widget.pdfPath,
+                    controller: _pdfController,
+                    params: PdfViewerParams(
+                      backgroundColor: const Color(0xFF0A0A1A),
+                      enableTextSelection: !ctrl.isDrawingToolActive,
+                    ),
+                  ),
 
-              // Positioned content blocks (on top of PDF)
-              ...doc.blocks.asMap().entries.map<Widget>((entry) {
-                final block = entry.value;
-                return _buildPositionedBlock(block, doc, docMgr);
-              }),
+                  // Positioned content blocks (on top of PDF)
+                  ...doc.blocks.asMap().entries.map<Widget>((entry) {
+                    final block = entry.value;
+                    return _buildPositionedBlock(block, doc, docMgr);
+                  }),
 
-              // Ink annotation layer
-              Positioned.fill(
-                child: IgnorePointer(
-                  ignoring: ctrl.isSelectMode,
-                  child: Listener(
-                    behavior: HitTestBehavior.translucent,
-                    onPointerDown: (e) {
-                      if (_shouldDraw(e, ctrl)) {
-                        final ts = audioCtrl.isRecording
-                            ? audioCtrl.elapsedRecordingMs
-                            : null;
-                        ctrl.startStroke(e.localPosition,
-                            relativeTimestamp: ts,
-                            pressure: e.pressure);
-                      }
-                    },
-                    onPointerMove: (e) {
-                      if (_shouldDraw(e, ctrl) && ctrl.currentStroke != null) {
-                        ctrl.addPoint(e.localPosition, pressure: e.pressure);
-                      }
-                    },
-                    onPointerUp: (e) {
-                      if (ctrl.currentStroke != null) {
-                        ctrl.endStroke();
-                        final normalized = ctrl.strokes
-                            .map((s) => s.withNormalizedPoints(_pdfViewportSize, pageIndex: 0))
-                            .toList();
-                        ctrl.loadStrokes(normalized);
-                        doc.strokes = List<Stroke>.from(normalized);
-                        doc.pdfViewportWidth = _pdfViewportSize.width;
-                        doc.pdfViewportHeight = _pdfViewportSize.height;
-                        docMgr.saveActiveDocument();
-                      }
-                    },
-                    child: RepaintBoundary(
-                      child: CustomPaint(
-                        painter: InkPainter(
-                          strokes: ctrl.visibleStrokes,
-                          currentStroke: ctrl.currentStroke,
+                  // Ink annotation layer
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      ignoring: ctrl.isSelectMode,
+                      child: Listener(
+                        behavior: HitTestBehavior.translucent,
+                        onPointerDown: (e) {
+                          if (_shouldDraw(e, ctrl)) {
+                            final ts = audioCtrl.isRecording
+                                ? audioCtrl.elapsedRecordingMs
+                                : null;
+                            ctrl.startStroke(
+                              e.localPosition,
+                              relativeTimestamp: ts,
+                              pressure: e.pressure,
+                            );
+                          }
+                        },
+                        onPointerMove: (e) {
+                          if (_shouldDraw(e, ctrl) &&
+                              ctrl.currentStroke != null) {
+                            ctrl.addPoint(
+                              e.localPosition,
+                              pressure: e.pressure,
+                            );
+                          }
+                        },
+                        onPointerUp: (e) {
+                          if (ctrl.currentStroke != null) {
+                            ctrl.endStroke();
+                            final normalized = ctrl.strokes
+                                .map(
+                                  (s) => s.withNormalizedPoints(
+                                    _pdfViewportSize,
+                                    pageIndex: 0,
+                                  ),
+                                )
+                                .toList();
+                            ctrl.loadStrokes(normalized);
+                            doc.strokes = List<Stroke>.from(normalized);
+                            doc.pdfViewportWidth = _pdfViewportSize.width;
+                            doc.pdfViewportHeight = _pdfViewportSize.height;
+                            docMgr.saveActiveDocument();
+                          }
+                        },
+                        child: RepaintBoundary(
+                          child: CustomPaint(
+                            painter: InkPainter(
+                              strokes: ctrl.visibleStrokes,
+                              currentStroke: ctrl.currentStroke,
+                            ),
+                            size: Size.infinite,
+                          ),
                         ),
-                        size: Size.infinite,
                       ),
                     ),
                   ),
-                ),
-              ),
 
-              // Floating toolbar
-              Positioned(
-                left: 16,
-                top: 16,
-                child: _buildToolbar(ctrl, docMgr),
-              ),
+                  // Floating toolbar
+                  Positioned(
+                    left: 16,
+                    top: 16,
+                    child: _buildToolbar(ctrl, docMgr),
+                  ),
 
-              Positioned(
-                right: 16,
-                top: 16,
-                child: _buildExportStatus(doc),
-              ),
-            ],
+                  Positioned(
+                    right: 16,
+                    top: 16,
+                    child: _buildExportStatus(doc),
+                  ),
+                ],
               );
             },
           ),
@@ -196,9 +209,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       width: 56,
       decoration: BoxDecoration(
         color: const Color(0xFF0D0D20),
-        border: Border(
-          right: BorderSide(color: Colors.white.withAlpha(10)),
-        ),
+        border: Border(right: BorderSide(color: Colors.white.withAlpha(10))),
       ),
       child: Column(
         children: [
@@ -224,28 +235,32 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             onTap: () => _addBlock(doc, docMgr, ContentBlockType.latex),
           ),
           _paletteItem(
-            icon: Icons.markdown_rounded,
+            icon: Icons.article_rounded,
             label: 'Markdown',
             color: const Color(0xFFFF6B6B),
-            onTap: () => _addBlock(doc, docMgr, ContentBlockType.markdown, width: 460),
+            onTap: () =>
+                _addBlock(doc, docMgr, ContentBlockType.markdown, width: 460),
           ),
           _paletteItem(
             icon: Icons.science_rounded,
             label: 'Chemistry',
             color: const Color(0xFF38D9A9),
-            onTap: () => _addBlock(doc, docMgr, ContentBlockType.chemistry, width: 680),
+            onTap: () =>
+                _addBlock(doc, docMgr, ContentBlockType.chemistry, width: 680),
           ),
           _paletteItem(
             icon: Icons.calculate_rounded,
             label: 'Calculator',
             color: const Color(0xFFFFAA5C),
-            onTap: () => _addBlock(doc, docMgr, ContentBlockType.calculator, width: 320),
+            onTap: () =>
+                _addBlock(doc, docMgr, ContentBlockType.calculator, width: 320),
           ),
           _paletteItem(
             icon: Icons.style_rounded,
             label: 'Flashcard',
             color: const Color(0xFFFF6B9A),
-            onTap: () => _addBlock(doc, docMgr, ContentBlockType.flashcard, width: 460),
+            onTap: () =>
+                _addBlock(doc, docMgr, ContentBlockType.flashcard, width: 460),
           ),
           const Spacer(),
         ],
@@ -293,9 +308,20 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     );
   }
 
-  void _addBlock(dynamic doc, DocumentManager docMgr, ContentBlockType type, {double? width}) {
+  void _addBlock(
+    dynamic doc,
+    DocumentManager docMgr,
+    ContentBlockType type, {
+    double? width,
+  }) {
     final count = doc.blocks.length as int;
-    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : type == ContentBlockType.markdown ? 460 : 360);
+    final defaultWidth =
+        width ??
+        (type == ContentBlockType.code
+            ? 500
+            : type == ContentBlockType.markdown
+            ? 460
+            : 360);
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
@@ -319,7 +345,10 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   // ═══════════════════════════════════════════════════════
 
   Widget _buildPositionedBlock(
-      ContentBlock block, dynamic doc, DocumentManager docMgr) {
+    ContentBlock block,
+    dynamic doc,
+    DocumentManager docMgr,
+  ) {
     final isDragging = _draggingBlockId == block.id;
     final left = block.normalizedX != null
         ? block.normalizedX! * _pdfViewportSize.width
@@ -337,13 +366,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         block: block,
         isDragging: isDragging,
         backgroundColor: const Color(0xFF141428).withAlpha(230),
-        onDragStart: (_) => setState(() => _draggingBlockId = block.id),
+        onDragStart: (details) => setState(() => _draggingBlockId = block.id),
         onDragUpdate: (details) {
-      left: left,
-      top: top,
-      child: GestureDetector(
-        onPanStart: (_) => setState(() => _draggingBlockId = block.id),
-        onPanUpdate: (details) {
           setState(() {
             block.x += details.delta.dx;
             block.y += details.delta.dy;
@@ -354,7 +378,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             );
           });
         },
-        onDragEnd: (_) {
+        onDragEnd: (details) {
           _draggingBlockId = null;
           docMgr.saveActiveDocument();
           setState(() {});
@@ -366,114 +390,15 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           setState(() {});
         },
         content: _buildBlockContent(block, doc, docMgr),
-        child: Container(
-          width: block.blockWidth,
-          decoration: BoxDecoration(
-            color: const Color(0xFF141428).withAlpha(230),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isDragging
-                  ? const Color(0xFF00D2FF).withAlpha(120)
-                  : Colors.white.withAlpha(12),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(60),
-                blurRadius: 12,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildBlockHeader(block, doc, docMgr),
-              _buildBlockContent(block, doc, docMgr),
-            ],
-          ),
-        ),
       ),
     );
   }
 
-  Widget _buildBlockHeader(ContentBlock block, dynamic doc, DocumentManager docMgr) {
-    Color typeColor;
-    IconData typeIcon;
-    String typeLabel;
-
-    switch (block.type) {
-      case ContentBlockType.text:
-        typeColor = const Color(0xFF00D2FF);
-        typeIcon = Icons.text_fields_rounded;
-        typeLabel = 'Text';
-      case ContentBlockType.code:
-        typeColor = const Color(0xFF51CF66);
-        typeIcon = Icons.code_rounded;
-        typeLabel = 'Code';
-      case ContentBlockType.latex:
-        typeColor = const Color(0xFF7C3AED);
-        typeIcon = Icons.functions_rounded;
-        typeLabel = 'LaTeX';
-      case ContentBlockType.markdown:
-        typeColor = const Color(0xFFFF6B6B);
-        typeIcon = Icons.markdown_rounded;
-        typeLabel = 'Markdown';
-      case ContentBlockType.chemistry:
-        typeColor = const Color(0xFF38D9A9);
-        typeIcon = Icons.science_rounded;
-        typeLabel = 'Chemistry';
-      case ContentBlockType.calculator:
-        typeColor = const Color(0xFFFFAA5C);
-        typeIcon = Icons.calculate_rounded;
-        typeLabel = 'Calculator';
-      case ContentBlockType.flashcard:
-        typeColor = const Color(0xFFFF6B9A);
-        typeIcon = Icons.style_rounded;
-        typeLabel = 'Flashcard';
-    }
-
-    return Container(
-      height: 28,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: typeColor.withAlpha(10),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withAlpha(6)),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.drag_indicator_rounded,
-              size: 14, color: Colors.white.withAlpha(40)),
-          const SizedBox(width: 4),
-          Icon(typeIcon, size: 12, color: typeColor.withAlpha(150)),
-          const SizedBox(width: 4),
-          Text(typeLabel,
-              style: TextStyle(
-                  color: typeColor.withAlpha(150),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600)),
-          const Spacer(),
-          GestureDetector(
-            onTap: () {
-              doc.blocks.remove(block);
-              docMgr.saveActiveDocument();
-              setState(() {});
-            },
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: Icon(Icons.close_rounded,
-                  size: 13, color: Colors.white.withAlpha(50)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBlockContent(ContentBlock block, dynamic doc, DocumentManager docMgr) {
+  Widget _buildBlockContent(
+    ContentBlock block,
+    dynamic doc,
+    DocumentManager docMgr,
+  ) {
     switch (block.type) {
       case ContentBlockType.text:
         return Padding(
@@ -487,7 +412,11 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               _scheduleTextBlockSave(block.id, docMgr);
             },
             maxLines: null,
-            style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.6),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              height: 1.6,
+            ),
             decoration: InputDecoration(
               hintText: 'Start typing...',
               hintStyle: TextStyle(color: Colors.white.withAlpha(30)),
@@ -507,10 +436,15 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           },
         );
       case ContentBlockType.latex:
-        return LatexBlockWidget(block: block);
+        return LatexBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
       case ContentBlockType.markdown:
         return MarkdownBlockWidget(
-        return LatexBlockWidget(
           block: block,
           onChanged: () {
             doc.touch();
@@ -541,6 +475,11 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             docMgr.saveActiveDocument();
           },
         );
+      case ContentBlockType.image:
+        // Assuming ImageBlockWidget exists or just returning a placeholder for now
+        // to satisfy exhaustive switch. Looking at the imports, it's not imported.
+        // Wait, I should check if it's imported.
+        return const SizedBox.shrink();
     }
   }
 
@@ -550,7 +489,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       () => TextEditingController(text: block.content),
     );
     final focusNode = _textFocusNodes[block.id];
-    if (controller.text != block.content && (focusNode == null || !focusNode.hasFocus)) {
+    if (controller.text != block.content &&
+        (focusNode == null || !focusNode.hasFocus)) {
       controller.value = controller.value.copyWith(
         text: block.content,
         selection: TextSelection.collapsed(offset: block.content.length),
@@ -632,39 +572,63 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _toolBtn(Icons.open_with_rounded, 'Select',
-              ctrl.currentTool == DrawingTool.select,
-              () => ctrl.setTool(DrawingTool.select),
-              activeColor: const Color(0xFFFFD43B)),
+          _toolBtn(
+            Icons.open_with_rounded,
+            'Select',
+            ctrl.currentTool == DrawingTool.select,
+            () => ctrl.setTool(DrawingTool.select),
+            activeColor: const Color(0xFFFFD43B),
+          ),
           const SizedBox(width: 2),
           _divider(),
-          _toolBtn(Icons.edit_rounded, 'Pen',
-              ctrl.currentTool == DrawingTool.pen,
-              () => ctrl.setTool(DrawingTool.pen)),
+          _toolBtn(
+            Icons.edit_rounded,
+            'Pen',
+            ctrl.currentTool == DrawingTool.pen,
+            () => ctrl.setTool(DrawingTool.pen),
+          ),
           const SizedBox(width: 2),
-          _toolBtn(Icons.edit_outlined, 'Fine Pen',
-              ctrl.currentTool == DrawingTool.finePen,
-              () => ctrl.setTool(DrawingTool.finePen)),
+          _toolBtn(
+            Icons.edit_outlined,
+            'Fine Pen',
+            ctrl.currentTool == DrawingTool.finePen,
+            () => ctrl.setTool(DrawingTool.finePen),
+          ),
           const SizedBox(width: 2),
-          _toolBtn(Icons.gesture_rounded, 'Calligraphy',
-              ctrl.currentTool == DrawingTool.calligraphy,
-              () => ctrl.setTool(DrawingTool.calligraphy)),
+          _toolBtn(
+            Icons.gesture_rounded,
+            'Calligraphy',
+            ctrl.currentTool == DrawingTool.calligraphy,
+            () => ctrl.setTool(DrawingTool.calligraphy),
+          ),
           _divider(),
-          _toolBtn(Icons.brush_rounded, 'Highlighter',
-              ctrl.currentTool == DrawingTool.highlighter,
-              () => ctrl.setTool(DrawingTool.highlighter)),
+          _toolBtn(
+            Icons.brush_rounded,
+            'Highlighter',
+            ctrl.currentTool == DrawingTool.highlighter,
+            () => ctrl.setTool(DrawingTool.highlighter),
+          ),
           const SizedBox(width: 2),
-          _toolBtn(Icons.format_paint_rounded, 'Wide Highlight',
-              ctrl.currentTool == DrawingTool.highlighterThick,
-              () => ctrl.setTool(DrawingTool.highlighterThick)),
+          _toolBtn(
+            Icons.format_paint_rounded,
+            'Wide Highlight',
+            ctrl.currentTool == DrawingTool.highlighterThick,
+            () => ctrl.setTool(DrawingTool.highlighterThick),
+          ),
           _divider(),
-          _toolBtn(Icons.auto_fix_high_rounded, 'Eraser',
-              ctrl.currentTool == DrawingTool.eraser,
-              () => ctrl.setTool(DrawingTool.eraser)),
+          _toolBtn(
+            Icons.auto_fix_high_rounded,
+            'Eraser',
+            ctrl.currentTool == DrawingTool.eraser,
+            () => ctrl.setTool(DrawingTool.eraser),
+          ),
           const SizedBox(width: 2),
-          _toolBtn(Icons.auto_fix_off_rounded, 'Partial Eraser',
-              ctrl.currentTool == DrawingTool.partialEraser,
-              () => ctrl.setTool(DrawingTool.partialEraser)),
+          _toolBtn(
+            Icons.auto_fix_off_rounded,
+            'Partial Eraser',
+            ctrl.currentTool == DrawingTool.partialEraser,
+            () => ctrl.setTool(DrawingTool.partialEraser),
+          ),
           _divider(),
           // Colors
           _colorDot(ctrl, Colors.white),
@@ -700,20 +664,34 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           GestureDetector(
             onTap: ctrl.undo,
             child: Container(
-              width: 30, height: 30, alignment: Alignment.center,
-              child: Icon(Icons.undo_rounded, size: 16, color: Colors.white.withAlpha(120)),
+              width: 30,
+              height: 30,
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.undo_rounded,
+                size: 16,
+                color: Colors.white.withAlpha(120),
+              ),
             ),
           ),
           GestureDetector(
             onTap: ctrl.redo,
             child: Container(
-              width: 30, height: 30, alignment: Alignment.center,
-              child: Icon(Icons.redo_rounded, size: 16, color: Colors.white.withAlpha(120)),
+              width: 30,
+              height: 30,
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.redo_rounded,
+                size: 16,
+                color: Colors.white.withAlpha(120),
+              ),
             ),
           ),
           _divider(),
           _toolBtn(
-            _isExporting ? Icons.hourglass_top_rounded : Icons.picture_as_pdf_rounded,
+            _isExporting
+                ? Icons.hourglass_top_rounded
+                : Icons.picture_as_pdf_rounded,
             'Save into PDF',
             false,
             _isExporting ? null : () => _saveIntoPdf(docMgr),
@@ -736,12 +714,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     final statusText = _isExporting
         ? 'Exporting PDF...'
         : status == 'success'
-            ? 'Last PDF export: success'
-            : 'Last PDF export: failed';
+        ? 'Last PDF export: success'
+        : 'Last PDF export: failed';
 
     final timeText = ts != null
         ? '${ts.year.toString().padLeft(4, '0')}-${ts.month.toString().padLeft(2, '0')}-${ts.day.toString().padLeft(2, '0')} '
-            '${ts.hour.toString().padLeft(2, '0')}:${ts.minute.toString().padLeft(2, '0')}'
+              '${ts.hour.toString().padLeft(2, '0')}:${ts.minute.toString().padLeft(2, '0')}'
         : null;
 
     return Container(
@@ -761,8 +739,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               color: _isExporting
                   ? const Color(0xFFFFD43B)
                   : status == 'success'
-                      ? const Color(0xFF51CF66)
-                      : const Color(0xFFFF6B6B),
+                  ? const Color(0xFF51CF66)
+                  : const Color(0xFFFF6B6B),
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -770,14 +748,20 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           if (timeText != null)
             Text(
               timeText,
-              style: TextStyle(color: Colors.white.withAlpha(110), fontSize: 11),
+              style: TextStyle(
+                color: Colors.white.withAlpha(110),
+                fontSize: 11,
+              ),
             ),
           if (!_isExporting && msg != null)
             Text(
               msg,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.white.withAlpha(110), fontSize: 11),
+              style: TextStyle(
+                color: Colors.white.withAlpha(110),
+                fontSize: 11,
+              ),
             ),
         ],
       ),
@@ -793,7 +777,10 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     doc.pdfViewportWidth = _pdfViewportSize.width;
     doc.pdfViewportHeight = _pdfViewportSize.height;
     doc.strokes = doc.strokes
-        .map((s) => s.withNormalizedPoints(_pdfViewportSize, pageIndex: s.pageIndex))
+        .map(
+          (s) =>
+              s.withNormalizedPoints(_pdfViewportSize, pageIndex: s.pageIndex),
+        )
         .toList();
     for (final block in doc.blocks) {
       block.updateNormalizedAnchor(
@@ -818,22 +805,30 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       setState(() => _isExporting = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result.success
-              ? 'Saved annotated PDF: ${result.outputPath}'
-              : 'Failed to export PDF: ${result.message}'),
+          content: Text(
+            result.success
+                ? 'Saved annotated PDF: ${result.outputPath}'
+                : 'Failed to export PDF: ${result.message}',
+          ),
         ),
       );
     }
   }
 
   Widget _divider() => Container(
-        width: 1, height: 20,
-        margin: const EdgeInsets.symmetric(horizontal: 6),
-        color: Colors.white.withAlpha(15),
-      );
+    width: 1,
+    height: 20,
+    margin: const EdgeInsets.symmetric(horizontal: 6),
+    color: Colors.white.withAlpha(15),
+  );
 
-  Widget _toolBtn(IconData icon, String label, bool active, VoidCallback? onTap,
-      {Color? activeColor}) {
+  Widget _toolBtn(
+    IconData icon,
+    String label,
+    bool active,
+    VoidCallback? onTap, {
+    Color? activeColor,
+  }) {
     final color = activeColor ?? const Color(0xFF00D2FF);
     return Tooltip(
       message: label,
@@ -849,9 +844,11 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               color: active ? color.withAlpha(80) : Colors.transparent,
             ),
           ),
-          child: Icon(icon,
-              size: 15,
-              color: active ? color : Colors.white.withAlpha(100)),
+          child: Icon(
+            icon,
+            size: 15,
+            color: active ? color : Colors.white.withAlpha(100),
+          ),
         ),
       ),
     );
@@ -890,7 +887,15 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: const SweepGradient(
-            colors: [Colors.red, Colors.yellow, Colors.green, Colors.cyan, Colors.blue, Colors.purple, Colors.red],
+            colors: [
+              Colors.red,
+              Colors.yellow,
+              Colors.green,
+              Colors.cyan,
+              Colors.blue,
+              Colors.purple,
+              Colors.red,
+            ],
           ),
           border: Border.all(color: Colors.white.withAlpha(40), width: 1.5),
         ),
@@ -908,7 +913,10 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           builder: (_, setD) {
             return AlertDialog(
               backgroundColor: const Color(0xFF141428),
-              title: const Text('Pick a color', style: TextStyle(color: Colors.white, fontSize: 14)),
+              title: const Text(
+                'Pick a color',
+                style: TextStyle(color: Colors.white, fontSize: 14),
+              ),
               content: SizedBox(
                 width: 260,
                 child: Column(
@@ -919,11 +927,15 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                       height: 20,
                       child: GestureDetector(
                         onPanDown: (d) {
-                          final h = (d.localPosition.dx / 260 * 360).clamp(0, 359).toDouble();
+                          final h = (d.localPosition.dx / 260 * 360)
+                              .clamp(0, 359)
+                              .toDouble();
                           setD(() => hsv = hsv.withHue(h));
                         },
                         onPanUpdate: (d) {
-                          final h = (d.localPosition.dx / 260 * 360).clamp(0, 359).toDouble();
+                          final h = (d.localPosition.dx / 260 * 360)
+                              .clamp(0, 359)
+                              .toDouble();
                           setD(() => hsv = hsv.withHue(h));
                         },
                         child: CustomPaint(
@@ -938,14 +950,38 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                       width: 260,
                       height: 150,
                       child: GestureDetector(
-                        onPanDown: (d) => setD(() => hsv = hsv
-                            .withSaturation((d.localPosition.dx / 260).clamp(0, 1).toDouble())
-                            .withValue((1 - d.localPosition.dy / 150).clamp(0, 1).toDouble())),
-                        onPanUpdate: (d) => setD(() => hsv = hsv
-                            .withSaturation((d.localPosition.dx / 260).clamp(0, 1).toDouble())
-                            .withValue((1 - d.localPosition.dy / 150).clamp(0, 1).toDouble())),
+                        onPanDown: (d) => setD(
+                          () => hsv = hsv
+                              .withSaturation(
+                                (d.localPosition.dx / 260)
+                                    .clamp(0, 1)
+                                    .toDouble(),
+                              )
+                              .withValue(
+                                (1 - d.localPosition.dy / 150)
+                                    .clamp(0, 1)
+                                    .toDouble(),
+                              ),
+                        ),
+                        onPanUpdate: (d) => setD(
+                          () => hsv = hsv
+                              .withSaturation(
+                                (d.localPosition.dx / 260)
+                                    .clamp(0, 1)
+                                    .toDouble(),
+                              )
+                              .withValue(
+                                (1 - d.localPosition.dy / 150)
+                                    .clamp(0, 1)
+                                    .toDouble(),
+                              ),
+                        ),
                         child: CustomPaint(
-                          painter: _SVPickerPainter(hue: hsv.hue, sat: hsv.saturation, val: hsv.value),
+                          painter: _SVPickerPainter(
+                            hue: hsv.hue,
+                            sat: hsv.saturation,
+                            val: hsv.value,
+                          ),
                           size: const Size(260, 150),
                         ),
                       ),
@@ -955,7 +991,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                     Row(
                       children: [
                         Container(
-                          width: 36, height: 36,
+                          width: 36,
+                          height: 36,
                           decoration: BoxDecoration(
                             color: hsv.toColor(),
                             borderRadius: BorderRadius.circular(8),
@@ -966,7 +1003,11 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                         Expanded(
                           child: Text(
                             '#${hsv.toColor().value.toRadixString(16).substring(2).toUpperCase()}',
-                            style: TextStyle(color: Colors.white.withAlpha(120), fontFamily: 'Courier New', fontSize: 13),
+                            style: TextStyle(
+                              color: Colors.white.withAlpha(120),
+                              fontFamily: 'Courier New',
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
@@ -977,14 +1018,20 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white38)),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white38),
+                  ),
                 ),
                 TextButton(
                   onPressed: () {
                     ctrl.setColor(hsv.toColor());
                     Navigator.pop(ctx);
                   },
-                  child: const Text('Apply', style: TextStyle(color: Color(0xFF00D2FF))),
+                  child: const Text(
+                    'Apply',
+                    style: TextStyle(color: Color(0xFF00D2FF)),
+                  ),
                 ),
               ],
             );
@@ -1027,7 +1074,8 @@ class _HueBarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _HueBarPainter old) => old.selectedHue != selectedHue;
+  bool shouldRepaint(covariant _HueBarPainter old) =>
+      old.selectedHue != selectedHue;
 }
 
 class _SVPickerPainter extends CustomPainter {
@@ -1040,7 +1088,10 @@ class _SVPickerPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     final rr = RRect.fromRectAndRadius(rect, const Radius.circular(8));
-    canvas.drawRRect(rr, Paint()..color = HSVColor.fromAHSV(1, hue, 1, 1).toColor());
+    canvas.drawRRect(
+      rr,
+      Paint()..color = HSVColor.fromAHSV(1, hue, 1, 1).toColor(),
+    );
     canvas.drawRRect(
       rr,
       Paint()

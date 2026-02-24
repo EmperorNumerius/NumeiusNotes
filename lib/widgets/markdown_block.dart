@@ -7,11 +7,7 @@ class MarkdownBlockWidget extends StatefulWidget {
   final ContentBlock block;
   final VoidCallback? onChanged;
 
-  const MarkdownBlockWidget({
-    super.key,
-    required this.block,
-    this.onChanged,
-  });
+  const MarkdownBlockWidget({super.key, required this.block, this.onChanged});
 
   @override
   State<MarkdownBlockWidget> createState() => _MarkdownBlockWidgetState();
@@ -50,13 +46,18 @@ class _MarkdownBlockWidgetState extends State<MarkdownBlockWidget> {
     widget.onChanged?.call();
   }
 
-  void _insertToken(String prefix, {String? suffix, String placeholder = 'text'}) {
+  void _insertToken(
+    String prefix, {
+    String? suffix,
+    String placeholder = 'text',
+  }) {
     final selection = _controller.selection;
     final selectedText = selection.isValid
         ? _controller.text.substring(selection.start, selection.end)
         : '';
     final hasSelection = selectedText.isNotEmpty;
-    final replacement = '$prefix${hasSelection ? selectedText : placeholder}${suffix ?? ''}';
+    final replacement =
+        '$prefix${hasSelection ? selectedText : placeholder}${suffix ?? ''}';
 
     final nextText = _controller.text.replaceRange(
       selection.start,
@@ -102,8 +103,11 @@ class _MarkdownBlockWidgetState extends State<MarkdownBlockWidget> {
         children: [
           Row(
             children: [
-              Icon(Icons.markdown_rounded,
-                  size: 14, color: const Color(0xFFFF6B6B).withAlpha(190)),
+              Icon(
+                Icons.article_rounded,
+                size: 14,
+                color: const Color(0xFFFF6B6B).withAlpha(190),
+              ),
               const SizedBox(width: 6),
               Text(
                 'Markdown',
@@ -114,9 +118,17 @@ class _MarkdownBlockWidgetState extends State<MarkdownBlockWidget> {
                 ),
               ),
               const Spacer(),
-              _tabButton('Edit', _isEditing, () => setState(() => _isEditing = true)),
+              _tabButton(
+                'Edit',
+                _isEditing,
+                () => setState(() => _isEditing = true),
+              ),
               const SizedBox(width: 4),
-              _tabButton('Preview', !_isEditing, () => setState(() => _isEditing = false)),
+              _tabButton(
+                'Preview',
+                !_isEditing,
+                () => setState(() => _isEditing = false),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -136,11 +148,31 @@ class _MarkdownBlockWidgetState extends State<MarkdownBlockWidget> {
       spacing: 6,
       runSpacing: 6,
       children: [
-        _toolButton(Icons.format_bold_rounded, 'Bold', () => _insertToken('**', suffix: '**')),
-        _toolButton(Icons.format_italic_rounded, 'Italic', () => _insertToken('_', suffix: '_')),
-        _toolButton(Icons.title_rounded, 'Heading', () => _insertToken('## ', placeholder: 'Heading')),
-        _toolButton(Icons.check_box_rounded, 'Checkbox', () => _insertToken('- [ ] ', placeholder: 'Task')),
-        _toolButton(Icons.code_rounded, 'Code fence', () => _insertMultiline('```\ncode\n```')),
+        _toolButton(
+          Icons.format_bold_rounded,
+          'Bold',
+          () => _insertToken('**', suffix: '**'),
+        ),
+        _toolButton(
+          Icons.format_italic_rounded,
+          'Italic',
+          () => _insertToken('_', suffix: '_'),
+        ),
+        _toolButton(
+          Icons.title_rounded,
+          'Heading',
+          () => _insertToken('## ', placeholder: 'Heading'),
+        ),
+        _toolButton(
+          Icons.check_box_rounded,
+          'Checkbox',
+          () => _insertToken('- [ ] ', placeholder: 'Task'),
+        ),
+        _toolButton(
+          Icons.code_rounded,
+          'Code fence',
+          () => _insertMultiline('```\ncode\n```'),
+        ),
       ],
     );
   }
@@ -158,7 +190,8 @@ class _MarkdownBlockWidgetState extends State<MarkdownBlockWidget> {
         fontFamily: 'Courier New',
       ),
       decoration: InputDecoration(
-        hintText: '# Start writing markdown...\n\n- bullets\n- checkboxes\n- code blocks',
+        hintText:
+            '# Start writing markdown...\n\n- bullets\n- checkboxes\n- code blocks',
         hintStyle: TextStyle(color: Colors.white.withAlpha(32)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -208,9 +241,21 @@ class _MarkdownBlockWidgetState extends State<MarkdownBlockWidget> {
         shrinkWrap: true,
         styleSheet: MarkdownStyleSheet(
           p: const TextStyle(color: Colors.white, fontSize: 13, height: 1.5),
-          h1: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-          h2: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
-          h3: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
+          h1: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+          h2: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+          h3: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
           code: const TextStyle(
             color: Color(0xFFFFD8A8),
             fontFamily: 'Courier New',
@@ -224,7 +269,12 @@ class _MarkdownBlockWidgetState extends State<MarkdownBlockWidget> {
           blockquoteDecoration: BoxDecoration(
             color: const Color(0x22FFFFFF),
             borderRadius: BorderRadius.circular(4),
-            border: Border(left: BorderSide(color: const Color(0xFFFF6B6B).withAlpha(130), width: 3)),
+            border: Border(
+              left: BorderSide(
+                color: const Color(0xFFFF6B6B).withAlpha(130),
+                width: 3,
+              ),
+            ),
           ),
           listBullet: const TextStyle(color: Colors.white70),
           checkbox: const TextStyle(color: Colors.white70),
@@ -259,10 +309,14 @@ class _MarkdownBlockWidgetState extends State<MarkdownBlockWidget> {
         duration: const Duration(milliseconds: 120),
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
         decoration: BoxDecoration(
-          color: active ? const Color(0xFFFF6B6B).withAlpha(35) : Colors.white.withAlpha(6),
+          color: active
+              ? const Color(0xFFFF6B6B).withAlpha(35)
+              : Colors.white.withAlpha(6),
           borderRadius: BorderRadius.circular(7),
           border: Border.all(
-            color: active ? const Color(0xFFFF6B6B).withAlpha(110) : Colors.white.withAlpha(16),
+            color: active
+                ? const Color(0xFFFF6B6B).withAlpha(110)
+                : Colors.white.withAlpha(16),
           ),
         ),
         child: Text(
