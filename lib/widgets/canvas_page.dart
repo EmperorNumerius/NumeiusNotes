@@ -80,8 +80,10 @@ class _CanvasPageState extends State<CanvasPage> {
 
     if (doc == null) {
       return const Center(
-        child: Text('No document open',
-            style: TextStyle(color: Colors.white38)),
+        child: Text(
+          'No document open',
+          style: TextStyle(color: Colors.white38),
+        ),
       );
     }
 
@@ -100,11 +102,7 @@ class _CanvasPageState extends State<CanvasPage> {
                 child: _buildCanvas(ctrl, docMgr, audioCtrl, doc),
               ),
               // ─── Top Toolbar ─────────────────────────────
-              Positioned(
-                left: 16,
-                top: 16,
-                child: _buildFloatingToolbar(ctrl),
-              ),
+              Positioned(left: 16, top: 16, child: _buildFloatingToolbar(ctrl)),
             ],
           ),
         ),
@@ -121,9 +119,7 @@ class _CanvasPageState extends State<CanvasPage> {
       width: 56,
       decoration: BoxDecoration(
         color: const Color(0xFF0D0D20),
-        border: Border(
-          right: BorderSide(color: Colors.white.withAlpha(10)),
-        ),
+        border: Border(right: BorderSide(color: Colors.white.withAlpha(10))),
       ),
       child: Column(
         children: [
@@ -152,19 +148,34 @@ class _CanvasPageState extends State<CanvasPage> {
             icon: Icons.article_rounded,
             label: 'Markdown',
             color: const Color(0xFFFF6B6B),
-            onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.markdown, width: 460),
+            onTap: () => _addBlockAtCenter(
+              doc,
+              docMgr,
+              ContentBlockType.markdown,
+              width: 460,
+            ),
           ),
           _paletteItem(
             icon: Icons.science_rounded,
             label: 'Chemistry',
             color: const Color(0xFF38D9A9),
-            onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.chemistry, width: 680),
+            onTap: () => _addBlockAtCenter(
+              doc,
+              docMgr,
+              ContentBlockType.chemistry,
+              width: 680,
+            ),
           ),
           _paletteItem(
             icon: Icons.calculate_rounded,
             label: 'Calculator',
             color: const Color(0xFFFFAA5C),
-            onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.calculator, width: 320),
+            onTap: () => _addBlockAtCenter(
+              doc,
+              docMgr,
+              ContentBlockType.calculator,
+              width: 320,
+            ),
           ),
           _paletteItem(
             icon: Icons.image_rounded,
@@ -176,7 +187,12 @@ class _CanvasPageState extends State<CanvasPage> {
             icon: Icons.style_rounded,
             label: 'Flashcard',
             color: const Color(0xFFFF6B9A),
-            onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.flashcard, width: 460),
+            onTap: () => _addBlockAtCenter(
+              doc,
+              docMgr,
+              ContentBlockType.flashcard,
+              width: 460,
+            ),
           ),
           const Spacer(),
         ],
@@ -227,15 +243,22 @@ class _CanvasPageState extends State<CanvasPage> {
     );
   }
 
-  void _addBlockAtCenter(dynamic doc, DocumentManager docMgr, ContentBlockType type, {double? width}) {
+  void _addBlockAtCenter(
+    dynamic doc,
+    DocumentManager docMgr,
+    ContentBlockType type, {
+    double? width,
+  }) {
     // Stack blocks vertically, offset from each other
     final existingCount = doc.blocks.length as int;
-    final defaultWidth = width ??
+    final defaultWidth =
+        width ??
         (type == ContentBlockType.code
             ? 500
-            : type == ContentBlockType.markdown || type == ContentBlockType.image
-                ? 460
-                : 360);
+            : type == ContentBlockType.markdown ||
+                  type == ContentBlockType.image
+            ? 460
+            : 360);
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
@@ -260,10 +283,7 @@ class _CanvasPageState extends State<CanvasPage> {
       x: 80.0 + (existingCount % 3) * 30.0,
       y: 80.0 + existingCount * 60.0,
       blockWidth: 420,
-      metadata: {
-        'imagePath': imagePath,
-        'imageHeight': 240.0,
-      },
+      metadata: {'imagePath': imagePath, 'imageHeight': 240.0},
     );
 
     doc.blocks.add(block);
@@ -276,8 +296,12 @@ class _CanvasPageState extends State<CanvasPage> {
   // CANVAS — Ink + Positioned Blocks
   // ═══════════════════════════════════════════════════════════
 
-  Widget _buildCanvas(CanvasController ctrl, DocumentManager docMgr,
-      AudioController audioCtrl, dynamic doc) {
+  Widget _buildCanvas(
+    CanvasController ctrl,
+    DocumentManager docMgr,
+    AudioController audioCtrl,
+    dynamic doc,
+  ) {
     return InteractiveViewer(
       minScale: 0.5,
       maxScale: 3.0,
@@ -307,9 +331,11 @@ class _CanvasPageState extends State<CanvasPage> {
                       final ts = audioCtrl.isRecording
                           ? audioCtrl.elapsedRecordingMs
                           : null;
-                      ctrl.startStroke(e.localPosition,
-                          relativeTimestamp: ts,
-                          pressure: e.pressure);
+                      ctrl.startStroke(
+                        e.localPosition,
+                        relativeTimestamp: ts,
+                        pressure: e.pressure,
+                      );
                     }
                   },
                   onPointerMove: (e) {
@@ -347,7 +373,10 @@ class _CanvasPageState extends State<CanvasPage> {
   // ═══════════════════════════════════════════════════════════
 
   Widget _buildPositionedBlock(
-      ContentBlock block, dynamic doc, DocumentManager docMgr) {
+    ContentBlock block,
+    dynamic doc,
+    DocumentManager docMgr,
+  ) {
     final isDragging = _draggingBlockId == block.id;
 
     return Positioned(
@@ -375,99 +404,15 @@ class _CanvasPageState extends State<CanvasPage> {
           setState(() {});
         },
         content: _buildBlockContent(block, doc, docMgr),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          width: block.blockWidth,
-          decoration: BoxDecoration(
-            color: const Color(0xFF141428),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isDragging
-                  ? const Color(0xFF00D2FF).withAlpha(120)
-                  : Colors.white.withAlpha(12),
-              width: isDragging ? 1.5 : 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: isDragging
-                    ? const Color(0xFF00D2FF).withAlpha(15)
-                    : Colors.black.withAlpha(40),
-                blurRadius: isDragging ? 16 : 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Drag handle header
-              _buildBlockHeader(block, doc, docMgr),
-              // Block content
-              _buildBlockContent(block, doc, docMgr),
-            ],
-          ),
-        ),
       ),
     );
   }
 
-  Widget _buildBlockHeader(ContentBlock block, dynamic doc, DocumentManager docMgr) {
-    final (Color typeColor, IconData typeIcon, String typeLabel) = switch (block.type) {
-      ContentBlockType.text => (const Color(0xFF00D2FF), Icons.text_fields_rounded, 'Text'),
-      ContentBlockType.code => (const Color(0xFF51CF66), Icons.code_rounded, 'Code'),
-      ContentBlockType.latex => (const Color(0xFF7C3AED), Icons.functions_rounded, 'LaTeX'),
-      ContentBlockType.chemistry => (const Color(0xFF38D9A9), Icons.science_rounded, 'Chemistry'),
-      ContentBlockType.calculator => (const Color(0xFFFFAA5C), Icons.calculate_rounded, 'Calculator'),
-      ContentBlockType.image => (const Color(0xFF4DABF7), Icons.image_rounded, 'Image'),
-      ContentBlockType.markdown => (const Color(0xFFFF6B6B), Icons.article_rounded, 'Markdown'),
-      ContentBlockType.flashcard => (const Color(0xFFFF6B9A), Icons.style_rounded, 'Flashcard'),
-    };
-
-    return Container(
-      height: 28,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: typeColor.withAlpha(10),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withAlpha(6)),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Drag grip icon
-          Icon(Icons.drag_indicator_rounded,
-              size: 14, color: Colors.white.withAlpha(40)),
-          const SizedBox(width: 4),
-          // Type indicator
-          Icon(typeIcon, size: 12, color: typeColor.withAlpha(150)),
-          const SizedBox(width: 4),
-          Text(typeLabel,
-              style: TextStyle(
-                  color: typeColor.withAlpha(150),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600)),
-          const Spacer(),
-          // Delete
-          GestureDetector(
-            onTap: () {
-              doc.blocks.remove(block);
-              docMgr.saveActiveDocument();
-              setState(() {});
-            },
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: Icon(Icons.close_rounded,
-                  size: 13, color: Colors.white.withAlpha(50)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBlockContent(ContentBlock block, dynamic doc, DocumentManager docMgr) {
+  Widget _buildBlockContent(
+    ContentBlock block,
+    dynamic doc,
+    DocumentManager docMgr,
+  ) {
     switch (block.type) {
       case ContentBlockType.text:
         return Padding(
@@ -491,15 +436,8 @@ class _CanvasPageState extends State<CanvasPage> {
               hintStyle: TextStyle(color: Colors.white.withAlpha(30)),
               border: InputBorder.none,
               isDense: true,
-              contentPadding: EdgeInsets.zero,
             ),
           ),
-        return TextBlockWidget(
-          block: block,
-          onChanged: (val) {
-            block.content = val;
-            doc.touch();
-          },
         );
       case ContentBlockType.code:
         return CodeBlockWidget(
@@ -507,6 +445,7 @@ class _CanvasPageState extends State<CanvasPage> {
           onChanged: (val) {
             block.content = val;
             doc.touch();
+            docMgr.saveActiveDocument();
           },
           onDelete: () {
             doc.blocks.remove(block);
@@ -515,10 +454,15 @@ class _CanvasPageState extends State<CanvasPage> {
           },
         );
       case ContentBlockType.latex:
-        return LatexBlockWidget(block: block);
+        return LatexBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
       case ContentBlockType.markdown:
         return MarkdownBlockWidget(
-        return LatexBlockWidget(
           block: block,
           onChanged: () {
             doc.touch();
@@ -543,6 +487,12 @@ class _CanvasPageState extends State<CanvasPage> {
         );
       case ContentBlockType.image:
         return ImageBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
       case ContentBlockType.flashcard:
         return FlashcardBlockWidget(
           block: block,
@@ -560,7 +510,8 @@ class _CanvasPageState extends State<CanvasPage> {
       () => TextEditingController(text: block.content),
     );
     final focusNode = _textFocusNodes[block.id];
-    if (controller.text != block.content && (focusNode == null || !focusNode.hasFocus)) {
+    if (controller.text != block.content &&
+        (focusNode == null || !focusNode.hasFocus)) {
       controller.value = controller.value.copyWith(
         text: block.content,
         selection: TextSelection.collapsed(offset: block.content.length),
@@ -742,11 +693,11 @@ class _CanvasPageState extends State<CanvasPage> {
   }
 
   Widget _separator() => Container(
-        width: 1,
-        height: 20,
-        margin: const EdgeInsets.symmetric(horizontal: 6),
-        color: Colors.white.withAlpha(15),
-      );
+    width: 1,
+    height: 20,
+    margin: const EdgeInsets.symmetric(horizontal: 6),
+    color: Colors.white.withAlpha(15),
+  );
 
   Widget _toolButton({
     required IconData icon,
@@ -765,21 +716,17 @@ class _CanvasPageState extends State<CanvasPage> {
           width: 34,
           height: 34,
           decoration: BoxDecoration(
-            color: isActive
-                ? color.withAlpha(25)
-                : Colors.transparent,
+            color: isActive ? color.withAlpha(25) : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isActive
-                  ? color.withAlpha(80)
-                  : Colors.transparent,
+              color: isActive ? color.withAlpha(80) : Colors.transparent,
             ),
           ),
-          child: Icon(icon,
-              size: 16,
-              color: isActive
-                  ? color
-                  : Colors.white.withAlpha(120)),
+          child: Icon(
+            icon,
+            size: 16,
+            color: isActive ? color : Colors.white.withAlpha(120),
+          ),
         ),
       ),
     );
@@ -818,7 +765,15 @@ class _CanvasPageState extends State<CanvasPage> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: const SweepGradient(
-            colors: [Colors.red, Colors.yellow, Colors.green, Colors.cyan, Colors.blue, Colors.purple, Colors.red],
+            colors: [
+              Colors.red,
+              Colors.yellow,
+              Colors.green,
+              Colors.cyan,
+              Colors.blue,
+              Colors.purple,
+              Colors.red,
+            ],
           ),
           border: Border.all(color: Colors.white.withAlpha(40), width: 1.5),
         ),
@@ -836,7 +791,10 @@ class _CanvasPageState extends State<CanvasPage> {
           builder: (_, setD) {
             return AlertDialog(
               backgroundColor: const Color(0xFF141428),
-              title: const Text('Pick a color', style: TextStyle(color: Colors.white, fontSize: 14)),
+              title: const Text(
+                'Pick a color',
+                style: TextStyle(color: Colors.white, fontSize: 14),
+              ),
               content: SizedBox(
                 width: 260,
                 child: Column(
@@ -846,13 +804,18 @@ class _CanvasPageState extends State<CanvasPage> {
                     _hueBar(hsv, (h) => setD(() => hsv = hsv.withHue(h))),
                     const SizedBox(height: 12),
                     // Saturation / Value grid
-                    _svPicker(hsv, (s, v) => setD(() => hsv = hsv.withSaturation(s).withValue(v))),
+                    _svPicker(
+                      hsv,
+                      (s, v) =>
+                          setD(() => hsv = hsv.withSaturation(s).withValue(v)),
+                    ),
                     const SizedBox(height: 12),
                     // Preview
                     Row(
                       children: [
                         Container(
-                          width: 36, height: 36,
+                          width: 36,
+                          height: 36,
                           decoration: BoxDecoration(
                             color: hsv.toColor(),
                             borderRadius: BorderRadius.circular(8),
@@ -863,7 +826,11 @@ class _CanvasPageState extends State<CanvasPage> {
                         Expanded(
                           child: Text(
                             '#${hsv.toColor().value.toRadixString(16).substring(2).toUpperCase()}',
-                            style: TextStyle(color: Colors.white.withAlpha(120), fontFamily: 'Courier New', fontSize: 13),
+                            style: TextStyle(
+                              color: Colors.white.withAlpha(120),
+                              fontFamily: 'Courier New',
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
@@ -874,14 +841,20 @@ class _CanvasPageState extends State<CanvasPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white38)),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white38),
+                  ),
                 ),
                 TextButton(
                   onPressed: () {
                     ctrl.setColor(hsv.toColor());
                     Navigator.pop(ctx);
                   },
-                  child: const Text('Apply', style: TextStyle(color: Color(0xFF00D2FF))),
+                  child: const Text(
+                    'Apply',
+                    style: TextStyle(color: Color(0xFF00D2FF)),
+                  ),
                 ),
               ],
             );
@@ -896,7 +869,8 @@ class _CanvasPageState extends State<CanvasPage> {
       height: 20,
       child: GestureDetector(
         onPanDown: (d) => onChanged(_hueFromPosition(d.localPosition.dx, 260)),
-        onPanUpdate: (d) => onChanged(_hueFromPosition(d.localPosition.dx, 260)),
+        onPanUpdate: (d) =>
+            onChanged(_hueFromPosition(d.localPosition.dx, 260)),
         child: CustomPaint(
           painter: _HueBarPainter(selectedHue: hsv.hue),
           size: const Size(260, 20),
@@ -923,7 +897,11 @@ class _CanvasPageState extends State<CanvasPage> {
           (1 - d.localPosition.dy / 150).clamp(0, 1).toDouble(),
         ),
         child: CustomPaint(
-          painter: _SVPickerPainter(hue: hsv.hue, sat: hsv.saturation, val: hsv.value),
+          painter: _SVPickerPainter(
+            hue: hsv.hue,
+            sat: hsv.saturation,
+            val: hsv.value,
+          ),
           size: const Size(260, 150),
         ),
       ),
@@ -947,10 +925,7 @@ class _CanvasPageState extends State<CanvasPage> {
   // ═══════════════════════════════════════════════════════════
 
   Widget _buildGrid() {
-    return CustomPaint(
-      painter: _GridPainter(),
-      size: Size.infinite,
-    );
+    return CustomPaint(painter: _GridPainter(), size: Size.infinite);
   }
 }
 
@@ -1002,11 +977,7 @@ class _TextBlockWidgetState extends State<TextBlockWidget> {
         controller: _controller,
         onChanged: widget.onChanged,
         maxLines: null,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          height: 1.6,
-        ),
+        style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.6),
         decoration: InputDecoration(
           hintText: 'Start typing...',
           hintStyle: TextStyle(color: Colors.white.withAlpha(30)),
@@ -1068,7 +1039,8 @@ class _HueBarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _HueBarPainter old) => old.selectedHue != selectedHue;
+  bool shouldRepaint(covariant _HueBarPainter old) =>
+      old.selectedHue != selectedHue;
 }
 
 class _SVPickerPainter extends CustomPainter {
@@ -1082,7 +1054,10 @@ class _SVPickerPainter extends CustomPainter {
     final rect = Offset.zero & size;
     final rr = RRect.fromRectAndRadius(rect, const Radius.circular(8));
     // Base hue fill
-    canvas.drawRRect(rr, Paint()..color = HSVColor.fromAHSV(1, hue, 1, 1).toColor());
+    canvas.drawRRect(
+      rr,
+      Paint()..color = HSVColor.fromAHSV(1, hue, 1, 1).toColor(),
+    );
     // White → transparent horizontal gradient (saturation)
     canvas.drawRRect(
       rr,
