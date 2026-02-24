@@ -414,9 +414,22 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           ),
         );
       case ContentBlockType.code:
-        return CodeBlockWidget(block: block);
+        return CodeBlockWidget(
+          block: block,
+          onChanged: (val) {
+            block.content = val;
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
       case ContentBlockType.latex:
-        return LatexBlockWidget(block: block);
+        return LatexBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
       case ContentBlockType.chemistry:
         return ChemistryBlockWidget(
           block: block,
