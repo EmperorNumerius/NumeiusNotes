@@ -13,6 +13,7 @@ import 'package:notes_app/widgets/chemistry_block.dart';
 import 'package:notes_app/widgets/calculator_block.dart';
 import 'package:notes_app/widgets/image_block.dart';
 import 'package:notes_app/services/image_service.dart';
+import 'package:notes_app/widgets/flashcard_block.dart';
 import 'package:uuid/uuid.dart';
 
 /// The main canvas — free-form drawing + draggable content blocks.
@@ -139,6 +140,10 @@ class _CanvasPageState extends State<CanvasPage> {
             label: 'Image',
             color: const Color(0xFF4DABF7),
             onTap: () => _addImageBlock(doc, docMgr),
+            icon: Icons.style_rounded,
+            label: 'Flashcard',
+            color: const Color(0xFFFF6B9A),
+            onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.flashcard, width: 460),
           ),
           const Spacer(),
         ],
@@ -376,6 +381,36 @@ class _CanvasPageState extends State<CanvasPage> {
       ContentBlockType.image =>
         (const Color(0xFF4DABF7), Icons.image_rounded, 'Image'),
     };
+    Color typeColor;
+    IconData typeIcon;
+    String typeLabel;
+
+    switch (block.type) {
+      case ContentBlockType.text:
+        typeColor = const Color(0xFF00D2FF);
+        typeIcon = Icons.text_fields_rounded;
+        typeLabel = 'Text';
+      case ContentBlockType.code:
+        typeColor = const Color(0xFF51CF66);
+        typeIcon = Icons.code_rounded;
+        typeLabel = 'Code';
+      case ContentBlockType.latex:
+        typeColor = const Color(0xFF7C3AED);
+        typeIcon = Icons.functions_rounded;
+        typeLabel = 'LaTeX';
+      case ContentBlockType.chemistry:
+        typeColor = const Color(0xFF38D9A9);
+        typeIcon = Icons.science_rounded;
+        typeLabel = 'Chemistry';
+      case ContentBlockType.calculator:
+        typeColor = const Color(0xFFFFAA5C);
+        typeIcon = Icons.calculate_rounded;
+        typeLabel = 'Calculator';
+      case ContentBlockType.flashcard:
+        typeColor = const Color(0xFFFF6B9A);
+        typeIcon = Icons.style_rounded;
+        typeLabel = 'Flashcard';
+    }
 
     return Container(
       height: 28,
@@ -462,7 +497,13 @@ class _CanvasPageState extends State<CanvasPage> {
           },
         );
       case ContentBlockType.latex:
-        return LatexBlockWidget(block: block);
+        return LatexBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
       case ContentBlockType.chemistry:
         return ChemistryBlockWidget(
           block: block,
@@ -481,6 +522,8 @@ class _CanvasPageState extends State<CanvasPage> {
         );
       case ContentBlockType.image:
         return ImageBlockWidget(
+      case ContentBlockType.flashcard:
+        return FlashcardBlockWidget(
           block: block,
           onChanged: () {
             doc.touch();

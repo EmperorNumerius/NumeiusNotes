@@ -8,6 +8,7 @@ import 'package:notes_app/widgets/canvas_page.dart';
 import 'package:notes_app/widgets/pdf_viewer_page.dart';
 import 'package:notes_app/widgets/audio_toolbar.dart';
 import 'package:notes_app/widgets/transcription_panel.dart';
+import 'package:notes_app/widgets/flashcard_review_page.dart';
 
 /// Full editor shell — composes tab bar + canvas/PDF + audio toolbar + transcription panel.
 class EditorPage extends StatefulWidget {
@@ -125,6 +126,25 @@ class _EditorPageState extends State<EditorPage> {
           ),
           // Tab manager takes the rest
           const Expanded(child: TabManager()),
+          if ((docMgr.activeDocument?.blocks.where((b) => b.type.name == 'flashcard').length ?? 0) > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                tooltip: 'Review flashcards',
+                onPressed: () {
+                  final doc = docMgr.activeDocument;
+                  if (doc == null) return;
+                  final cards = FlashcardReviewPage.collectCardsFromDocuments([doc]);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => FlashcardReviewPage(cards: cards),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.style_rounded, size: 18),
+                color: const Color(0xFFFF6B9A),
+              ),
+            ),
         ],
       ),
     );
