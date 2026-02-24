@@ -14,6 +14,10 @@ import 'package:notes_app/widgets/latex_block.dart';
 import 'package:notes_app/widgets/chemistry_block.dart';
 import 'package:notes_app/widgets/calculator_block.dart';
 import 'package:notes_app/widgets/draggable_block_shell.dart';
+import 'package:notes_app/widgets/markdown_block.dart';
+import 'package:notes_app/widgets/image_block.dart';
+import 'package:notes_app/services/image_service.dart';
+import 'package:notes_app/widgets/flashcard_block.dart';
 import 'package:uuid/uuid.dart';
 
 /// The main canvas — free-form drawing + draggable content blocks.
@@ -145,6 +149,12 @@ class _CanvasPageState extends State<CanvasPage> {
             onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.latex),
           ),
           _paletteItem(
+            icon: Icons.markdown_rounded,
+            label: 'Markdown',
+            color: const Color(0xFFFF6B6B),
+            onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.markdown, width: 460),
+          ),
+          _paletteItem(
             icon: Icons.science_rounded,
             label: 'Chemistry',
             color: const Color(0xFF38D9A9),
@@ -155,6 +165,16 @@ class _CanvasPageState extends State<CanvasPage> {
             label: 'Calculator',
             color: const Color(0xFFFFAA5C),
             onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.calculator, width: 320),
+          ),
+          _paletteItem(
+            icon: Icons.image_rounded,
+            label: 'Image',
+            color: const Color(0xFF4DABF7),
+            onTap: () => _addImageBlock(doc, docMgr),
+            icon: Icons.style_rounded,
+            label: 'Flashcard',
+            color: const Color(0xFFFF6B9A),
+            onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.flashcard, width: 460),
           ),
           const Spacer(),
         ],
@@ -208,7 +228,8 @@ class _CanvasPageState extends State<CanvasPage> {
   void _addBlockAtCenter(dynamic doc, DocumentManager docMgr, ContentBlockType type, {double? width}) {
     // Stack blocks vertically, offset from each other
     final existingCount = doc.blocks.length as int;
-    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : 360);
+    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : type == ContentBlockType.markdown ? 460 : 360);
+    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : type == ContentBlockType.image ? 420 : 360);
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
@@ -217,6 +238,30 @@ class _CanvasPageState extends State<CanvasPage> {
       blockWidth: defaultWidth,
     );
     doc.blocks.add(block);
+    docMgr.saveActiveDocument();
+    setState(() {});
+  }
+
+  Future<void> _addImageBlock(dynamic doc, DocumentManager docMgr) async {
+    final imagePath = await ImageService.importImage();
+    if (imagePath == null) return;
+
+    final existingCount = doc.blocks.length as int;
+    final block = ContentBlock(
+      id: _uuid.v4(),
+      type: ContentBlockType.image,
+      content: '',
+      x: 80.0 + (existingCount % 3) * 30.0,
+      y: 80.0 + existingCount * 60.0,
+      blockWidth: 420,
+      metadata: {
+        'imagePath': imagePath,
+        'imageHeight': 240.0,
+      },
+    );
+
+    doc.blocks.add(block);
+    doc.touch();
     docMgr.saveActiveDocument();
     setState(() {});
   }
@@ -324,6 +369,132 @@ class _CanvasPageState extends State<CanvasPage> {
           setState(() {});
         },
         content: _buildBlockContent(block, doc, docMgr),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          width: block.blockWidth,
+          decoration: BoxDecoration(
+            color: const Color(0xFF141428),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDragging
+                  ? const Color(0xFF00D2FF).withAlpha(120)
+                  : Colors.white.withAlpha(12),
+              width: isDragging ? 1.5 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isDragging
+                    ? const Color(0xFF00D2FF).withAlpha(15)
+                    : Colors.black.withAlpha(40),
+                blurRadius: isDragging ? 16 : 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle header
+              _buildBlockHeader(block, doc, docMgr),
+              // Block content
+              _buildBlockContent(block, doc, docMgr),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBlockHeader(ContentBlock block, dynamic doc, DocumentManager docMgr) {
+    final (typeColor, typeIcon, typeLabel) = switch (block.type) {
+      ContentBlockType.text =>
+        (const Color(0xFF00D2FF), Icons.text_fields_rounded, 'Text'),
+      ContentBlockType.code =>
+        (const Color(0xFF51CF66), Icons.code_rounded, 'Code'),
+      ContentBlockType.latex =>
+        (const Color(0xFF7C3AED), Icons.functions_rounded, 'LaTeX'),
+      ContentBlockType.chemistry =>
+        (const Color(0xFF38D9A9), Icons.science_rounded, 'Chemistry'),
+      ContentBlockType.calculator =>
+        (const Color(0xFFFFAA5C), Icons.calculate_rounded, 'Calculator'),
+      ContentBlockType.image =>
+        (const Color(0xFF4DABF7), Icons.image_rounded, 'Image'),
+    };
+    Color typeColor;
+    IconData typeIcon;
+    String typeLabel;
+
+    switch (block.type) {
+      case ContentBlockType.text:
+        typeColor = const Color(0xFF00D2FF);
+        typeIcon = Icons.text_fields_rounded;
+        typeLabel = 'Text';
+      case ContentBlockType.code:
+        typeColor = const Color(0xFF51CF66);
+        typeIcon = Icons.code_rounded;
+        typeLabel = 'Code';
+      case ContentBlockType.latex:
+        typeColor = const Color(0xFF7C3AED);
+        typeIcon = Icons.functions_rounded;
+        typeLabel = 'LaTeX';
+      case ContentBlockType.markdown:
+        typeColor = const Color(0xFFFF6B6B);
+        typeIcon = Icons.markdown_rounded;
+        typeLabel = 'Markdown';
+      case ContentBlockType.chemistry:
+        typeColor = const Color(0xFF38D9A9);
+        typeIcon = Icons.science_rounded;
+        typeLabel = 'Chemistry';
+      case ContentBlockType.calculator:
+        typeColor = const Color(0xFFFFAA5C);
+        typeIcon = Icons.calculate_rounded;
+        typeLabel = 'Calculator';
+      case ContentBlockType.flashcard:
+        typeColor = const Color(0xFFFF6B9A);
+        typeIcon = Icons.style_rounded;
+        typeLabel = 'Flashcard';
+    }
+
+    return Container(
+      height: 28,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: typeColor.withAlpha(10),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withAlpha(6)),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Drag grip icon
+          Icon(Icons.drag_indicator_rounded,
+              size: 14, color: Colors.white.withAlpha(40)),
+          const SizedBox(width: 4),
+          // Type indicator
+          Icon(typeIcon, size: 12, color: typeColor.withAlpha(150)),
+          const SizedBox(width: 4),
+          Text(typeLabel,
+              style: TextStyle(
+                  color: typeColor.withAlpha(150),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600)),
+          const Spacer(),
+          // Delete
+          GestureDetector(
+            onTap: () {
+              doc.blocks.remove(block);
+              docMgr.saveActiveDocument();
+              setState(() {});
+            },
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Icon(Icons.close_rounded,
+                  size: 13, color: Colors.white.withAlpha(50)),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -355,6 +526,12 @@ class _CanvasPageState extends State<CanvasPage> {
               contentPadding: EdgeInsets.zero,
             ),
           ),
+        return TextBlockWidget(
+          block: block,
+          onChanged: (val) {
+            block.content = val;
+            doc.touch();
+          },
         );
       case ContentBlockType.code:
         return CodeBlockWidget(
@@ -371,6 +548,15 @@ class _CanvasPageState extends State<CanvasPage> {
         );
       case ContentBlockType.latex:
         return LatexBlockWidget(block: block);
+      case ContentBlockType.markdown:
+        return MarkdownBlockWidget(
+        return LatexBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
       case ContentBlockType.chemistry:
         return ChemistryBlockWidget(
           block: block,
@@ -381,6 +567,16 @@ class _CanvasPageState extends State<CanvasPage> {
         );
       case ContentBlockType.calculator:
         return CalculatorBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
+      case ContentBlockType.image:
+        return ImageBlockWidget(
+      case ContentBlockType.flashcard:
+        return FlashcardBlockWidget(
           block: block,
           onChanged: () {
             doc.touch();
@@ -786,6 +982,71 @@ class _CanvasPageState extends State<CanvasPage> {
     return CustomPaint(
       painter: _GridPainter(),
       size: Size.infinite,
+    );
+  }
+}
+
+class TextBlockWidget extends StatefulWidget {
+  const TextBlockWidget({
+    super.key,
+    required this.block,
+    required this.onChanged,
+  });
+
+  final ContentBlock block;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<TextBlockWidget> createState() => _TextBlockWidgetState();
+}
+
+class _TextBlockWidgetState extends State<TextBlockWidget> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.block.content);
+  }
+
+  @override
+  void didUpdateWidget(covariant TextBlockWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.block.id != widget.block.id) {
+      _controller.value = TextEditingValue(
+        text: widget.block.content,
+        selection: TextSelection.collapsed(offset: widget.block.content.length),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: TextField(
+        controller: _controller,
+        onChanged: widget.onChanged,
+        maxLines: null,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          height: 1.6,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Start typing...',
+          hintStyle: TextStyle(color: Colors.white.withAlpha(30)),
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: EdgeInsets.zero,
+        ),
+      ),
     );
   }
 }
