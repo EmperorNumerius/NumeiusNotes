@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
@@ -13,6 +14,7 @@ import 'package:notes_app/widgets/code_block.dart';
 import 'package:notes_app/widgets/latex_block.dart';
 import 'package:notes_app/widgets/chemistry_block.dart';
 import 'package:notes_app/widgets/calculator_block.dart';
+import 'package:notes_app/widgets/draggable_block_shell.dart';
 import 'package:notes_app/services/pdf_annotation_export_service.dart';
 import 'package:notes_app/widgets/markdown_block.dart';
 import 'package:notes_app/widgets/flashcard_block.dart';
@@ -32,6 +34,11 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   late PdfViewerController _pdfController;
   final _uuid = const Uuid();
   String? _draggingBlockId;
+  final Map<String, TextEditingController> _textControllers = {};
+  final Map<String, FocusNode> _textFocusNodes = {};
+  final Map<String, Timer> _textSaveDebouncers = {};
+
+  static const _textSaveDebounce = Duration(milliseconds: 700);
   Size _pdfViewportSize = Size.zero;
   bool _isExporting = false;
 
@@ -43,6 +50,15 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
 
   @override
   void dispose() {
+    for (final timer in _textSaveDebouncers.values) {
+      timer.cancel();
+    }
+    for (final controller in _textControllers.values) {
+      controller.dispose();
+    }
+    for (final focusNode in _textFocusNodes.values) {
+      focusNode.dispose();
+    }
     super.dispose();
   }
 
@@ -73,6 +89,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             style: TextStyle(color: Colors.white38)),
       );
     }
+
+    _syncTextEditingResources(doc.blocks.cast<ContentBlock>());
 
     return Row(
       children: [
@@ -313,6 +331,14 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     block.y = top;
 
     return Positioned(
+      left: block.x,
+      top: block.y,
+      child: DraggableBlockShell(
+        block: block,
+        isDragging: isDragging,
+        backgroundColor: const Color(0xFF141428).withAlpha(230),
+        onDragStart: (_) => setState(() => _draggingBlockId = block.id),
+        onDragUpdate: (details) {
       left: left,
       top: top,
       child: GestureDetector(
@@ -328,11 +354,18 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             );
           });
         },
-        onPanEnd: (_) {
+        onDragEnd: (_) {
           _draggingBlockId = null;
           docMgr.saveActiveDocument();
           setState(() {});
         },
+        onDelete: () {
+          _disposeTextEditingResources(block.id);
+          doc.blocks.remove(block);
+          docMgr.saveActiveDocument();
+          setState(() {});
+        },
+        content: _buildBlockContent(block, doc, docMgr),
         child: Container(
           width: block.blockWidth,
           decoration: BoxDecoration(
@@ -446,11 +479,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         return Padding(
           padding: const EdgeInsets.all(10),
           child: TextField(
-            controller: TextEditingController(text: block.content)
-              ..selection = TextSelection.collapsed(offset: block.content.length),
+            controller: _controllerForBlock(block),
+            focusNode: _focusNodeForBlock(block.id, docMgr),
             onChanged: (val) {
               block.content = val;
               doc.touch();
+              _scheduleTextBlockSave(block.id, docMgr);
             },
             maxLines: null,
             style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.6),
@@ -507,6 +541,72 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             docMgr.saveActiveDocument();
           },
         );
+    }
+  }
+
+  TextEditingController _controllerForBlock(ContentBlock block) {
+    final controller = _textControllers.putIfAbsent(
+      block.id,
+      () => TextEditingController(text: block.content),
+    );
+    final focusNode = _textFocusNodes[block.id];
+    if (controller.text != block.content && (focusNode == null || !focusNode.hasFocus)) {
+      controller.value = controller.value.copyWith(
+        text: block.content,
+        selection: TextSelection.collapsed(offset: block.content.length),
+        composing: TextRange.empty,
+      );
+    }
+    return controller;
+  }
+
+  FocusNode _focusNodeForBlock(String blockId, DocumentManager docMgr) {
+    return _textFocusNodes.putIfAbsent(blockId, () {
+      final focusNode = FocusNode();
+      focusNode.addListener(() {
+        if (!focusNode.hasFocus) {
+          _flushTextBlockSave(blockId, docMgr);
+        }
+      });
+      return focusNode;
+    });
+  }
+
+  void _scheduleTextBlockSave(String blockId, DocumentManager docMgr) {
+    _textSaveDebouncers[blockId]?.cancel();
+    _textSaveDebouncers[blockId] = Timer(_textSaveDebounce, () {
+      if (!mounted) {
+        return;
+      }
+      docMgr.saveActiveDocument();
+    });
+  }
+
+  void _flushTextBlockSave(String blockId, DocumentManager docMgr) {
+    _textSaveDebouncers.remove(blockId)?.cancel();
+    docMgr.saveActiveDocument();
+  }
+
+  void _disposeTextEditingResources(String blockId) {
+    _textSaveDebouncers.remove(blockId)?.cancel();
+    _textControllers.remove(blockId)?.dispose();
+    _textFocusNodes.remove(blockId)?.dispose();
+  }
+
+  void _syncTextEditingResources(List<ContentBlock> blocks) {
+    final textBlockIds = blocks
+        .where((block) => block.type == ContentBlockType.text)
+        .map((block) => block.id)
+        .toSet();
+
+    final staleIds = <String>{
+      ..._textControllers.keys,
+      ..._textFocusNodes.keys,
+      ..._textSaveDebouncers.keys,
+    }.difference(textBlockIds);
+
+    for (final blockId in staleIds) {
+      _disposeTextEditingResources(blockId);
     }
   }
 

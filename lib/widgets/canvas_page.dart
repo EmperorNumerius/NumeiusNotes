@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +13,7 @@ import 'package:notes_app/widgets/code_block.dart';
 import 'package:notes_app/widgets/latex_block.dart';
 import 'package:notes_app/widgets/chemistry_block.dart';
 import 'package:notes_app/widgets/calculator_block.dart';
+import 'package:notes_app/widgets/draggable_block_shell.dart';
 import 'package:notes_app/widgets/markdown_block.dart';
 import 'package:notes_app/widgets/image_block.dart';
 import 'package:notes_app/services/image_service.dart';
@@ -30,6 +33,25 @@ class CanvasPage extends StatefulWidget {
 class _CanvasPageState extends State<CanvasPage> {
   final _uuid = const Uuid();
   String? _draggingBlockId;
+  final Map<String, TextEditingController> _textControllers = {};
+  final Map<String, FocusNode> _textFocusNodes = {};
+  final Map<String, Timer> _textSaveDebouncers = {};
+
+  static const _textSaveDebounce = Duration(milliseconds: 700);
+
+  @override
+  void dispose() {
+    for (final timer in _textSaveDebouncers.values) {
+      timer.cancel();
+    }
+    for (final controller in _textControllers.values) {
+      controller.dispose();
+    }
+    for (final focusNode in _textFocusNodes.values) {
+      focusNode.dispose();
+    }
+    super.dispose();
+  }
 
   // Mouse draws when a drawing tool (pen/highlighter/eraser) is active
   bool _shouldDraw(PointerEvent event, CanvasController ctrl) {
@@ -62,6 +84,8 @@ class _CanvasPageState extends State<CanvasPage> {
             style: TextStyle(color: Colors.white38)),
       );
     }
+
+    _syncTextEditingResources(doc.blocks.cast<ContentBlock>());
 
     return Row(
       children: [
@@ -263,7 +287,7 @@ class _CanvasPageState extends State<CanvasPage> {
             // Positioned content blocks
             ...doc.blocks.asMap().entries.map<Widget>((entry) {
               final block = entry.value as ContentBlock;
-              return _buildPositionedBlock(block, doc, docMgr, ctrl);
+              return _buildPositionedBlock(block, doc, docMgr);
             }),
 
             // Ink layer — draws on top, but translucent to allow block interaction
@@ -317,26 +341,34 @@ class _CanvasPageState extends State<CanvasPage> {
   // ═══════════════════════════════════════════════════════════
 
   Widget _buildPositionedBlock(
-      ContentBlock block, dynamic doc, DocumentManager docMgr, CanvasController ctrl) {
+      ContentBlock block, dynamic doc, DocumentManager docMgr) {
     final isDragging = _draggingBlockId == block.id;
 
     return Positioned(
       left: block.x,
       top: block.y,
-      child: GestureDetector(
-        // Only allow drag when in select mode or when using the drag header
-        onPanStart: (_) => setState(() => _draggingBlockId = block.id),
-        onPanUpdate: (details) {
+      child: DraggableBlockShell(
+        block: block,
+        isDragging: isDragging,
+        onDragStart: (_) => setState(() => _draggingBlockId = block.id),
+        onDragUpdate: (details) {
           setState(() {
             block.x += details.delta.dx;
             block.y += details.delta.dy;
           });
         },
-        onPanEnd: (_) {
+        onDragEnd: (_) {
           _draggingBlockId = null;
           docMgr.saveActiveDocument();
           setState(() {});
         },
+        onDelete: () {
+          _disposeTextEditingResources(block.id);
+          doc.blocks.remove(block);
+          docMgr.saveActiveDocument();
+          setState(() {});
+        },
+        content: _buildBlockContent(block, doc, docMgr),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 100),
           width: block.blockWidth,
@@ -470,6 +502,30 @@ class _CanvasPageState extends State<CanvasPage> {
   Widget _buildBlockContent(ContentBlock block, dynamic doc, DocumentManager docMgr) {
     switch (block.type) {
       case ContentBlockType.text:
+        return Padding(
+          padding: const EdgeInsets.all(10),
+          child: TextField(
+            controller: _controllerForBlock(block),
+            focusNode: _focusNodeForBlock(block.id, docMgr),
+            onChanged: (val) {
+              block.content = val;
+              doc.touch();
+              _scheduleTextBlockSave(block.id, docMgr);
+            },
+            maxLines: null,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              height: 1.6,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Start typing...',
+              hintStyle: TextStyle(color: Colors.white.withAlpha(30)),
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
         return TextBlockWidget(
           block: block,
           onChanged: (val) {
@@ -527,6 +583,72 @@ class _CanvasPageState extends State<CanvasPage> {
             docMgr.saveActiveDocument();
           },
         );
+    }
+  }
+
+  TextEditingController _controllerForBlock(ContentBlock block) {
+    final controller = _textControllers.putIfAbsent(
+      block.id,
+      () => TextEditingController(text: block.content),
+    );
+    final focusNode = _textFocusNodes[block.id];
+    if (controller.text != block.content && (focusNode == null || !focusNode.hasFocus)) {
+      controller.value = controller.value.copyWith(
+        text: block.content,
+        selection: TextSelection.collapsed(offset: block.content.length),
+        composing: TextRange.empty,
+      );
+    }
+    return controller;
+  }
+
+  FocusNode _focusNodeForBlock(String blockId, DocumentManager docMgr) {
+    return _textFocusNodes.putIfAbsent(blockId, () {
+      final focusNode = FocusNode();
+      focusNode.addListener(() {
+        if (!focusNode.hasFocus) {
+          _flushTextBlockSave(blockId, docMgr);
+        }
+      });
+      return focusNode;
+    });
+  }
+
+  void _scheduleTextBlockSave(String blockId, DocumentManager docMgr) {
+    _textSaveDebouncers[blockId]?.cancel();
+    _textSaveDebouncers[blockId] = Timer(_textSaveDebounce, () {
+      if (!mounted) {
+        return;
+      }
+      docMgr.saveActiveDocument();
+    });
+  }
+
+  void _flushTextBlockSave(String blockId, DocumentManager docMgr) {
+    _textSaveDebouncers.remove(blockId)?.cancel();
+    docMgr.saveActiveDocument();
+  }
+
+  void _disposeTextEditingResources(String blockId) {
+    _textSaveDebouncers.remove(blockId)?.cancel();
+    _textControllers.remove(blockId)?.dispose();
+    _textFocusNodes.remove(blockId)?.dispose();
+  }
+
+  void _syncTextEditingResources(List<ContentBlock> blocks) {
+    final textBlockIds = blocks
+        .where((block) => block.type == ContentBlockType.text)
+        .map((block) => block.id)
+        .toSet();
+
+    final staleIds = <String>{
+      ..._textControllers.keys,
+      ..._textFocusNodes.keys,
+      ..._textSaveDebouncers.keys,
+    }.difference(textBlockIds);
+
+    for (final blockId in staleIds) {
+      _disposeTextEditingResources(blockId);
     }
   }
 
