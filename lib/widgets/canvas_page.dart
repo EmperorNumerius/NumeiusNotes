@@ -470,30 +470,12 @@ class _CanvasPageState extends State<CanvasPage> {
   Widget _buildBlockContent(ContentBlock block, dynamic doc, DocumentManager docMgr) {
     switch (block.type) {
       case ContentBlockType.text:
-        return Padding(
-          padding: const EdgeInsets.all(10),
-          child: TextField(
-            controller: TextEditingController(text: block.content)
-              ..selection = TextSelection.collapsed(
-                  offset: block.content.length),
-            onChanged: (val) {
-              block.content = val;
-              doc.touch();
-            },
-            maxLines: null,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              height: 1.6,
-            ),
-            decoration: InputDecoration(
-              hintText: 'Start typing...',
-              hintStyle: TextStyle(color: Colors.white.withAlpha(30)),
-              border: InputBorder.none,
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
+        return TextBlockWidget(
+          block: block,
+          onChanged: (val) {
+            block.content = val;
+            doc.touch();
+          },
         );
       case ContentBlockType.code:
         return CodeBlockWidget(
@@ -878,6 +860,71 @@ class _CanvasPageState extends State<CanvasPage> {
     return CustomPaint(
       painter: _GridPainter(),
       size: Size.infinite,
+    );
+  }
+}
+
+class TextBlockWidget extends StatefulWidget {
+  const TextBlockWidget({
+    super.key,
+    required this.block,
+    required this.onChanged,
+  });
+
+  final ContentBlock block;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<TextBlockWidget> createState() => _TextBlockWidgetState();
+}
+
+class _TextBlockWidgetState extends State<TextBlockWidget> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.block.content);
+  }
+
+  @override
+  void didUpdateWidget(covariant TextBlockWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.block.id != widget.block.id) {
+      _controller.value = TextEditingValue(
+        text: widget.block.content,
+        selection: TextSelection.collapsed(offset: widget.block.content.length),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: TextField(
+        controller: _controller,
+        onChanged: widget.onChanged,
+        maxLines: null,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          height: 1.6,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Start typing...',
+          hintStyle: TextStyle(color: Colors.white.withAlpha(30)),
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: EdgeInsets.zero,
+        ),
+      ),
     );
   }
 }
