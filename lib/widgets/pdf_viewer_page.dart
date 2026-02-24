@@ -13,6 +13,7 @@ import 'package:notes_app/widgets/code_block.dart';
 import 'package:notes_app/widgets/latex_block.dart';
 import 'package:notes_app/widgets/chemistry_block.dart';
 import 'package:notes_app/widgets/calculator_block.dart';
+import 'package:notes_app/services/pdf_annotation_export_service.dart';
 import 'package:notes_app/widgets/markdown_block.dart';
 import 'package:notes_app/widgets/flashcard_block.dart';
 import 'package:uuid/uuid.dart';
@@ -31,6 +32,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   late PdfViewerController _pdfController;
   final _uuid = const Uuid();
   String? _draggingBlockId;
+  Size _pdfViewportSize = Size.zero;
+  bool _isExporting = false;
 
   @override
   void initState() {
@@ -77,8 +80,11 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         _buildBlockPalette(doc, docMgr),
         // PDF + annotations
         Expanded(
-          child: Stack(
-            children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              _pdfViewportSize = Size(constraints.maxWidth, constraints.maxHeight);
+              return Stack(
+                children: [
               // PDF viewer base layer
               PdfViewer.file(
                 widget.pdfPath,
@@ -119,7 +125,13 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                     onPointerUp: (e) {
                       if (ctrl.currentStroke != null) {
                         ctrl.endStroke();
-                        doc.strokes = List<Stroke>.from(ctrl.strokes);
+                        final normalized = ctrl.strokes
+                            .map((s) => s.withNormalizedPoints(_pdfViewportSize, pageIndex: 0))
+                            .toList();
+                        ctrl.loadStrokes(normalized);
+                        doc.strokes = List<Stroke>.from(normalized);
+                        doc.pdfViewportWidth = _pdfViewportSize.width;
+                        doc.pdfViewportHeight = _pdfViewportSize.height;
                         docMgr.saveActiveDocument();
                       }
                     },
@@ -140,9 +152,17 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               Positioned(
                 left: 16,
                 top: 16,
-                child: _buildToolbar(ctrl),
+                child: _buildToolbar(ctrl, docMgr),
+              ),
+
+              Positioned(
+                right: 16,
+                top: 16,
+                child: _buildExportStatus(doc),
               ),
             ],
+              );
+            },
           ),
         ),
       ],
@@ -264,6 +284,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       x: 80.0 + (count % 3) * 30.0,
       y: 80.0 + count * 60.0,
       blockWidth: defaultWidth,
+      pageIndex: 0,
+    );
+    block.updateNormalizedAnchor(
+      viewportWidth: _pdfViewportSize.width,
+      viewportHeight: _pdfViewportSize.height,
+      page: 0,
     );
     doc.blocks.add(block);
     docMgr.saveActiveDocument();
@@ -277,16 +303,29 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   Widget _buildPositionedBlock(
       ContentBlock block, dynamic doc, DocumentManager docMgr) {
     final isDragging = _draggingBlockId == block.id;
+    final left = block.normalizedX != null
+        ? block.normalizedX! * _pdfViewportSize.width
+        : block.x;
+    final top = block.normalizedY != null
+        ? block.normalizedY! * _pdfViewportSize.height
+        : block.y;
+    block.x = left;
+    block.y = top;
 
     return Positioned(
-      left: block.x,
-      top: block.y,
+      left: left,
+      top: top,
       child: GestureDetector(
         onPanStart: (_) => setState(() => _draggingBlockId = block.id),
         onPanUpdate: (details) {
           setState(() {
             block.x += details.delta.dx;
             block.y += details.delta.dy;
+            block.updateNormalizedAnchor(
+              viewportWidth: _pdfViewportSize.width,
+              viewportHeight: _pdfViewportSize.height,
+              page: 0,
+            );
           });
         },
         onPanEnd: (_) {
@@ -475,7 +514,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   // TOOLBAR — with color dots + color picker
   // ═══════════════════════════════════════════════════════
 
-  Widget _buildToolbar(CanvasController ctrl) {
+  Widget _buildToolbar(CanvasController ctrl, DocumentManager docMgr) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
@@ -572,9 +611,119 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               child: Icon(Icons.redo_rounded, size: 16, color: Colors.white.withAlpha(120)),
             ),
           ),
+          _divider(),
+          _toolBtn(
+            _isExporting ? Icons.hourglass_top_rounded : Icons.picture_as_pdf_rounded,
+            'Save into PDF',
+            false,
+            _isExporting ? null : () => _saveIntoPdf(docMgr),
+            activeColor: const Color(0xFF38D9A9),
+          ),
         ],
       ),
     );
+  }
+
+  Widget _buildExportStatus(dynamic doc) {
+    final status = doc.lastPdfExportStatus as String?;
+    final ts = doc.lastPdfExportAt as DateTime?;
+    final msg = doc.lastPdfExportMessage as String?;
+
+    if (status == null && !_isExporting) {
+      return const SizedBox.shrink();
+    }
+
+    final statusText = _isExporting
+        ? 'Exporting PDF...'
+        : status == 'success'
+            ? 'Last PDF export: success'
+            : 'Last PDF export: failed';
+
+    final timeText = ts != null
+        ? '${ts.year.toString().padLeft(4, '0')}-${ts.month.toString().padLeft(2, '0')}-${ts.day.toString().padLeft(2, '0')} '
+            '${ts.hour.toString().padLeft(2, '0')}:${ts.minute.toString().padLeft(2, '0')}'
+        : null;
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 360),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF141428).withAlpha(235),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withAlpha(16)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            statusText,
+            style: TextStyle(
+              color: _isExporting
+                  ? const Color(0xFFFFD43B)
+                  : status == 'success'
+                      ? const Color(0xFF51CF66)
+                      : const Color(0xFFFF6B6B),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (timeText != null)
+            Text(
+              timeText,
+              style: TextStyle(color: Colors.white.withAlpha(110), fontSize: 11),
+            ),
+          if (!_isExporting && msg != null)
+            Text(
+              msg,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.white.withAlpha(110), fontSize: 11),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveIntoPdf(DocumentManager docMgr) async {
+    final doc = docMgr.activeDocument;
+    if (doc == null) return;
+
+    setState(() => _isExporting = true);
+
+    doc.pdfViewportWidth = _pdfViewportSize.width;
+    doc.pdfViewportHeight = _pdfViewportSize.height;
+    doc.strokes = doc.strokes
+        .map((s) => s.withNormalizedPoints(_pdfViewportSize, pageIndex: s.pageIndex))
+        .toList();
+    for (final block in doc.blocks) {
+      block.updateNormalizedAnchor(
+        viewportWidth: _pdfViewportSize.width,
+        viewportHeight: _pdfViewportSize.height,
+        page: block.pageIndex,
+      );
+    }
+
+    final result = await PdfAnnotationExportService().exportAnnotatedPdf(doc);
+
+    doc.lastPdfExportAt = result.exportedAt;
+    doc.lastPdfExportStatus = result.success ? 'success' : 'failed';
+    doc.lastPdfExportMessage = result.message;
+    if (result.success && result.outputPath != null) {
+      doc.annotatedPdfPath = result.outputPath;
+    }
+
+    await docMgr.saveActiveDocument();
+
+    if (mounted) {
+      setState(() => _isExporting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.success
+              ? 'Saved annotated PDF: ${result.outputPath}'
+              : 'Failed to export PDF: ${result.message}'),
+        ),
+      );
+    }
   }
 
   Widget _divider() => Container(
@@ -583,7 +732,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         color: Colors.white.withAlpha(15),
       );
 
-  Widget _toolBtn(IconData icon, String label, bool active, VoidCallback onTap,
+  Widget _toolBtn(IconData icon, String label, bool active, VoidCallback? onTap,
       {Color? activeColor}) {
     final color = activeColor ?? const Color(0xFF00D2FF);
     return Tooltip(
