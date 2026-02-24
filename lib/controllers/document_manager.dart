@@ -135,12 +135,71 @@ class DocumentManager extends ChangeNotifier {
         ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
   List<NoteDocument> searchNotes(String query) {
-    final q = query.toLowerCase();
-    return _documents
-        .where((d) =>
-            d.title.toLowerCase().contains(q) ||
-            d.subject.toLowerCase().contains(q))
-        .toList();
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return [];
+
+    final ranked = <({NoteDocument doc, int rank})>[];
+
+    for (final d in _documents) {
+      final titleMatch = d.title.toLowerCase().contains(q);
+      final subjectMatch = d.subject.toLowerCase().contains(q);
+      final bodyMatch = d.blocks.any((block) {
+        if (block.content.toLowerCase().contains(q)) return true;
+        if (block.output.toLowerCase().contains(q)) return true;
+        return _metadataStrings(block.metadata)
+            .any((value) => value.contains(q));
+      });
+
+      if (!titleMatch && !subjectMatch && !bodyMatch) continue;
+
+      final rank = titleMatch
+          ? 0
+          : subjectMatch
+              ? 1
+              : 2;
+      ranked.add((doc: d, rank: rank));
+    }
+
+    ranked.sort((a, b) {
+      final rankCompare = a.rank.compareTo(b.rank);
+      if (rankCompare != 0) return rankCompare;
+      return b.doc.updatedAt.compareTo(a.doc.updatedAt);
+    });
+
+    return ranked.map((entry) => entry.doc).toList();
+  }
+
+  Iterable<String> _metadataStrings(Map<String, dynamic> metadata) sync* {
+    for (final entry in metadata.entries) {
+      yield entry.key.toLowerCase();
+      yield* _metadataValueStrings(entry.value);
+    }
+  }
+
+  Iterable<String> _metadataValueStrings(dynamic value) sync* {
+    if (value == null) return;
+    if (value is String) {
+      yield value.toLowerCase();
+      return;
+    }
+    if (value is num || value is bool) {
+      yield value.toString().toLowerCase();
+      return;
+    }
+    if (value is Map) {
+      for (final entry in value.entries) {
+        yield entry.key.toString().toLowerCase();
+        yield* _metadataValueStrings(entry.value);
+      }
+      return;
+    }
+    if (value is Iterable) {
+      for (final item in value) {
+        yield* _metadataValueStrings(item);
+      }
+      return;
+    }
+    yield value.toString().toLowerCase();
   }
 
   Set<String> get allSubjects {

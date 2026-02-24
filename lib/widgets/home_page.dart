@@ -5,6 +5,7 @@ import 'package:notes_app/models/folder.dart';
 import 'package:notes_app/models/document.dart';
 import 'package:notes_app/services/pdf_service.dart';
 import 'package:notes_app/config/app_config.dart';
+import 'package:notes_app/widgets/flashcard_review_page.dart';
 
 /// Home page — folder grid, recent notes, subject sidebar, search.
 class HomePage extends StatefulWidget {
@@ -275,6 +276,13 @@ class _HomePageState extends State<HomePage> {
                 tooltip: 'New Note',
                 color: const Color(0xFF00D2FF),
                 onTap: () => _createNote(docMgr),
+              ),
+              const SizedBox(width: 4),
+              _topBarButton(
+                icon: Icons.style_rounded,
+                tooltip: 'Review Flashcards',
+                color: const Color(0xFFFF6B9A),
+                onTap: () => _openFlashcardReview(docMgr),
               ),
               const SizedBox(width: 4),
               _topBarButton(
@@ -633,6 +641,15 @@ class _HomePageState extends State<HomePage> {
             child: Icon(icon, color: color ?? Colors.white70, size: 18),
           ),
         ),
+      ),
+    );
+  }
+
+  void _openFlashcardReview(DocumentManager docMgr) {
+    final cards = FlashcardReviewPage.collectCardsFromDocuments(docMgr.documents);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FlashcardReviewPage(cards: cards),
       ),
     );
   }

@@ -5,8 +5,13 @@ import 'package:notes_app/models/content_block.dart';
 /// Widget to render and edit LaTeX equations.
 class LatexBlockWidget extends StatefulWidget {
   final ContentBlock block;
+  final VoidCallback onChanged;
 
-  const LatexBlockWidget({super.key, required this.block});
+  const LatexBlockWidget({
+    super.key,
+    required this.block,
+    required this.onChanged,
+  });
 
   @override
   State<LatexBlockWidget> createState() => _LatexBlockWidgetState();
@@ -72,6 +77,7 @@ class _LatexBlockWidgetState extends State<LatexBlockWidget> {
                 onTap: () {
                   if (_isEditing) {
                     widget.block.content = _editCtrl.text;
+                    widget.onChanged();
                   }
                   setState(() => _isEditing = !_isEditing);
                 },

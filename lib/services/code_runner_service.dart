@@ -50,20 +50,43 @@ class CodeRunnerService {
   static Future<CodeResult> _mockExecute(String code, String language) async {
     await Future.delayed(const Duration(milliseconds: 500));
 
+    final trimmed = code.trim();
+    if (trimmed.isEmpty) {
+      return CodeResult(stdout: '(no code provided)', stderr: '', exitCode: 0);
+    }
+
     if (language == 'python') {
-      // Simple mock: detect print statements
-      final printRegex = RegExp(r'''print\((.*?)\)''');
-      final matches = printRegex.allMatches(code);
-      final output = matches.map((m) {
-        var arg = m.group(1) ?? '';
-        // Strip quotes
-        if ((arg.startsWith('"') && arg.endsWith('"')) ||
-            (arg.startsWith("'") && arg.endsWith("'"))) {
-          arg = arg.substring(1, arg.length - 1);
-        }
-        return arg;
-      }).join('\n');
-      return CodeResult(stdout: output.isEmpty ? '(no output)' : output, stderr: '', exitCode: 0);
+      return _mockPythonExecute(code);
+    }
+
+    if (language == 'javascript') {
+      final logRegex = RegExp(r'''console\.log\((.*?)\)''', multiLine: true);
+      final logs = logRegex
+          .allMatches(code)
+          .map((match) => _stripWrappedQuotes((match.group(1) ?? '').trim()))
+          .where((line) => line.isNotEmpty)
+          .toList();
+
+      return CodeResult(
+        stdout: logs.isEmpty ? '(no output)' : logs.join('\n'),
+        stderr: '',
+        exitCode: 0,
+      );
+    }
+
+    if (language == 'cpp') {
+      final coutRegex = RegExp(r'''cout\s*<<\s*(.*?)\s*;''', multiLine: true);
+      final lines = coutRegex
+          .allMatches(code)
+          .map((match) => _stripWrappedQuotes((match.group(1) ?? '').trim()))
+          .where((line) => line.isNotEmpty)
+          .toList();
+
+      return CodeResult(
+        stdout: lines.isEmpty ? '[Mock] C++ code parsed. No cout output found.' : lines.join('\n'),
+        stderr: '',
+        exitCode: 0,
+      );
     }
 
     return CodeResult(
@@ -71,6 +94,64 @@ class CodeRunnerService {
       stderr: '',
       exitCode: 0,
     );
+  }
+
+  static CodeResult _mockPythonExecute(String code) {
+    final variables = <String, String>{};
+    final output = <String>[];
+
+    final lines = code
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty && !line.startsWith('#'));
+
+    for (final line in lines) {
+      final assignment = RegExp(r'''^([a-zA-Z_]\w*)\s*=\s*(.+)$''').firstMatch(line);
+      if (assignment != null) {
+        final variable = assignment.group(1)!;
+        final valueExpr = assignment.group(2)!.trim();
+        variables[variable] = _resolvePythonValue(valueExpr, variables);
+        continue;
+      }
+
+      final printMatch = RegExp(r'''^print\((.*)\)$''').firstMatch(line);
+      if (printMatch != null) {
+        final expression = printMatch.group(1)?.trim() ?? '';
+        final resolved = _resolvePythonValue(expression, variables);
+        output.add(resolved);
+      }
+    }
+
+    return CodeResult(
+      stdout: output.isEmpty ? '(no output)' : output.join('\n'),
+      stderr: '',
+      exitCode: 0,
+    );
+  }
+
+  static String _resolvePythonValue(String expression, Map<String, String> variables) {
+    final raw = expression.trim();
+    if (raw.isEmpty) return '';
+
+    if (variables.containsKey(raw)) {
+      return variables[raw]!;
+    }
+
+    if (raw.contains('+')) {
+      final parts = raw.split('+').map((part) => part.trim()).toList();
+      return parts.map((part) => _resolvePythonValue(part, variables)).join();
+    }
+
+    return _stripWrappedQuotes(raw);
+  }
+
+  static String _stripWrappedQuotes(String value) {
+    final trimmed = value.trim();
+    if ((trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+        (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+      return trimmed.substring(1, trimmed.length - 1);
+    }
+    return trimmed;
   }
 }
 
