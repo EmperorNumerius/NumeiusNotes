@@ -1,5 +1,5 @@
 /// Types of content that can exist in a document.
-enum ContentBlockType { text, code, latex, chemistry, calculator, flashcard }
+enum ContentBlockType { text, code, latex, chemistry, calculator, flashcard, markdown }
 
 /// A block of typed content (text, code, LaTeX, chemistry, or calculator) in a document.
 /// Each block has a free-form position on the canvas.

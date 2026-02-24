@@ -13,6 +13,7 @@ import 'package:notes_app/widgets/code_block.dart';
 import 'package:notes_app/widgets/latex_block.dart';
 import 'package:notes_app/widgets/chemistry_block.dart';
 import 'package:notes_app/widgets/calculator_block.dart';
+import 'package:notes_app/widgets/markdown_block.dart';
 import 'package:notes_app/widgets/flashcard_block.dart';
 import 'package:uuid/uuid.dart';
 
@@ -185,6 +186,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             onTap: () => _addBlock(doc, docMgr, ContentBlockType.latex),
           ),
           _paletteItem(
+            icon: Icons.markdown_rounded,
+            label: 'Markdown',
+            color: const Color(0xFFFF6B6B),
+            onTap: () => _addBlock(doc, docMgr, ContentBlockType.markdown, width: 460),
+          ),
+          _paletteItem(
             icon: Icons.science_rounded,
             label: 'Chemistry',
             color: const Color(0xFF38D9A9),
@@ -250,7 +257,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
 
   void _addBlock(dynamic doc, DocumentManager docMgr, ContentBlockType type, {double? width}) {
     final count = doc.blocks.length as int;
-    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : 360);
+    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : type == ContentBlockType.markdown ? 460 : 360);
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
@@ -336,6 +343,10 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         typeColor = const Color(0xFF7C3AED);
         typeIcon = Icons.functions_rounded;
         typeLabel = 'LaTeX';
+      case ContentBlockType.markdown:
+        typeColor = const Color(0xFFFF6B6B);
+        typeIcon = Icons.markdown_rounded;
+        typeLabel = 'Markdown';
       case ContentBlockType.chemistry:
         typeColor = const Color(0xFF38D9A9);
         typeIcon = Icons.science_rounded;
@@ -423,6 +434,9 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           },
         );
       case ContentBlockType.latex:
+        return LatexBlockWidget(block: block);
+      case ContentBlockType.markdown:
+        return MarkdownBlockWidget(
         return LatexBlockWidget(
           block: block,
           onChanged: () {

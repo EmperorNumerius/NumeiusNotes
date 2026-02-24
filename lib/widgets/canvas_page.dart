@@ -11,6 +11,7 @@ import 'package:notes_app/widgets/code_block.dart';
 import 'package:notes_app/widgets/latex_block.dart';
 import 'package:notes_app/widgets/chemistry_block.dart';
 import 'package:notes_app/widgets/calculator_block.dart';
+import 'package:notes_app/widgets/markdown_block.dart';
 import 'package:notes_app/widgets/image_block.dart';
 import 'package:notes_app/services/image_service.dart';
 import 'package:notes_app/widgets/flashcard_block.dart';
@@ -124,6 +125,12 @@ class _CanvasPageState extends State<CanvasPage> {
             onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.latex),
           ),
           _paletteItem(
+            icon: Icons.markdown_rounded,
+            label: 'Markdown',
+            color: const Color(0xFFFF6B6B),
+            onTap: () => _addBlockAtCenter(doc, docMgr, ContentBlockType.markdown, width: 460),
+          ),
+          _paletteItem(
             icon: Icons.science_rounded,
             label: 'Chemistry',
             color: const Color(0xFF38D9A9),
@@ -197,6 +204,7 @@ class _CanvasPageState extends State<CanvasPage> {
   void _addBlockAtCenter(dynamic doc, DocumentManager docMgr, ContentBlockType type, {double? width}) {
     // Stack blocks vertically, offset from each other
     final existingCount = doc.blocks.length as int;
+    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : type == ContentBlockType.markdown ? 460 : 360);
     final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : type == ContentBlockType.image ? 420 : 360);
     final block = ContentBlock(
       id: _uuid.v4(),
@@ -398,6 +406,10 @@ class _CanvasPageState extends State<CanvasPage> {
         typeColor = const Color(0xFF7C3AED);
         typeIcon = Icons.functions_rounded;
         typeLabel = 'LaTeX';
+      case ContentBlockType.markdown:
+        typeColor = const Color(0xFFFF6B6B);
+        typeIcon = Icons.markdown_rounded;
+        typeLabel = 'Markdown';
       case ContentBlockType.chemistry:
         typeColor = const Color(0xFF38D9A9);
         typeIcon = Icons.science_rounded;
@@ -497,6 +509,9 @@ class _CanvasPageState extends State<CanvasPage> {
           },
         );
       case ContentBlockType.latex:
+        return LatexBlockWidget(block: block);
+      case ContentBlockType.markdown:
+        return MarkdownBlockWidget(
         return LatexBlockWidget(
           block: block,
           onChanged: () {
