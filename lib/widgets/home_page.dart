@@ -5,6 +5,8 @@ import 'package:notes_app/models/folder.dart';
 import 'package:notes_app/models/document.dart';
 import 'package:notes_app/services/pdf_service.dart';
 import 'package:notes_app/widgets/ai_settings_dialog.dart';
+import 'package:notes_app/config/app_config.dart';
+import 'package:notes_app/widgets/flashcard_review_page.dart';
 
 /// Home page — folder grid, recent notes, subject sidebar, search.
 class HomePage extends StatefulWidget {
@@ -274,6 +276,8 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(width: 12),
+              _buildEnvironmentBadge(),
+              const SizedBox(width: 8),
               // New folder
               _topBarButton(
                 icon: Icons.create_new_folder_rounded,
@@ -286,6 +290,13 @@ class _HomePageState extends State<HomePage> {
                 tooltip: 'New Note',
                 color: const Color(0xFF00D2FF),
                 onTap: () => _createNote(docMgr),
+              ),
+              const SizedBox(width: 4),
+              _topBarButton(
+                icon: Icons.style_rounded,
+                tooltip: 'Review Flashcards',
+                color: const Color(0xFFFF6B9A),
+                onTap: () => _openFlashcardReview(docMgr),
               ),
               const SizedBox(width: 4),
               _topBarButton(
@@ -352,6 +363,37 @@ class _HomePageState extends State<HomePage> {
                 ),
         ),
       ],
+    );
+  }
+
+
+  Widget _buildEnvironmentBadge() {
+    final env = AppConfig.environmentLabel;
+    final codeMode = AppConfig.isExecutionMocked ? 'CODE:MOCK' : 'CODE:LIVE';
+    final latexMode = AppConfig.isLatexMocked ? 'LATEX:MOCK' : 'LATEX:LIVE';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppConfig.hasAnyMockingEnabled
+            ? const Color(0xFFFFB020).withAlpha(30)
+            : const Color(0xFF00D2FF).withAlpha(25),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: AppConfig.hasAnyMockingEnabled
+              ? const Color(0xFFFFB020).withAlpha(120)
+              : const Color(0xFF00D2FF).withAlpha(110),
+        ),
+      ),
+      child: Text(
+        '$env • $codeMode • $latexMode',
+        style: TextStyle(
+          color: Colors.white.withAlpha(220),
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
+        ),
+      ),
     );
   }
 
@@ -613,6 +655,15 @@ class _HomePageState extends State<HomePage> {
             child: Icon(icon, color: color ?? Colors.white70, size: 18),
           ),
         ),
+      ),
+    );
+  }
+
+  void _openFlashcardReview(DocumentManager docMgr) {
+    final cards = FlashcardReviewPage.collectCardsFromDocuments(docMgr.documents);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FlashcardReviewPage(cards: cards),
       ),
     );
   }

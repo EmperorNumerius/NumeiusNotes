@@ -16,6 +16,7 @@ import 'package:notes_app/widgets/canvas_page.dart';
 import 'package:notes_app/widgets/pdf_viewer_page.dart';
 import 'package:notes_app/widgets/audio_toolbar.dart';
 import 'package:notes_app/widgets/transcription_panel.dart';
+import 'package:notes_app/widgets/flashcard_review_page.dart';
 
 /// Full editor shell — composes tab bar + canvas/PDF + audio toolbar + transcription panel.
 class EditorPage extends StatefulWidget {
@@ -28,30 +29,46 @@ class EditorPage extends StatefulWidget {
 class _EditorPageState extends State<EditorPage> {
   bool _isGeneratingQuiz = false;
   bool _isGeneratingFlashcards = false;
+  late final DocumentManager _docMgr;
+  late final CanvasController _canvasCtrl;
+  late final VoidCallback _docListener;
+  bool _isDocListenerRegistered = false;
 
   @override
   void initState() {
     super.initState();
+    _docListener = _handleDocumentChanged;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isDocListenerRegistered) return;
+
+    _docMgr = context.read<DocumentManager>();
+    _canvasCtrl = context.read<CanvasController>();
+    _docMgr.addListener(_docListener);
+    _isDocListenerRegistered = true;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _syncCanvasToDocument();
+      if (!mounted) return;
+      _handleDocumentChanged();
     });
   }
 
-  void _syncCanvasToDocument() {
-    final docMgr = context.read<DocumentManager>();
-    final canvasCtrl = context.read<CanvasController>();
-    final doc = docMgr.activeDocument;
+  void _handleDocumentChanged() {
+    final doc = _docMgr.activeDocument;
     if (doc != null) {
-      canvasCtrl.loadStrokes(doc.strokes);
+      _canvasCtrl.loadStrokes(doc.strokes);
     }
+  }
 
-    docMgr.addListener(() {
-      if (!mounted) return;
-      final activeDoc = docMgr.activeDocument;
-      if (activeDoc != null) {
-        canvasCtrl.loadStrokes(activeDoc.strokes);
-      }
-    });
+  @override
+  void dispose() {
+    if (_isDocListenerRegistered) {
+      _docMgr.removeListener(_docListener);
+    }
+    super.dispose();
   }
 
   AiGenerationContext? _buildGenerationContext() {
@@ -281,6 +298,25 @@ class _EditorPageState extends State<EditorPage> {
             label: const Text('Generate Flashcards'),
           ),
           const SizedBox(width: 10),
+          if ((docMgr.activeDocument?.blocks.where((b) => b.type.name == 'flashcard').length ?? 0) > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                tooltip: 'Review flashcards',
+                onPressed: () {
+                  final doc = docMgr.activeDocument;
+                  if (doc == null) return;
+                  final cards = FlashcardReviewPage.collectCardsFromDocuments([doc]);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => FlashcardReviewPage(cards: cards),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.style_rounded, size: 18),
+                color: const Color(0xFFFF6B9A),
+              ),
+            ),
         ],
       ),
     );
