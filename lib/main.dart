@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:notes_app/controllers/canvas_controller.dart';
 import 'package:notes_app/controllers/document_manager.dart';
 import 'package:notes_app/controllers/audio_controller.dart';
+import 'package:notes_app/controllers/ai_settings_controller.dart';
 import 'package:notes_app/widgets/home_page.dart';
 import 'package:notes_app/widgets/editor_page.dart';
+import 'package:notes_app/config/app_config.dart';
+import 'package:notes_app/widgets/flashcard_review_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,13 +15,35 @@ void main() async {
   final docManager = DocumentManager();
   await docManager.init();
 
+  final aiSettings = AiSettingsController();
+  await aiSettings.init();
+
+  runApp(NotesApp(docManager: docManager, aiSettings: aiSettings));
+  final codeUrl = AppConfig.endpoints.codeRunnerBaseUrl.isEmpty
+      ? 'disabled'
+      : AppConfig.endpoints.codeRunnerBaseUrl;
+  final latexUrl =
+      AppConfig.endpoints.latexApiUrl.isEmpty ? 'disabled' : AppConfig.endpoints.latexApiUrl;
+  debugPrint(
+    '[AppConfig] env=${AppConfig.environmentLabel} '
+    'codeMock=${AppConfig.isExecutionMocked} '
+    'latexMock=${AppConfig.isLatexMocked} '
+    'codeUrl=$codeUrl '
+    'latexUrl=$latexUrl',
+  );
+
   runApp(NotesApp(docManager: docManager));
 }
 
 class NotesApp extends StatelessWidget {
   final DocumentManager docManager;
+  final AiSettingsController aiSettings;
 
-  const NotesApp({super.key, required this.docManager});
+  const NotesApp({
+    super.key,
+    required this.docManager,
+    required this.aiSettings,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +52,7 @@ class NotesApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: docManager),
         ChangeNotifierProvider(create: (_) => CanvasController()),
         ChangeNotifierProvider(create: (_) => AudioController()),
+        ChangeNotifierProvider.value(value: aiSettings),
       ],
       child: MaterialApp(
         title: 'Notes',
@@ -49,6 +75,7 @@ class NotesApp extends StatelessWidget {
         routes: {
           '/': (_) => const HomePage(),
           '/editor': (_) => const EditorPage(),
+          '/flashcards': (_) => const FlashcardReviewPage(cards: []),
         },
       ),
     );

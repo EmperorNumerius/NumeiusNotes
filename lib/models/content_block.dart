@@ -1,5 +1,5 @@
 /// Types of content that can exist in a document.
-enum ContentBlockType { text, code, latex, chemistry, calculator }
+enum ContentBlockType { text, code, latex, chemistry, calculator, flashcard, markdown }
 
 /// A block of typed content (text, code, LaTeX, chemistry, or calculator) in a document.
 /// Each block has a free-form position on the canvas.
@@ -57,9 +57,14 @@ class ContentBlock {
       };
 
   factory ContentBlock.fromJson(Map<String, dynamic> json) {
+    final typeName = json['type'] as String?;
+    final blockType = ContentBlockType.values.any((t) => t.name == typeName)
+        ? ContentBlockType.values.firstWhere((t) => t.name == typeName)
+        : ContentBlockType.text;
+
     return ContentBlock(
       id: json['id'] as String,
-      type: ContentBlockType.values.byName(json['type'] as String),
+      type: blockType,
       content: json['content'] as String? ?? '',
       language: json['language'] as String? ?? 'python',
       output: json['output'] as String? ?? '',
@@ -70,6 +75,8 @@ class ContentBlock {
       normalizedX: (json['normalizedX'] as num?)?.toDouble(),
       normalizedY: (json['normalizedY'] as num?)?.toDouble(),
       metadata: (json['metadata'] as Map<String, dynamic>?) ?? {},
+      metadata:
+          Map<String, dynamic>.from(json['metadata'] as Map? ?? const {}),
     );
   }
 

@@ -14,6 +14,8 @@ import 'package:notes_app/widgets/latex_block.dart';
 import 'package:notes_app/widgets/chemistry_block.dart';
 import 'package:notes_app/widgets/calculator_block.dart';
 import 'package:notes_app/services/pdf_annotation_export_service.dart';
+import 'package:notes_app/widgets/markdown_block.dart';
+import 'package:notes_app/widgets/flashcard_block.dart';
 import 'package:uuid/uuid.dart';
 
 /// PDF viewer with full annotation — ink drawing + draggable content blocks.
@@ -204,6 +206,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             onTap: () => _addBlock(doc, docMgr, ContentBlockType.latex),
           ),
           _paletteItem(
+            icon: Icons.markdown_rounded,
+            label: 'Markdown',
+            color: const Color(0xFFFF6B6B),
+            onTap: () => _addBlock(doc, docMgr, ContentBlockType.markdown, width: 460),
+          ),
+          _paletteItem(
             icon: Icons.science_rounded,
             label: 'Chemistry',
             color: const Color(0xFF38D9A9),
@@ -214,6 +222,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             label: 'Calculator',
             color: const Color(0xFFFFAA5C),
             onTap: () => _addBlock(doc, docMgr, ContentBlockType.calculator, width: 320),
+          ),
+          _paletteItem(
+            icon: Icons.style_rounded,
+            label: 'Flashcard',
+            color: const Color(0xFFFF6B9A),
+            onTap: () => _addBlock(doc, docMgr, ContentBlockType.flashcard, width: 460),
           ),
           const Spacer(),
         ],
@@ -263,7 +277,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
 
   void _addBlock(dynamic doc, DocumentManager docMgr, ContentBlockType type, {double? width}) {
     final count = doc.blocks.length as int;
-    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : 360);
+    final defaultWidth = width ?? (type == ContentBlockType.code ? 500 : type == ContentBlockType.markdown ? 460 : 360);
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
@@ -368,6 +382,10 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         typeColor = const Color(0xFF7C3AED);
         typeIcon = Icons.functions_rounded;
         typeLabel = 'LaTeX';
+      case ContentBlockType.markdown:
+        typeColor = const Color(0xFFFF6B6B);
+        typeIcon = Icons.markdown_rounded;
+        typeLabel = 'Markdown';
       case ContentBlockType.chemistry:
         typeColor = const Color(0xFF38D9A9);
         typeIcon = Icons.science_rounded;
@@ -376,6 +394,10 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         typeColor = const Color(0xFFFFAA5C);
         typeIcon = Icons.calculate_rounded;
         typeLabel = 'Calculator';
+      case ContentBlockType.flashcard:
+        typeColor = const Color(0xFFFF6B9A);
+        typeIcon = Icons.style_rounded;
+        typeLabel = 'Flashcard';
     }
 
     return Container(
@@ -442,9 +464,25 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           ),
         );
       case ContentBlockType.code:
-        return CodeBlockWidget(block: block);
+        return CodeBlockWidget(
+          block: block,
+          onChanged: (val) {
+            block.content = val;
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
       case ContentBlockType.latex:
         return LatexBlockWidget(block: block);
+      case ContentBlockType.markdown:
+        return MarkdownBlockWidget(
+        return LatexBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
       case ContentBlockType.chemistry:
         return ChemistryBlockWidget(
           block: block,
@@ -455,6 +493,14 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
         );
       case ContentBlockType.calculator:
         return CalculatorBlockWidget(
+          block: block,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+        );
+      case ContentBlockType.flashcard:
+        return FlashcardBlockWidget(
           block: block,
           onChanged: () {
             doc.touch();
