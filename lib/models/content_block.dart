@@ -44,16 +44,22 @@ class ContentBlock {
       };
 
   factory ContentBlock.fromJson(Map<String, dynamic> json) {
+    final typeName = json['type'] as String?;
+    final blockType = ContentBlockType.values.any((t) => t.name == typeName)
+        ? ContentBlockType.values.firstWhere((t) => t.name == typeName)
+        : ContentBlockType.text;
+
     return ContentBlock(
       id: json['id'] as String,
-      type: ContentBlockType.values.byName(json['type'] as String),
+      type: blockType,
       content: json['content'] as String? ?? '',
       language: json['language'] as String? ?? 'python',
       output: json['output'] as String? ?? '',
       x: (json['x'] as num?)?.toDouble() ?? 100,
       y: (json['y'] as num?)?.toDouble() ?? 100,
       blockWidth: (json['blockWidth'] as num?)?.toDouble() ?? 360,
-      metadata: (json['metadata'] as Map<String, dynamic>?) ?? {},
+      metadata:
+          Map<String, dynamic>.from(json['metadata'] as Map? ?? const {}),
     );
   }
 }
