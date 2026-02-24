@@ -6,7 +6,7 @@ import 'package:notes_app/models/content_block.dart';
 /// Uses [ContentBlock.content] as the prompt/question.
 /// Uses metadata for:
 /// - answer: String
-/// - tags: List<String>
+/// - tags: `List<String>`
 /// - difficulty: int (1-5)
 /// - reviewCount: int
 /// - lastReviewed: ISO timestamp String
@@ -32,7 +32,10 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
   List<String> get _tags {
     final raw = widget.block.metadata['tags'];
     if (raw is List) {
-      return raw.map((e) => e.toString()).where((e) => e.trim().isNotEmpty).toList();
+      return raw
+          .map((e) => e.toString())
+          .where((e) => e.trim().isNotEmpty)
+          .toList();
     }
     return const [];
   }
@@ -78,15 +81,24 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
         children: [
           TextField(
             controller: TextEditingController(text: widget.block.content)
-              ..selection = TextSelection.collapsed(offset: widget.block.content.length),
+              ..selection = TextSelection.collapsed(
+                offset: widget.block.content.length,
+              ),
             onChanged: (val) {
               widget.block.content = val;
               widget.onChanged();
             },
-            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
             decoration: InputDecoration(
               labelText: 'Prompt',
-              labelStyle: TextStyle(color: Colors.white.withAlpha(120), fontSize: 12),
+              labelStyle: TextStyle(
+                color: Colors.white.withAlpha(120),
+                fontSize: 12,
+              ),
               hintText: 'Question on the front of the card',
               hintStyle: TextStyle(color: Colors.white.withAlpha(45)),
               filled: true,
@@ -111,7 +123,10 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
             maxLines: 6,
             decoration: InputDecoration(
               labelText: 'Answer',
-              labelStyle: TextStyle(color: Colors.white.withAlpha(120), fontSize: 12),
+              labelStyle: TextStyle(
+                color: Colors.white.withAlpha(120),
+                fontSize: 12,
+              ),
               hintText: 'Answer shown when card is flipped',
               hintStyle: TextStyle(color: Colors.white.withAlpha(45)),
               filled: true,
@@ -132,7 +147,9 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
               Expanded(
                 child: TextField(
                   controller: TextEditingController(text: _tags.join(', '))
-                    ..selection = TextSelection.collapsed(offset: _tags.join(', ').length),
+                    ..selection = TextSelection.collapsed(
+                      offset: _tags.join(', ').length,
+                    ),
                   onChanged: (val) {
                     final tags = val
                         .split(',')
@@ -144,9 +161,15 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
                   style: const TextStyle(color: Colors.white, fontSize: 12),
                   decoration: InputDecoration(
                     labelText: 'Tags (optional)',
-                    labelStyle: TextStyle(color: Colors.white.withAlpha(120), fontSize: 11),
+                    labelStyle: TextStyle(
+                      color: Colors.white.withAlpha(120),
+                      fontSize: 11,
+                    ),
                     hintText: 'biology, chapter-2',
-                    hintStyle: TextStyle(color: Colors.white.withAlpha(45), fontSize: 11),
+                    hintStyle: TextStyle(
+                      color: Colors.white.withAlpha(45),
+                      fontSize: 11,
+                    ),
                     filled: true,
                     fillColor: Colors.white.withAlpha(4),
                     border: OutlineInputBorder(
@@ -169,7 +192,10 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
                     5,
                     (i) => DropdownMenuItem(
                       value: i + 1,
-                      child: Text('D${i + 1}', style: const TextStyle(fontSize: 12)),
+                      child: Text(
+                        'D${i + 1}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
                   ),
                   onChanged: (val) {
@@ -179,7 +205,10 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
                   dropdownColor: const Color(0xFF1A1A2E),
                   decoration: InputDecoration(
                     labelText: 'Difficulty',
-                    labelStyle: TextStyle(color: Colors.white.withAlpha(120), fontSize: 11),
+                    labelStyle: TextStyle(
+                      color: Colors.white.withAlpha(120),
+                      fontSize: 11,
+                    ),
                     filled: true,
                     fillColor: Colors.white.withAlpha(4),
                     border: OutlineInputBorder(
@@ -208,7 +237,9 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
               duration: const Duration(milliseconds: 220),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: _showAnswer ? const Color(0xFF7C3AED).withAlpha(35) : const Color(0xFF00D2FF).withAlpha(22),
+                color: _showAnswer
+                    ? const Color(0xFF7C3AED).withAlpha(35)
+                    : const Color(0xFF00D2FF).withAlpha(22),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: _showAnswer
@@ -221,7 +252,9 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
                 child: Text(
                   _showAnswer
                       ? (_answer.isEmpty ? 'No answer yet.' : _answer)
-                      : (widget.block.content.isEmpty ? 'No prompt yet.' : widget.block.content),
+                      : (widget.block.content.isEmpty
+                            ? 'No prompt yet.'
+                            : widget.block.content),
                   key: ValueKey(_showAnswer),
                   style: const TextStyle(color: Colors.white, height: 1.5),
                 ),
@@ -232,21 +265,32 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
           Row(
             children: [
               Text(
-                _showAnswer ? 'Tap card to show prompt' : 'Tap card to reveal answer',
-                style: TextStyle(color: Colors.white.withAlpha(100), fontSize: 11),
+                _showAnswer
+                    ? 'Tap card to show prompt'
+                    : 'Tap card to reveal answer',
+                style: TextStyle(
+                  color: Colors.white.withAlpha(100),
+                  fontSize: 11,
+                ),
               ),
               const Spacer(),
               Text(
                 'Reviews: $_reviewCount',
-                style: TextStyle(color: Colors.white.withAlpha(90), fontSize: 11),
+                style: TextStyle(
+                  color: Colors.white.withAlpha(90),
+                  fontSize: 11,
+                ),
               ),
               if (_lastReviewed != null) ...[
                 const SizedBox(width: 10),
                 Text(
                   'Last: ${_lastReviewed!.year}-${_lastReviewed!.month.toString().padLeft(2, '0')}-${_lastReviewed!.day.toString().padLeft(2, '0')}',
-                  style: TextStyle(color: Colors.white.withAlpha(90), fontSize: 11),
+                  style: TextStyle(
+                    color: Colors.white.withAlpha(90),
+                    fontSize: 11,
+                  ),
                 ),
-              ]
+              ],
             ],
           ),
         ],
