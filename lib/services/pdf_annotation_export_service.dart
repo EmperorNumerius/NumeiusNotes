@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:notes_app/models/anchor_type.dart';
 import 'package:notes_app/models/document.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
@@ -27,7 +28,7 @@ class PdfAnnotationExportService {
     bool includeTextBlocks = true,
     Directory? outputRoot,
   }) async {
-    final sourcePath = doc.pdfPath;
+    final sourcePath = doc.pdfWorkingPath ?? doc.pdfPath ?? doc.pdfOriginalPath;
     if (sourcePath == null || sourcePath.isEmpty) {
       return PdfExportResult(
         success: false,
@@ -57,7 +58,11 @@ class PdfAnnotationExportService {
             ? Size(doc.pdfViewportWidth!, doc.pdfViewportHeight!)
             : null;
 
-        final pageStrokes = doc.strokes.where((s) => s.pageIndex == pageIndex);
+        final pageStrokes = doc.strokes.where(
+          (s) =>
+              s.pageIndex == pageIndex &&
+              (s.anchorType == AnchorType.pdfPage || s.normalizedPoints != null),
+        );
         for (final stroke in pageStrokes) {
           final points = stroke.resolvePointsForPage(
             pageSize,
@@ -88,6 +93,11 @@ class PdfAnnotationExportService {
         if (includeTextBlocks) {
           final pageBlocks = doc.blocks
               .where((b) => b.pageIndex == pageIndex)
+              .where(
+                (b) =>
+                    b.anchorType == AnchorType.pdfPage ||
+                    (b.normalizedX != null && b.normalizedY != null),
+              )
               .where((b) => b.content.trim().isNotEmpty);
           for (final block in pageBlocks) {
             final x = ((block.normalizedX ?? 0) * pageSize.width).clamp(

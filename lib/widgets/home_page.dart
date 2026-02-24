@@ -710,9 +710,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _importPdf(DocumentManager docMgr) async {
-    final pdfPath = await PdfService.importPdf();
-    if (pdfPath != null) {
-      docMgr.createDocument(folderId: _currentFolderId, pdfPath: pdfPath);
+    final bundle = await PdfService.importPdfBundle();
+    if (bundle != null) {
+      docMgr.createDocument(
+        folderId: _currentFolderId,
+        pdfOriginalPath: bundle.originalPath,
+        pdfWorkingPath: bundle.workingPath,
+      );
       if (mounted) Navigator.of(context).pushNamed('/editor');
     }
   }

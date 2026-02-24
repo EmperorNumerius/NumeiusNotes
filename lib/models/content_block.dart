@@ -1,3 +1,5 @@
+import 'package:notes_app/models/anchor_type.dart';
+
 /// Types of content that can exist in a document.
 enum ContentBlockType {
   text,
@@ -18,6 +20,7 @@ class ContentBlock {
   String content;
   String language; // for code blocks: 'python', 'cpp', etc.
   String output; // execution output for code blocks
+  AnchorType anchorType;
 
   // Free-form canvas position
   double x;
@@ -41,6 +44,7 @@ class ContentBlock {
     this.content = '',
     this.language = 'python',
     this.output = '',
+    this.anchorType = AnchorType.canvas,
     this.x = 100,
     this.y = 100,
     this.blockWidth = 360,
@@ -56,6 +60,7 @@ class ContentBlock {
     'content': content,
     'language': language,
     'output': output,
+    'anchorType': anchorType.name,
     'x': x,
     'y': y,
     'blockWidth': blockWidth,
@@ -70,6 +75,13 @@ class ContentBlock {
     final blockType = ContentBlockType.values.any((t) => t.name == typeName)
         ? ContentBlockType.values.firstWhere((t) => t.name == typeName)
         : ContentBlockType.text;
+    final anchorName = json['anchorType'] as String?;
+    final inferredAnchor = (anchorName != null &&
+            AnchorType.values.any((v) => v.name == anchorName))
+        ? AnchorType.values.firstWhere((v) => v.name == anchorName)
+        : ((json['normalizedX'] != null && json['normalizedY'] != null)
+              ? AnchorType.pdfPage
+              : AnchorType.canvas);
 
     return ContentBlock(
       id: json['id'] as String,
@@ -77,6 +89,7 @@ class ContentBlock {
       content: json['content'] as String? ?? '',
       language: json['language'] as String? ?? 'python',
       output: json['output'] as String? ?? '',
+      anchorType: inferredAnchor,
       x: (json['x'] as num?)?.toDouble() ?? 100,
       y: (json['y'] as num?)?.toDouble() ?? 100,
       blockWidth: (json['blockWidth'] as num?)?.toDouble() ?? 360,
@@ -96,6 +109,15 @@ class ContentBlock {
     final vh = viewportHeight <= 0 ? 1.0 : viewportHeight;
     normalizedX = (x / vw).clamp(0.0, 1.0);
     normalizedY = (y / vh).clamp(0.0, 1.0);
+    anchorType = AnchorType.pdfPage;
     if (page != null) pageIndex = page;
+  }
+
+  void updateCanvasAnchor({required double worldX, required double worldY}) {
+    x = worldX;
+    y = worldY;
+    anchorType = AnchorType.canvas;
+    normalizedX = null;
+    normalizedY = null;
   }
 }

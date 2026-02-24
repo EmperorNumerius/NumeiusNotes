@@ -10,7 +10,13 @@ class NoteDocument {
   List<Stroke> strokes;
   List<ContentBlock> blocks;
   String? audioPath;
-  String? pdfPath; // path to imported PDF for annotation
+  // Legacy alias. Keep for compatibility with existing persisted documents.
+  String? pdfPath;
+  String? pdfOriginalPath;
+  String? pdfWorkingPath;
+  bool pdfWritebackEnabled;
+  int pdfWritebackRevision;
+  int pdfPageLayoutVersion;
   String? annotatedPdfPath;
   String transcription; // lecture transcription text
   DateTime? lastPdfExportAt;
@@ -30,6 +36,11 @@ class NoteDocument {
     List<ContentBlock>? blocks,
     this.audioPath,
     this.pdfPath,
+    this.pdfOriginalPath,
+    this.pdfWorkingPath,
+    this.pdfWritebackEnabled = true,
+    this.pdfWritebackRevision = 0,
+    this.pdfPageLayoutVersion = 1,
     this.annotatedPdfPath,
     this.transcription = '',
     this.lastPdfExportAt,
@@ -42,7 +53,14 @@ class NoteDocument {
   })  : strokes = strokes ?? [],
         blocks = blocks ?? [],
         createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+        updatedAt = updatedAt ?? DateTime.now() {
+    pdfWorkingPath ??= pdfPath;
+    pdfPath = pdfWorkingPath ?? pdfPath;
+  }
+
+  String? get activePdfPath => pdfWorkingPath ?? pdfPath;
+
+  bool get hasPdf => activePdfPath != null && activePdfPath!.isNotEmpty;
 
   void touch() => updatedAt = DateTime.now();
 
@@ -55,6 +73,11 @@ class NoteDocument {
         'blocks': blocks.map((b) => b.toJson()).toList(),
         'audioPath': audioPath,
         'pdfPath': pdfPath,
+        'pdfOriginalPath': pdfOriginalPath,
+        'pdfWorkingPath': pdfWorkingPath,
+        'pdfWritebackEnabled': pdfWritebackEnabled,
+        'pdfWritebackRevision': pdfWritebackRevision,
+        'pdfPageLayoutVersion': pdfPageLayoutVersion,
         'annotatedPdfPath': annotatedPdfPath,
         'transcription': transcription,
         'lastPdfExportAt': lastPdfExportAt?.toIso8601String(),
@@ -67,6 +90,8 @@ class NoteDocument {
       };
 
   factory NoteDocument.fromJson(Map<String, dynamic> json) {
+    final workingPath =
+        (json['pdfWorkingPath'] as String?) ?? (json['pdfPath'] as String?);
     return NoteDocument(
       id: json['id'] as String,
       title: json['title'] as String? ?? 'Untitled',
@@ -81,7 +106,12 @@ class NoteDocument {
               .toList() ??
           [],
       audioPath: json['audioPath'] as String?,
-      pdfPath: json['pdfPath'] as String?,
+      pdfPath: workingPath,
+      pdfOriginalPath: json['pdfOriginalPath'] as String?,
+      pdfWorkingPath: workingPath,
+      pdfWritebackEnabled: json['pdfWritebackEnabled'] as bool? ?? true,
+      pdfWritebackRevision: (json['pdfWritebackRevision'] as num?)?.toInt() ?? 0,
+      pdfPageLayoutVersion: (json['pdfPageLayoutVersion'] as num?)?.toInt() ?? 1,
       annotatedPdfPath: json['annotatedPdfPath'] as String?,
       transcription: json['transcription'] as String? ?? '',
       lastPdfExportAt: json['lastPdfExportAt'] != null

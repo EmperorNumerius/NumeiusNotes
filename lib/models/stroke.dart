@@ -1,10 +1,12 @@
 import 'dart:ui';
+import 'package:notes_app/models/anchor_type.dart';
 
 /// A single drawn stroke on the canvas.
 class Stroke {
   final List<Offset> points;
   final Color color;
   final double width;
+  final AnchorType anchorType;
 
   /// Target page index in the PDF.
   final int pageIndex;
@@ -22,6 +24,7 @@ class Stroke {
     required this.points,
     this.color = const Color(0xFFFFFFFF),
     this.width = 2.0,
+    this.anchorType = AnchorType.canvas,
     this.pageIndex = 0,
     this.normalizedPoints,
     this.relativeTimestamp,
@@ -31,6 +34,7 @@ class Stroke {
         'points': points.map((p) => {'dx': p.dx, 'dy': p.dy}).toList(),
         'color': color.toARGB32(),
         'width': width,
+        'anchorType': anchorType.name,
         'pageIndex': pageIndex,
         'normalizedPoints': normalizedPoints
             ?.map((p) => {'dx': p.dx, 'dy': p.dy})
@@ -40,6 +44,12 @@ class Stroke {
 
   factory Stroke.fromJson(Map<String, dynamic> json) {
     final normalizedRaw = json['normalizedPoints'] as List?;
+    final anchorRaw = json['anchorType'] as String?;
+    final inferredAnchor = (anchorRaw != null &&
+            AnchorType.values.any((v) => v.name == anchorRaw))
+        ? AnchorType.values.firstWhere((v) => v.name == anchorRaw)
+        : (normalizedRaw != null ? AnchorType.pdfPage : AnchorType.canvas);
+
     return Stroke(
       points: (json['points'] as List)
           .map((p) => Offset(
@@ -49,6 +59,7 @@ class Stroke {
           .toList(),
       color: Color(json['color'] as int),
       width: (json['width'] as num).toDouble(),
+      anchorType: inferredAnchor,
       pageIndex: (json['pageIndex'] as num?)?.toInt() ?? 0,
       normalizedPoints: normalizedRaw
           ?.map((p) => Offset(
@@ -64,6 +75,7 @@ class Stroke {
     List<Offset>? points,
     Color? color,
     double? width,
+    AnchorType? anchorType,
     int? pageIndex,
     List<Offset>? normalizedPoints,
     bool clearNormalizedPoints = false,
@@ -73,6 +85,7 @@ class Stroke {
       points: points ?? this.points,
       color: color ?? this.color,
       width: width ?? this.width,
+      anchorType: anchorType ?? this.anchorType,
       pageIndex: pageIndex ?? this.pageIndex,
       normalizedPoints: clearNormalizedPoints
           ? null
@@ -100,6 +113,7 @@ class Stroke {
         .toList();
 
     return copyWith(
+      anchorType: AnchorType.pdfPage,
       normalizedPoints: normalized,
       pageIndex: pageIndex,
     );

@@ -58,6 +58,7 @@ class DocumentManager extends ChangeNotifier {
 
     // Sort by most recently updated
     _documents.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    await _migrateLegacyPdfDocuments();
 
     notifyListeners();
   }
@@ -65,6 +66,60 @@ class DocumentManager extends ChangeNotifier {
   Future<Directory> _docDir() async {
     final appDir = await getApplicationDocumentsDirectory();
     return Directory('${appDir.path}/NotesApp');
+  }
+
+  Future<void> _migrateLegacyPdfDocuments() async {
+    final root = await _docDir();
+    final pdfDir = Directory('${root.path}/pdfs');
+    if (!pdfDir.existsSync()) {
+      pdfDir.createSync(recursive: true);
+    }
+
+    var changed = false;
+    for (final doc in _documents) {
+      final legacyPath = doc.pdfPath;
+      final hasLegacy = legacyPath != null && legacyPath.isNotEmpty;
+      if (!hasLegacy && !doc.hasPdf) {
+        continue;
+      }
+
+      if (doc.pdfWorkingPath != null && doc.pdfWorkingPath!.isNotEmpty) {
+        if (doc.pdfPath != doc.pdfWorkingPath) {
+          doc.pdfPath = doc.pdfWorkingPath;
+          changed = true;
+        }
+        continue;
+      }
+
+      final src = File(legacyPath!);
+      if (!src.existsSync()) {
+        doc.pdfWorkingPath = legacyPath;
+        doc.pdfPath = legacyPath;
+        doc.pdfWritebackEnabled = true;
+        doc.pdfPageLayoutVersion = 1;
+        changed = true;
+        continue;
+      }
+
+      final id = _uuid.v4();
+      final originalPath = '${pdfDir.path}/${id}_original.pdf';
+      final workingPath = '${pdfDir.path}/${id}_working.pdf';
+      src.copySync(originalPath);
+      src.copySync(workingPath);
+
+      doc.pdfOriginalPath = originalPath;
+      doc.pdfWorkingPath = workingPath;
+      doc.pdfPath = workingPath;
+      doc.pdfWritebackEnabled = true;
+      doc.pdfPageLayoutVersion = 1;
+      changed = true;
+    }
+
+    if (changed) {
+      for (final doc in _documents) {
+        await saveDocument(doc);
+      }
+    }
   }
 
   // ─── Folder CRUD ──────────────────────────────────────────────
@@ -215,12 +270,20 @@ class DocumentManager extends ChangeNotifier {
 
   // ─── Document CRUD ────────────────────────────────────────────
 
-  NoteDocument createDocument({String? folderId, String? pdfPath}) {
+  NoteDocument createDocument({
+    String? folderId,
+    String? pdfPath,
+    String? pdfOriginalPath,
+    String? pdfWorkingPath,
+  }) {
+    final resolvedWorking = pdfWorkingPath ?? pdfPath;
     final doc = NoteDocument(
       id: _uuid.v4(),
       title: 'Note ${_documents.length + 1}',
       folderId: folderId,
-      pdfPath: pdfPath,
+      pdfPath: resolvedWorking,
+      pdfOriginalPath: pdfOriginalPath,
+      pdfWorkingPath: resolvedWorking,
       blocks: [ContentBlock(id: _uuid.v4(), type: ContentBlockType.text)],
     );
     _documents.insert(0, doc);

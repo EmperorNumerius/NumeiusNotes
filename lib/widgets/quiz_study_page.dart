@@ -32,21 +32,28 @@ class _QuizStudyPageState extends State<QuizStudyPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Question ${_index + 1}', style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            'Question ${_index + 1}',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 12),
           Text(question.question),
           const SizedBox(height: 16),
-          ...List.generate(question.options.length, (optionIndex) {
-            return RadioListTile<int>(
-              title: Text(question.options[optionIndex]),
-              value: optionIndex,
-              groupValue: _answers[_index],
-              onChanged: (value) {
-                if (value == null) return;
-                setState(() => _answers[_index] = value);
-              },
-            );
-          }),
+          RadioGroup<int>(
+            groupValue: _answers[_index],
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() => _answers[_index] = value);
+            },
+            child: Column(
+              children: List.generate(question.options.length, (optionIndex) {
+                return RadioListTile<int>(
+                  title: Text(question.options[optionIndex]),
+                  value: optionIndex,
+                );
+              }),
+            ),
+          ),
           const Spacer(),
           ElevatedButton(
             onPressed: () {
@@ -58,7 +65,9 @@ class _QuizStudyPageState extends State<QuizStudyPage> {
                 }
               });
             },
-            child: Text(_index == widget.quizSet.questions.length - 1 ? 'Finish' : 'Next'),
+            child: Text(
+              _index == widget.quizSet.questions.length - 1 ? 'Finish' : 'Next',
+            ),
           ),
         ],
       ),
@@ -74,7 +83,10 @@ class _QuizStudyPageState extends State<QuizStudyPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('Score: $correct / ${questions.length}', style: Theme.of(context).textTheme.headlineSmall),
+        Text(
+          'Score: $correct / ${questions.length}',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         const SizedBox(height: 16),
         ...List.generate(questions.length, (i) {
           final q = questions[i];
@@ -83,11 +95,16 @@ class _QuizStudyPageState extends State<QuizStudyPage> {
           return Card(
             child: ListTile(
               title: Text(q.question),
-              subtitle: Text('Correct: ${q.options[q.correctAnswerIndex]}\nExplanation: ${q.explanation}'),
-              trailing: Icon(isCorrect ? Icons.check_circle : Icons.cancel, color: isCorrect ? Colors.green : Colors.red),
+              subtitle: Text(
+                'Correct: ${q.options[q.correctAnswerIndex]}\nExplanation: ${q.explanation}',
+              ),
+              trailing: Icon(
+                isCorrect ? Icons.check_circle : Icons.cancel,
+                color: isCorrect ? Colors.green : Colors.red,
+              ),
             ),
           );
-        })
+        }),
       ],
     );
   }

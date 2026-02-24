@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/monokai-sublime.dart';
@@ -85,6 +87,37 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
     super.initState();
     _controller = TextEditingController(text: widget.block.content);
     _showOutput = widget.block.output.isNotEmpty;
+  }
+
+  @override
+  void didUpdateWidget(covariant CodeBlockWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final blockChanged = oldWidget.block.id != widget.block.id;
+    if (blockChanged) {
+      _controller
+        ..text = widget.block.content
+        ..selection =
+            TextSelection.collapsed(offset: widget.block.content.length);
+      _isEditing = false;
+      _showOutput = widget.block.output.isNotEmpty;
+      return;
+    }
+
+    if (!_isEditing && _controller.text != widget.block.content) {
+      final selection = _controller.selection;
+      final safeOffset = selection.isValid
+          ? math.min(selection.baseOffset, widget.block.content.length)
+          : widget.block.content.length;
+      _controller.value = TextEditingValue(
+        text: widget.block.content,
+        selection: TextSelection.collapsed(offset: safeOffset),
+      );
+    }
+
+    if (!_isRunning) {
+      _showOutput = widget.block.output.isNotEmpty || _showOutput;
+    }
   }
 
   @override
@@ -297,8 +330,6 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
                           textInputAction: TextInputAction.newline,
                           autofocus: true,
                           onChanged: (v) => widget.onChanged?.call(v),
-                          onTapOutside: (_) =>
-                              setState(() => _isEditing = false),
                           style: const TextStyle(
                             fontFamily: 'Consolas',
                             fontSize: 13,
