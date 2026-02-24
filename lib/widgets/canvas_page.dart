@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
+import 'package:pdfrx/pdfrx.dart';
+import 'package:notes_app/models/anchor_type.dart';
 import 'package:notes_app/controllers/canvas_controller.dart';
 import 'package:notes_app/controllers/audio_controller.dart';
 import 'package:notes_app/controllers/document_manager.dart';
+import 'package:notes_app/models/document.dart';
 import 'package:notes_app/painters/ink_painter.dart';
 import 'package:notes_app/models/content_block.dart';
 import 'package:notes_app/models/stroke.dart';
@@ -17,6 +21,7 @@ import 'package:notes_app/widgets/draggable_block_shell.dart';
 import 'package:notes_app/widgets/markdown_block.dart';
 import 'package:notes_app/widgets/image_block.dart';
 import 'package:notes_app/services/image_service.dart';
+import 'package:notes_app/services/pdf_writeback_service.dart';
 import 'package:notes_app/widgets/flashcard_block.dart';
 import 'package:uuid/uuid.dart';
 
@@ -31,16 +36,36 @@ class CanvasPage extends StatefulWidget {
 }
 
 class _CanvasPageState extends State<CanvasPage> {
+  static const double _worldWidth = 5200;
+  static const double _worldHeight = 5200;
+  static const Duration _pdfWritebackDebounce = Duration(milliseconds: 600);
+
   final _uuid = const Uuid();
+  late final PdfViewerController _pdfController;
+  final _pdfWritebackService = PdfWritebackService();
   String? _draggingBlockId;
   final Map<String, TextEditingController> _textControllers = {};
   final Map<String, FocusNode> _textFocusNodes = {};
   final Map<String, Timer> _textSaveDebouncers = {};
+  Timer? _pdfWritebackTimer;
+  bool _isWritingBackPdf = false;
+  String? _writebackMessage;
+
+  int? _activePdfStrokePageIndex;
+  Size? _activePdfStrokePageSize;
+  final List<Offset> _activePdfStrokePoints = [];
 
   static const _textSaveDebounce = Duration(milliseconds: 700);
 
   @override
+  void initState() {
+    super.initState();
+    _pdfController = PdfViewerController();
+  }
+
+  @override
   void dispose() {
+    _pdfWritebackTimer?.cancel();
     for (final timer in _textSaveDebouncers.values) {
       timer.cancel();
     }
@@ -69,6 +94,57 @@ class _CanvasPageState extends State<CanvasPage> {
       return ctrl.isDrawingToolActive;
     }
     return false;
+  }
+
+  Rect _pdfPanelRect() {
+    const width = 980.0;
+    const height = 4300.0;
+    return Rect.fromCenter(
+      center: const Offset(_worldWidth / 2, _worldHeight / 2),
+      width: width,
+      height: height,
+    );
+  }
+
+  PdfPageHitTestResult? _pdfHitTest(NoteDocument doc, Offset worldPosition) {
+    if (!doc.hasPdf || !_pdfController.isReady) return null;
+    final panel = _pdfPanelRect();
+    if (!panel.contains(worldPosition)) return null;
+    final local = worldPosition - panel.topLeft;
+    return _pdfController.getPdfPageHitTestResult(
+      local,
+      useDocumentLayoutCoordinates: false,
+    );
+  }
+
+  Future<void> _queuePdfWriteback(DocumentManager docMgr, {bool immediate = false}) async {
+    final doc = docMgr.activeDocument;
+    if (doc == null || !doc.hasPdf || !doc.pdfWritebackEnabled) return;
+
+    _pdfWritebackTimer?.cancel();
+    final run = () async {
+      if (!mounted) return;
+      setState(() {
+        _isWritingBackPdf = true;
+        _writebackMessage = 'Writing to PDF...';
+      });
+      final result = await _pdfWritebackService.writeback(doc);
+      doc.lastPdfExportAt = result.writtenAt;
+      doc.lastPdfExportStatus = result.success ? 'success' : 'failed';
+      doc.lastPdfExportMessage = result.message;
+      await docMgr.saveActiveDocument();
+      if (!mounted) return;
+      setState(() {
+        _isWritingBackPdf = false;
+        _writebackMessage = result.message;
+      });
+    };
+
+    if (immediate) {
+      await run();
+    } else {
+      _pdfWritebackTimer = Timer(_pdfWritebackDebounce, run);
+    }
   }
 
   @override
@@ -102,7 +178,11 @@ class _CanvasPageState extends State<CanvasPage> {
                 child: _buildCanvas(ctrl, docMgr, audioCtrl, doc),
               ),
               // ─── Top Toolbar ─────────────────────────────
-              Positioned(left: 16, top: 16, child: _buildFloatingToolbar(ctrl)),
+              Positioned(
+                left: 16,
+                top: 16,
+                child: _buildFloatingToolbar(ctrl, docMgr, doc),
+              ),
             ],
           ),
         ),
