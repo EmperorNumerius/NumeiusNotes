@@ -1,18 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:notes_app/config/app_config.dart';
 
 /// Service for executing code snippets on a remote backend.
 class CodeRunnerService {
-  /// Base URL for the code execution API.
-  /// Change this to your Docker/Cloudflare endpoint.
-  static String baseUrl = 'http://localhost:8080';
-
-  /// If true, returns mock responses instead of hitting the backend.
-  static bool useMock = true;
+  static String get baseUrl => AppConfig.endpoints.codeRunnerBaseUrl;
+  static bool get useMock => AppConfig.flags.mockCodeExecution;
 
   /// Execute a code snippet and return the result.
   static Future<CodeResult> execute(String code, String language) async {
-    if (useMock) {
+    final shouldMock = useMock || baseUrl.isEmpty;
+    if (shouldMock) {
       return _mockExecute(code, language);
     }
 

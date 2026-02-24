@@ -1,17 +1,19 @@
 import 'dart:ui' as ui;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:notes_app/config/app_config.dart';
 
 /// Service to convert handwritten strokes to LaTeX.
 /// Uses a configurable API endpoint; defaults to mock mode.
 class LatexService {
-  static bool useMock = true;
-  static String apiUrl = 'https://api.mathpix.com/v3/latex'; // placeholder
+  static bool get useMock => AppConfig.flags.mockLatexRecognition;
+  static String get apiUrl => AppConfig.endpoints.latexApiUrl;
 
   /// Convert an image of strokes to LaTeX string.
   /// In mock mode, returns sample LaTeX.
   static Future<String> recognizeLatex(ui.Image image) async {
-    if (useMock) {
+    final shouldMock = useMock || apiUrl.isEmpty;
+    if (shouldMock) {
       return _mockRecognize();
     }
 
