@@ -112,7 +112,6 @@ class _CanvasPageState extends State<CanvasPage> {
     final panel = _pdfPanelRect();
     if (!panel.contains(worldPosition)) return null;
     final local = worldPosition - panel.topLeft;
-    // ignore: unnecessary_non_null_assertion
     return _pdfController.getPdfPageHitTestResult(
       local,
       useDocumentLayoutCoordinates: false,
@@ -429,7 +428,7 @@ class _CanvasPageState extends State<CanvasPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: PdfViewer.file(
-                      pdfPath!,
+                      pdfPath,
                       controller: _pdfController,
                       params: PdfViewerParams(
                         backgroundColor: const Color(0xFF0A0A1A),
@@ -548,10 +547,11 @@ class _CanvasPageState extends State<CanvasPage> {
                       final strokes = List<Stroke>.from(ctrl.strokes);
                       final idx = strokes.length - 1;
                       if (idx >= 0) {
+                        final pageSize = _activePdfStrokePageSize;
                         if (_activePdfStrokePageIndex != null &&
-                            _activePdfStrokePageSize != null &&
+                            pageSize != null &&
                             _activePdfStrokePoints.length >= 2) {
-                          final size = _activePdfStrokePageSize!;
+                          final size = pageSize;
                           final normalized = _activePdfStrokePoints
                               .map(
                                 (p) => Offset(
