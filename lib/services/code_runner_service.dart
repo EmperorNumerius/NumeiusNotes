@@ -4,11 +4,6 @@ import 'package:notes_app/config/app_config.dart';
 
 /// Service for executing code snippets on a remote backend.
 class CodeRunnerService {
-  static final _jsLogRegex = RegExp(r'''console\.log\((.*?)\)''', multiLine: true);
-  static final _cppCoutRegex = RegExp(r'''cout\s*<<\s*(.*?)\s*;''', multiLine: true);
-  static final _pythonAssignmentRegex = RegExp(r'''^([a-zA-Z_]\w*)\s*=\s*(.+)$''');
-  static final _pythonPrintRegex = RegExp(r'''^print\((.*)\)$''');
-
   static String get baseUrl => AppConfig.endpoints.codeRunnerBaseUrl;
   static bool get useMock => AppConfig.flags.mockCodeExecution;
 
@@ -65,7 +60,8 @@ class CodeRunnerService {
     }
 
     if (language == 'javascript') {
-      final logs = _jsLogRegex
+      final logRegex = RegExp(r'''console\.log\((.*?)\)''', multiLine: true);
+      final logs = logRegex
           .allMatches(code)
           .map((match) => _stripWrappedQuotes((match.group(1) ?? '').trim()))
           .where((line) => line.isNotEmpty)
@@ -79,7 +75,8 @@ class CodeRunnerService {
     }
 
     if (language == 'cpp') {
-      final lines = _cppCoutRegex
+      final coutRegex = RegExp(r'''cout\s*<<\s*(.*?)\s*;''', multiLine: true);
+      final lines = coutRegex
           .allMatches(code)
           .map((match) => _stripWrappedQuotes((match.group(1) ?? '').trim()))
           .where((line) => line.isNotEmpty)
@@ -109,7 +106,7 @@ class CodeRunnerService {
         .where((line) => line.isNotEmpty && !line.startsWith('#'));
 
     for (final line in lines) {
-      final assignment = _pythonAssignmentRegex.firstMatch(line);
+      final assignment = RegExp(r'''^([a-zA-Z_]\w*)\s*=\s*(.+)$''').firstMatch(line);
       if (assignment != null) {
         final variable = assignment.group(1)!;
         final valueExpr = assignment.group(2)!.trim();
@@ -117,7 +114,7 @@ class CodeRunnerService {
         continue;
       }
 
-      final printMatch = _pythonPrintRegex.firstMatch(line);
+      final printMatch = RegExp(r'''^print\((.*)\)$''').firstMatch(line);
       if (printMatch != null) {
         final expression = printMatch.group(1)?.trim() ?? '';
         final resolved = _resolvePythonValue(expression, variables);

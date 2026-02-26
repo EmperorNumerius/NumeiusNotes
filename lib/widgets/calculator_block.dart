@@ -14,7 +14,6 @@ class CalculatorBlockWidget extends StatefulWidget {
 }
 
 class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
-  static final _trailingZerosRegex = RegExp(r'\.?0+$');
   final _expr = TextEditingController();
   _Tab _tab = _Tab.calc;
   String _result = '';
@@ -91,7 +90,7 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
   String _fmt(double v) {
     if (v.isNaN) return 'NaN';
     if (!v.isFinite) return v.isNegative ? '-Inf' : 'Inf';
-    return v.toStringAsFixed(10).replaceFirst(_trailingZerosRegex, '');
+    return v.toStringAsFixed(10).replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
   void _run() {

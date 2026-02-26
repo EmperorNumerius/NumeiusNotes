@@ -29,8 +29,6 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
   bool _showOutput = false;
   bool _isEditing = false;
 
-  static final _tokenSplitRegex = RegExp(r'[\s\(\)\{\}\[\],;]');
-
   static const Map<String, List<String>> _languageSuggestions = {
     'python': [
       'print()',
@@ -282,7 +280,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
                         }
 
                         final prefixText = input.substring(0, cursorIndex);
-                        final token = prefixText.split(_tokenSplitRegex).last;
+                        final token = prefixText.split(RegExp(r'[\s\(\)\{\}\[\],;]')).last;
                         if (token.isEmpty) {
                           return const Iterable<String>.empty();
                         }
@@ -309,7 +307,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
                         final prefixText = currentText.substring(0, cursorIndex);
                         final suffixText = currentText.substring(cursorIndex);
                         final token =
-                            prefixText.split(_tokenSplitRegex).last;
+                            prefixText.split(RegExp(r'[\s\(\)\{\}\[\],;]')).last;
                         final tokenStart = cursorIndex - token.length;
                         final newText =
                             '${currentText.substring(0, tokenStart)}$selection$suffixText';

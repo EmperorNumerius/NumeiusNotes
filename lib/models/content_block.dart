@@ -72,13 +72,16 @@ class ContentBlock {
 
   factory ContentBlock.fromJson(Map<String, dynamic> json) {
     final typeName = json['type'] as String?;
-    final blockType = ContentBlockType.values.asNameMap()[typeName] ??
-        ContentBlockType.text;
+    final blockType = ContentBlockType.values.any((t) => t.name == typeName)
+        ? ContentBlockType.values.firstWhere((t) => t.name == typeName)
+        : ContentBlockType.text;
     final anchorName = json['anchorType'] as String?;
-    final inferredAnchor = AnchorType.values.asNameMap()[anchorName] ??
-        ((json['normalizedX'] != null && json['normalizedY'] != null)
-            ? AnchorType.pdfPage
-            : AnchorType.canvas);
+    final inferredAnchor = (anchorName != null &&
+            AnchorType.values.any((v) => v.name == anchorName))
+        ? AnchorType.values.firstWhere((v) => v.name == anchorName)
+        : ((json['normalizedX'] != null && json['normalizedY'] != null)
+              ? AnchorType.pdfPage
+              : AnchorType.canvas);
 
     return ContentBlock(
       id: json['id'] as String,

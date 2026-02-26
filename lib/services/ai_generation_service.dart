@@ -49,65 +49,74 @@ class AiGenerationException implements Exception {
 }
 
 List<QuizQuestion> parseAndValidateQuiz(String body) {
-  return _parseAndValidateResponse(
-    body: body,
-    jsonKey: 'questions',
-    fromJson: (json) => QuizQuestion.fromJson(json),
-    isValid: (question) => question.isValid,
-    payloadType: 'Quiz',
-    emptyErrorMessage: 'No valid quiz questions found',
-    emptyUserMessage: 'Could not generate quiz questions from this note.',
-  );
+  dynamic decoded;
+  try {
+    decoded = jsonDecode(body);
+  } on FormatException catch (_) {
+    throw AiGenerationException(
+      'Quiz payload was not valid JSON',
+      userMessage: 'AI response format was invalid. Please try again.',
+    );
+  }
+
+  if (decoded is! Map<String, dynamic>) {
+    throw AiGenerationException(
+      'Quiz payload was not a JSON object',
+      userMessage: 'AI response format was invalid. Please try again.',
+    );
+  }
+
+  final items = decoded['questions'];
+  if (items is! List) {
+    throw AiGenerationException(
+      'Missing questions array',
+      userMessage: 'AI response format was invalid. Please try again.',
+    );
+  }
+
+  final questions = items
+      .map((item) => QuizQuestion.fromJson(item as Map<String, dynamic>))
+      .where((question) => question.isValid)
+      .toList();
+
+  if (questions.isEmpty) {
+    throw AiGenerationException(
+      'No valid quiz questions found',
+      userMessage: 'Could not generate quiz questions from this note.',
+    );
+  }
+
+  return questions;
 }
 
 List<Flashcard> parseAndValidateFlashcards(String body) {
-  return _parseAndValidateResponse(
-    body: body,
-    jsonKey: 'flashcards',
-    fromJson: (json) => Flashcard.fromJson(json),
-    isValid: (card) => card.isValid,
-    payloadType: 'Flashcard',
-    emptyErrorMessage: 'No valid flashcards found',
-    emptyUserMessage: 'Could not generate flashcards from this note.',
-  );
-}
-
-List<T> _parseAndValidateResponse<T>({
-  required String body,
-  required String jsonKey,
-  required T Function(Map<String, dynamic>) fromJson,
-  required bool Function(T) isValid,
-  required String payloadType,
-  required String emptyErrorMessage,
-  required String emptyUserMessage,
-}) {
   final decoded = jsonDecode(body);
   if (decoded is! Map<String, dynamic>) {
     throw AiGenerationException(
-      '$payloadType payload was not a JSON object',
+      'Flashcard payload was not a JSON object',
       userMessage: 'AI response format was invalid. Please try again.',
     );
   }
 
-  final items = decoded[jsonKey];
+  final items = decoded['flashcards'];
   if (items is! List) {
     throw AiGenerationException(
-      'Missing $jsonKey array',
+      'Missing flashcards array',
       userMessage: 'AI response format was invalid. Please try again.',
     );
   }
 
-  final results = items
-      .map((item) => fromJson(item as Map<String, dynamic>))
-      .where(isValid)
+  final cards = items
+      .map((item) => Flashcard.fromJson(item as Map<String, dynamic>))
+      .where((card) => card.isValid)
       .toList();
 
-  if (results.isEmpty) {
+  if (cards.isEmpty) {
     throw AiGenerationException(
-      emptyErrorMessage,
-      userMessage: emptyUserMessage,
+      'No valid flashcards found',
+      userMessage: 'Could not generate flashcards from this note.',
     );
   }
 
-  return results;
+  return cards;
 }
