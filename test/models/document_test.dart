@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:notes_app/models/document.dart';
 import 'package:notes_app/models/stroke.dart';
 import 'package:notes_app/models/content_block.dart';
-import 'dart:ui';
 
 void main() {
   group('NoteDocument', () {
