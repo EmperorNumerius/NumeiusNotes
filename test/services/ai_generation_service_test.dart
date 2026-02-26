@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notes_app/models/quiz.dart';
 import 'package:notes_app/services/ai_generation_service.dart';
 
 void main() {
