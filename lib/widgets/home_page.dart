@@ -836,11 +836,6 @@ class _HomePageState extends State<HomePage> {
   void _renameFolder(NoteFolder folder, DocumentManager docMgr) {
     showDialog(
       context: context,
-      builder: (ctx) => _TextEntryDialog(
-        title: 'Rename Folder',
-        initialText: folder.name,
-        actionLabel: 'Rename',
-        onAction: (name) => docMgr.renameFolder(folder.id, name),
       builder: (ctx) => _TextInputDialog(
         title: 'Rename Folder',
         initialText: folder.name,

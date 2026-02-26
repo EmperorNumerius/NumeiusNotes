@@ -19,10 +19,12 @@ class MockDocumentManager extends DocumentManager {
   List<NoteDocument> get documents => _documents;
 
   @override
-  List<NoteDocument> getNotesInFolder(String? id) => _documents.where((d) => d.folderId == id).toList();
+  List<NoteDocument> getNotesInFolder(String? id) =>
+      _documents.where((d) => d.folderId == id).toList();
 
   @override
-  List<NoteFolder> getFoldersByParent(String? id) => _folders.where((f) => f.parentId == id).toList();
+  List<NoteFolder> getFoldersByParent(String? id) =>
+      _folders.where((f) => f.parentId == id).toList();
 
   @override
   Set<String> get allSubjects => {};
@@ -32,14 +34,26 @@ class MockDocumentManager extends DocumentManager {
 
   @override
   NoteFolder createFolder({String? parentId, String name = 'New Folder'}) {
-    return NoteFolder(id: 'new', name: name);
+    final folder = NoteFolder(
+        id: 'folder_${_folders.length}', name: name, parentId: parentId);
+    _folders.add(folder);
+    notifyListeners();
+    return folder;
   }
 
   @override
-  void renameFolder(String folderId, String newName) {}
+  void renameFolder(String folderId, String newName) {
+    final f = _folders.firstWhere((f) => f.id == folderId);
+    f.name = newName;
+    notifyListeners();
+  }
 
   @override
-  void renameDocument(String docId, String newTitle) {}
+  void renameDocument(String docId, String newTitle) {
+    final d = _documents.firstWhere((d) => d.id == docId);
+    d.title = newTitle;
+    notifyListeners();
+  }
 
   @override
   void deleteFolder(String folderId) {}
@@ -49,43 +63,9 @@ class MockDocumentManager extends DocumentManager {
 
   @override
   void moveToFolder(String docId, String? folderId) {}
-}
 
-void main() {
-  testWidgets('HomePage dialogs open and close correctly', (tester) async {
-    // Set explicit size for tablet layout to ensure sidebar and main area are visible if needed,
-    // though for compact layout (default 800x600 for tests) it might show sidebar in drawer.
-    // HomePage uses `constraints.maxWidth < 700` for compact.
-    // Default test surface size is 800x600. So it is NOT compact.
-    // Sidebar is visible.
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ChangeNotifierProvider<DocumentManager>(
-          create: (_) => MockDocumentManager(),
+  @override
   List<NoteDocument> getNotesBySubject(String subject) => [];
-
-  @override
-  NoteFolder createFolder({String? parentId, String name = 'New Folder'}) {
-    final folder = NoteFolder(id: 'folder_${_folders.length}', name: name, parentId: parentId);
-    _folders.add(folder);
-    notifyListeners();
-    return folder;
-  }
-
-  @override
-  void renameFolder(String folderId, String newName) {
-     final f = _folders.firstWhere((f) => f.id == folderId);
-     f.name = newName;
-     notifyListeners();
-  }
-
-  @override
-  void renameDocument(String docId, String newTitle) {
-    final d = _documents.firstWhere((d) => d.id == docId);
-    d.title = newTitle;
-    notifyListeners();
-  }
 
   void seedFolder(NoteFolder f) => _folders.add(f);
   void seedDocument(NoteDocument d) => _documents.add(d);
@@ -111,7 +91,8 @@ void main() {
     expect(find.text('New Folder'), findsNWidgets(2));
 
     // Find the TextField inside the AlertDialog
-    final dialogTextField = find.descendant(of: find.byType(AlertDialog), matching: find.byType(TextField));
+    final dialogTextField = find.descendant(
+        of: find.byType(AlertDialog), matching: find.byType(TextField));
     await tester.enterText(dialogTextField, 'My Awesome Folder');
     await tester.tap(find.text('Create'));
     await tester.pumpAndSettle();
@@ -144,7 +125,8 @@ void main() {
 
     expect(find.text('Rename Folder'), findsOneWidget);
 
-    final dialogTextField = find.descendant(of: find.byType(AlertDialog), matching: find.byType(TextField));
+    final dialogTextField = find.descendant(
+        of: find.byType(AlertDialog), matching: find.byType(TextField));
     await tester.enterText(dialogTextField, 'New Name Folder');
     await tester.tap(find.text('Rename'));
     await tester.pumpAndSettle();
@@ -181,7 +163,8 @@ void main() {
 
     expect(find.text('Rename Note'), findsOneWidget);
 
-    final dialogTextField = find.descendant(of: find.byType(AlertDialog), matching: find.byType(TextField));
+    final dialogTextField = find.descendant(
+        of: find.byType(AlertDialog), matching: find.byType(TextField));
     await tester.enterText(dialogTextField, 'New Name Note');
     await tester.tap(find.text('Rename'));
     await tester.pumpAndSettle();

@@ -4,7 +4,8 @@ import 'package:notes_app/models/anchor_type.dart';
 
 void main() {
   group('ContentBlock Anchor Logic Tests', () {
-    test('updateNormalizedAnchor calculates correct normalized coordinates', () {
+    test('updateNormalizedAnchor calculates correct normalized coordinates',
+        () {
       final block = ContentBlock(id: '1', x: 100, y: 200);
       block.updateNormalizedAnchor(viewportWidth: 1000, viewportHeight: 2000);
 
@@ -22,7 +23,8 @@ void main() {
       expect(block.anchorType, AnchorType.pdfPage);
     });
 
-    test('updateNormalizedAnchor handles zero or negative viewport dimensions', () {
+    test('updateNormalizedAnchor handles zero or negative viewport dimensions',
+        () {
       final block = ContentBlock(id: '1', x: 50, y: 50);
 
       // Test with zero viewport
@@ -41,18 +43,19 @@ void main() {
 
     test('updateNormalizedAnchor updates page index if provided', () {
       final block = ContentBlock(id: '1', pageIndex: 0);
-      block.updateNormalizedAnchor(viewportWidth: 100, viewportHeight: 100, page: 5);
+      block.updateNormalizedAnchor(
+          viewportWidth: 100, viewportHeight: 100, page: 5);
 
       expect(block.pageIndex, 5);
     });
 
-    test('updateCanvasAnchor updates coordinates and resets normalized anchor', () {
+    test('updateCanvasAnchor updates coordinates and resets normalized anchor',
+        () {
       final block = ContentBlock(
-        id: '1',
-        normalizedX: 0.5,
-        normalizedY: 0.5,
-        anchorType: AnchorType.pdfPage
-      );
+          id: '1',
+          normalizedX: 0.5,
+          normalizedY: 0.5,
+          anchorType: AnchorType.pdfPage);
 
       block.updateCanvasAnchor(worldX: 300, worldY: 400);
 
@@ -76,7 +79,8 @@ void main() {
       final jsonCanvas = {
         'id': '2',
         'anchorType': 'canvas',
-        'normalizedX': 0.5, // Explicit anchorType takes precedence over inferred type
+        'normalizedX':
+            0.5, // Explicit anchorType takes precedence over inferred type
       };
       final blockCanvas = ContentBlock.fromJson(jsonCanvas);
       expect(blockCanvas.anchorType, AnchorType.canvas);
@@ -93,12 +97,19 @@ void main() {
       expect(block.anchorType, AnchorType.pdfPage);
     });
 
-     test('infers AnchorType.canvas when anchorType is invalid and normalized coords missing', () {
+    test(
+        'infers AnchorType.canvas when anchorType is invalid and normalized coords missing',
+        () {
       final json = {
         'id': '8',
         'type': 'text',
         'content': 'test',
         'anchorType': 'invalidAnchor',
+      };
+      final block = ContentBlock.fromJson(json);
+      expect(block.anchorType, AnchorType.canvas);
+    });
+
     test('fromJson defaults to canvas anchor if no info provided', () {
       final json = {
         'id': '1',
