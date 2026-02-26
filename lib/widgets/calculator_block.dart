@@ -343,23 +343,113 @@ class _GraphPainter extends CustomPainter {
 class _Parser {
   final String i; final bool deg; final Map<String, double> vars; final double ans; final double? x; int p = 0;
   _Parser(this.i, this.deg, this.vars, this.ans, this.x);
-  double parse() { final v = _e(); _s(); if (p < i.length) throw const FormatException(); return v; }
-  double _e() { var l = _t(); while (true) { _s(); if (_c('+')) l += _t(); else if (_c('-')) l -= _t(); else return l; } }
-  double _t() { var l = _pow(); while (true) { _s(); if (_c('*')) l *= _pow(); else if (_c('/')) l /= _pow(); else return l; } }
-  double _pow() { var b = _u(); _s(); if (_c('^')) b = math.pow(b, _u()).toDouble(); return b; }
-  double _u() { _s(); if (_c('+')) return _u(); if (_c('-')) return -_u(); return _p(); }
+  double parse() {
+    final v = _e();
+    _s();
+    if (p < i.length) throw const FormatException();
+    return v;
+  }
+
+  double _e() {
+    var l = _t();
+    while (true) {
+      _s();
+      if (_c('+')) {
+        l += _t();
+      } else if (_c('-')) {
+        l -= _t();
+      } else {
+        return l;
+      }
+    }
+  }
+
+  double _t() {
+    var l = _pow();
+    while (true) {
+      _s();
+      if (_c('*')) {
+        l *= _pow();
+      } else if (_c('/')) {
+        l /= _pow();
+      } else {
+        return l;
+      }
+    }
+  }
+
+  double _pow() {
+    var b = _u();
+    _s();
+    if (_c('^')) b = math.pow(b, _u()).toDouble();
+    return b;
+  }
+
+  double _u() {
+    _s();
+    if (_c('+')) return _u();
+    if (_c('-')) return -_u();
+    return _p();
+  }
+
   double _p() {
     _s();
-    if (_c('(')) { final v = _e(); if (!_c(')')) throw const FormatException(); return v; }
-    if (_a(_ch())) { final n = _id(); _s(); if (_c('(')) { final a = _e(); if (!_c(')')) throw const FormatException(); return _fn(n, a); } return _val(n); }
+    if (_c('(')) {
+      final v = _e();
+      if (!_c(')')) throw const FormatException();
+      return v;
+    }
+    if (_a(_ch())) {
+      final n = _id();
+      _s();
+      if (_c('(')) {
+        final a = _e();
+        if (!_c(')')) throw const FormatException();
+        return _fn(n, a);
+      }
+      return _val(n);
+    }
     return _num();
   }
   double _fn(String n, double a) { final k = n.toLowerCase(); final t = (deg && (k == 'sin' || k == 'cos' || k == 'tan')) ? a * math.pi / 180 : a; switch (k) { case 'sin': return math.sin(t); case 'cos': return math.cos(t); case 'tan': return math.tan(t); case 'log': return math.log(a) / math.ln10; case 'ln': return math.log(a); case 'sqrt': return math.sqrt(a); case 'abs': return a.abs(); default: throw const FormatException(); } }
   double _val(String n) { final k = n.toUpperCase(); if (k == 'ANS') return ans; if (k == 'PI') return math.pi; if (k == 'E') return math.e; if (k == 'X') return x ?? 0; if (k.length == 1 && vars.containsKey(k)) return vars[k]!; throw const FormatException(); }
-  double _num() { final s = p; while (p < i.length && _d(i[p])) p++; if (p < i.length && i[p] == '.') { p++; while (p < i.length && _d(i[p])) p++; } if (s == p) throw const FormatException(); return double.parse(i.substring(s, p)); }
-  String _id() { final s = p; while (p < i.length && (_a(i[p]) || _d(i[p]))) p++; return i.substring(s, p); }
-  bool _c(String c) { _s(); if (p < i.length && i[p] == c) { p++; return true; } return false; }
-  void _s() { while (p < i.length && i[p] == ' ') p++; }
+  double _num() {
+    final s = p;
+    while (p < i.length && _d(i[p])) {
+      p++;
+    }
+    if (p < i.length && i[p] == '.') {
+      p++;
+      while (p < i.length && _d(i[p])) {
+        p++;
+      }
+    }
+    if (s == p) throw const FormatException();
+    return double.parse(i.substring(s, p));
+  }
+
+  String _id() {
+    final s = p;
+    while (p < i.length && (_a(i[p]) || _d(i[p]))) {
+      p++;
+    }
+    return i.substring(s, p);
+  }
+
+  bool _c(String c) {
+    _s();
+    if (p < i.length && i[p] == c) {
+      p++;
+      return true;
+    }
+    return false;
+  }
+
+  void _s() {
+    while (p < i.length && i[p] == ' ') {
+      p++;
+    }
+  }
   String _ch() => p < i.length ? i[p] : '';
   bool _d(String s) => s.codeUnitAt(0) >= 48 && s.codeUnitAt(0) <= 57;
   bool _a(String s) { if (s.isEmpty) return false; final c = s.codeUnitAt(0); return (c >= 65 && c <= 90) || (c >= 97 && c <= 122); }
