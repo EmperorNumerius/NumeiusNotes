@@ -721,37 +721,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _createFolder(DocumentManager docMgr) {
-    final ctrl = TextEditingController(text: 'New Folder');
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('New Folder',
-            style: TextStyle(color: Colors.white, fontSize: 16)),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: 'Folder name',
-            hintStyle: TextStyle(color: Colors.white.withAlpha(60)),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
+      builder: (ctx) => _TextInputDialog(
+        title: 'New Folder',
+        initialText: 'New Folder',
+        hintText: 'Folder name',
+        confirmLabel: 'Create',
+        onConfirm: (text) => docMgr.createFolder(
+          parentId: _currentFolderId,
+          name: text,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              docMgr.createFolder(
-                  parentId: _currentFolderId, name: ctrl.text.trim());
-              Navigator.pop(ctx);
-            },
-            child: const Text('Create'),
-          ),
-        ],
       ),
     );
   }
@@ -854,65 +834,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _renameFolder(NoteFolder folder, DocumentManager docMgr) {
-    final ctrl = TextEditingController(text: folder.name);
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('Rename Folder',
-            style: TextStyle(color: Colors.white, fontSize: 16)),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              docMgr.renameFolder(folder.id, ctrl.text.trim());
-              Navigator.pop(ctx);
-            },
-            child: const Text('Rename'),
-          ),
-        ],
+      builder: (ctx) => _TextInputDialog(
+        title: 'Rename Folder',
+        initialText: folder.name,
+        confirmLabel: 'Rename',
+        onConfirm: (text) => docMgr.renameFolder(folder.id, text),
       ),
     );
   }
 
   void _renameNote(NoteDocument note, DocumentManager docMgr) {
-    final ctrl = TextEditingController(text: note.title);
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('Rename Note',
-            style: TextStyle(color: Colors.white, fontSize: 16)),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              docMgr.renameDocument(note.id, ctrl.text.trim());
-              Navigator.pop(ctx);
-            },
-            child: const Text('Rename'),
-          ),
-        ],
+      builder: (ctx) => _TextInputDialog(
+        title: 'Rename Note',
+        initialText: note.title,
+        confirmLabel: 'Rename',
+        onConfirm: (text) => docMgr.renameDocument(note.id, text),
       ),
     );
   }
@@ -964,5 +904,72 @@ class _HomePageState extends State<HomePage> {
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
     return '${dt.month}/${dt.day}/${dt.year}';
+  }
+}
+
+class _TextInputDialog extends StatefulWidget {
+  final String title;
+  final String initialText;
+  final String? hintText;
+  final String confirmLabel;
+  final ValueChanged<String> onConfirm;
+
+  const _TextInputDialog({
+    required this.title,
+    required this.initialText,
+    this.hintText,
+    required this.confirmLabel,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_TextInputDialog> createState() => _TextInputDialogState();
+}
+
+class _TextInputDialogState extends State<_TextInputDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialText);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1A1A2E),
+      title: Text(widget.title,
+          style: const TextStyle(color: Colors.white, fontSize: 16)),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: widget.hintText,
+          hintStyle: TextStyle(color: Colors.white.withAlpha(60)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            widget.onConfirm(_controller.text.trim());
+            Navigator.pop(context);
+          },
+          child: Text(widget.confirmLabel),
+        ),
+      ],
+    );
   }
 }
