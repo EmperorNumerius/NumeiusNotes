@@ -26,7 +26,7 @@ void main() {
 
       expect(stroke.points.length, 2);
       expect(stroke.points[0], const Offset(10, 20));
-      expect(stroke.color.value, 0xFF00FF00);
+      expect(stroke.color.toARGB32(), 0xFF00FF00);
       expect(stroke.width, 5.0);
       expect(stroke.anchorType, AnchorType.pdfPage);
       expect(stroke.pageIndex, 2);
