@@ -42,8 +42,8 @@ class _HomePageState extends State<HomePage> {
             _createNote(docMgr),
         const SingleActivator(LogicalKeyboardKey.keyN, meta: true): () =>
             _createNote(docMgr),
-        const SingleActivator(LogicalKeyboardKey.keyN, control: true, shift: true):
-            () => _createFolder(docMgr),
+        const SingleActivator(LogicalKeyboardKey.keyN,
+            control: true, shift: true): () => _createFolder(docMgr),
         const SingleActivator(LogicalKeyboardKey.keyN, meta: true, shift: true):
             () => _createFolder(docMgr),
         const SingleActivator(LogicalKeyboardKey.keyF, control: true): () =>
@@ -105,8 +105,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child:
-                      const Icon(Icons.edit_note, color: Colors.white, size: 20),
+                  child: const Icon(Icons.edit_note,
+                      color: Colors.white, size: 20),
                 ),
                 const SizedBox(width: 10),
                 const Text(
@@ -303,8 +303,8 @@ class _HomePageState extends State<HomePage> {
                     style: const TextStyle(color: Colors.white, fontSize: 13),
                     decoration: InputDecoration(
                       hintText: 'Search notes...',
-                      hintStyle:
-                          TextStyle(color: Colors.white.withAlpha(60), fontSize: 13),
+                      hintStyle: TextStyle(
+                          color: Colors.white.withAlpha(60), fontSize: 13),
                       prefixIcon: Icon(Icons.search,
                           color: Colors.white.withAlpha(60), size: 18),
                       suffixIcon: _searchQuery.isNotEmpty
@@ -321,8 +321,8 @@ class _HomePageState extends State<HomePage> {
                             )
                           : null,
                       border: InputBorder.none,
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
                     ),
                   ),
                 ),
@@ -417,7 +417,6 @@ class _HomePageState extends State<HomePage> {
       ],
     );
   }
-
 
   Widget _buildEnvironmentBadge() {
     final env = AppConfig.environmentLabel;
@@ -674,8 +673,7 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 8),
           Text(
             'Create a new note or folder to get started',
-            style:
-                TextStyle(color: Colors.white.withAlpha(40), fontSize: 13),
+            style: TextStyle(color: Colors.white.withAlpha(40), fontSize: 13),
           ),
         ],
       ),
@@ -712,7 +710,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openFlashcardReview(DocumentManager docMgr) {
-    final cards = FlashcardReviewPage.collectCardsFromDocuments(docMgr.documents);
+    final cards =
+        FlashcardReviewPage.collectCardsFromDocuments(docMgr.documents);
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => FlashcardReviewPage(cards: cards),
@@ -723,13 +722,6 @@ class _HomePageState extends State<HomePage> {
   void _createFolder(DocumentManager docMgr) {
     showDialog(
       context: context,
-      builder: (ctx) => _NameInputDialog(
-        title: 'New Folder',
-        initialText: 'New Folder',
-        actionLabel: 'Create',
-        hintText: 'Folder name',
-        onAction: (text) =>
-            docMgr.createFolder(parentId: _currentFolderId, name: text),
       builder: (ctx) => _TextInputDialog(
         title: 'New Folder',
         initialText: 'New Folder',
@@ -773,14 +765,16 @@ class _HomePageState extends State<HomePage> {
           children: [
             ListTile(
               leading: const Icon(Icons.edit, color: Colors.white70),
-              title: const Text('Rename', style: TextStyle(color: Colors.white)),
+              title:
+                  const Text('Rename', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(ctx);
                 _renameFolder(folder, docMgr);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.delete_outline, color: Color(0xFFFF6B6B)),
+              leading:
+                  const Icon(Icons.delete_outline, color: Color(0xFFFF6B6B)),
               title: const Text('Delete',
                   style: TextStyle(color: Color(0xFFFF6B6B))),
               onTap: () {
@@ -815,8 +809,7 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             ListTile(
-              leading:
-                  const Icon(Icons.drive_file_move, color: Colors.white70),
+              leading: const Icon(Icons.drive_file_move, color: Colors.white70),
               title: const Text('Move to Folder',
                   style: TextStyle(color: Colors.white)),
               onTap: () {
@@ -843,11 +836,6 @@ class _HomePageState extends State<HomePage> {
   void _renameFolder(NoteFolder folder, DocumentManager docMgr) {
     showDialog(
       context: context,
-      builder: (ctx) => _NameInputDialog(
-        title: 'Rename Folder',
-        initialText: folder.name,
-        actionLabel: 'Rename',
-        onAction: (text) => docMgr.renameFolder(folder.id, text),
       builder: (ctx) => _TextInputDialog(
         title: 'Rename Folder',
         initialText: folder.name,
@@ -860,11 +848,6 @@ class _HomePageState extends State<HomePage> {
   void _renameNote(NoteDocument note, DocumentManager docMgr) {
     showDialog(
       context: context,
-      builder: (ctx) => _NameInputDialog(
-        title: 'Rename Note',
-        initialText: note.title,
-        actionLabel: 'Rename',
-        onAction: (text) => docMgr.renameDocument(note.id, text),
       builder: (ctx) => _TextInputDialog(
         title: 'Rename Note',
         initialText: note.title,
@@ -897,8 +880,7 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
                 ...docMgr.folders.map((f) => ListTile(
-                      leading: Icon(Icons.folder,
-                          color: Color(f.colorValue)),
+                      leading: Icon(Icons.folder, color: Color(f.colorValue)),
                       title: Text(f.name,
                           style: const TextStyle(color: Colors.white)),
                       onTap: () {
@@ -924,27 +906,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _NameInputDialog extends StatefulWidget {
-  final String title;
-  final String initialText;
-  final String actionLabel;
-  final String? hintText;
-  final ValueChanged<String> onAction;
-
-  const _NameInputDialog({
-    required this.title,
-    required this.initialText,
-    required this.actionLabel,
-    this.hintText,
-    required this.onAction,
-  });
-
-  @override
-  State<_NameInputDialog> createState() => _NameInputDialogState();
-}
-
-class _NameInputDialogState extends State<_NameInputDialog> {
-  late TextEditingController _ctrl;
 class _TextInputDialog extends StatefulWidget {
   final String title;
   final String initialText;
@@ -970,13 +931,11 @@ class _TextInputDialogState extends State<_TextInputDialog> {
   @override
   void initState() {
     super.initState();
-    _ctrl = TextEditingController(text: widget.initialText);
     _controller = TextEditingController(text: widget.initialText);
   }
 
   @override
   void dispose() {
-    _ctrl.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -988,7 +947,6 @@ class _TextInputDialogState extends State<_TextInputDialog> {
       title: Text(widget.title,
           style: const TextStyle(color: Colors.white, fontSize: 16)),
       content: TextField(
-        controller: _ctrl,
         controller: _controller,
         autofocus: true,
         style: const TextStyle(color: Colors.white),
@@ -1005,10 +963,6 @@ class _TextInputDialogState extends State<_TextInputDialog> {
         ),
         TextButton(
           onPressed: () {
-            widget.onAction(_ctrl.text.trim());
-            Navigator.pop(context);
-          },
-          child: Text(widget.actionLabel),
             widget.onConfirm(_controller.text.trim());
             Navigator.pop(context);
           },

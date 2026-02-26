@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/monokai-sublime.dart';
 import 'package:notes_app/models/code_language.dart';
-import 'package:notes_app/models/content_block.dart';
 import 'package:notes_app/services/code_runner_service.dart';
+import 'package:notes_app/widgets/content_blocks/base_block_widget.dart';
 
 /// Jupyter-style code block with syntax highlighting and execution.
 class CodeBlockWidget extends BaseBlockWidget {
@@ -31,12 +31,10 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
   bool _showOutput = false;
   bool _isEditing = false;
 
-  static const Map<CodeLanguage, List<String>> _languageSuggestions = {
-    CodeLanguage.python: [
   static final _tokenSplitRegex = RegExp(r'[\s\(\)\{\}\[\],;]');
 
-  static const Map<String, List<String>> _languageSuggestions = {
-    'python': [
+  static const Map<CodeLanguage, List<String>> _languageSuggestions = {
+    CodeLanguage.python: [
       'print()',
       'def',
       'class',
@@ -150,8 +148,9 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
 
     setState(() {
       _isRunning = false;
-      widget.block.output =
-          result.stderr.isNotEmpty ? '${result.stdout}\n⚠ ${result.stderr}' : result.stdout;
+      widget.block.output = result.stderr.isNotEmpty
+          ? '${result.stdout}\n⚠ ${result.stderr}'
+          : result.stdout;
     });
     widget.onChanged?.call();
   }
@@ -166,9 +165,7 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: const BoxDecoration(
             color: Color(0xFF252540),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(12)), // Keeps rounding but might clash with shell?
-            // Actually Shell handles top rounding. This inner header might look weird if it has top rounding too.
-            // But since it's the first child in the shell, it might be okay.
+            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
           ),
           child: Row(
             children: [
@@ -177,70 +174,26 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                 width: 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: widget.block.language == 'python'
+                  color: widget.block.language == CodeLanguage.python
                       ? const Color(0xFF3776AB)
                       : const Color(0xFF00599C),
                   shape: BoxShape.circle,
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header bar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: const BoxDecoration(
-              color: Color(0xFF252540),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-            ),
-            child: Row(
-              children: [
-                // Language indicator dot
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: widget.block.language == CodeLanguage.python
-                        ? const Color(0xFF3776AB)
-                        : const Color(0xFF00599C),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Language dropdown
-                DropdownButton<CodeLanguage>(
-                  value: widget.block.language,
-                  dropdownColor: const Color(0xFF252540),
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  underline: const SizedBox(),
-                  isDense: true,
-                  items: CodeLanguage.values.map((lang) {
-                    return DropdownMenuItem(
-                      value: lang,
-                      child: Text(lang.displayName),
-                    );
-                  }).toList(),
-                  onChanged: (v) {
-                    if (v != null) {
-                      setState(() => widget.block.language = v);
-                      widget.onChanged?.call(_controller.text);
-                    }
-                  },
                 ),
               ),
               const SizedBox(width: 8),
               // Language dropdown
-              DropdownButton<String>(
+              DropdownButton<CodeLanguage>(
                 value: widget.block.language,
                 dropdownColor: const Color(0xFF252540),
                 style: const TextStyle(color: Colors.white70, fontSize: 12),
                 underline: const SizedBox(),
                 isDense: true,
-                items: const [
-                  DropdownMenuItem(value: 'python', child: Text('Python')),
-                  DropdownMenuItem(value: 'cpp', child: Text('C++')),
-                  DropdownMenuItem(value: 'javascript', child: Text('JavaScript')),
-                ],
+                items: CodeLanguage.values.map((lang) {
+                  return DropdownMenuItem(
+                    value: lang,
+                    child: Text(lang.displayName),
+                  );
+                }).toList(),
                 onChanged: (v) {
                   if (v != null) {
                     setState(() => widget.block.language = v);
@@ -299,7 +252,6 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                   ),
                 ),
               ),
-              // Deleted the close button here because the shell handles it.
             ],
           ),
         ),
@@ -312,6 +264,7 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                   padding: const EdgeInsets.all(12),
                   child: RawAutocomplete<String>(
                     textEditingController: _controller,
+                    focusNode: _focusNode,
                     optionsBuilder: (textEditingValue) {
                       final input = textEditingValue.text;
                       final cursorIndex = textEditingValue.selection.baseOffset;
@@ -324,34 +277,14 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                       if (token.isEmpty) {
                         return const Iterable<String>.empty();
                       }
-          // Code area
-          GestureDetector(
-            onTap: () => setState(() => _isEditing = true),
-            child: _isEditing
-                ? Container(
-                    constraints: const BoxConstraints(minHeight: 80),
-                    padding: const EdgeInsets.all(12),
-                    child: RawAutocomplete<String>(
-                      textEditingController: _controller,
-                      focusNode: _focusNode,
-                      optionsBuilder: (textEditingValue) {
-                        final input = textEditingValue.text;
-                        final cursorIndex = textEditingValue.selection.baseOffset;
-                        if (input.isEmpty || cursorIndex < 0) {
-                          return const Iterable<String>.empty();
-                        }
-
-                        final prefixText = input.substring(0, cursorIndex);
-                        final token = prefixText.split(_tokenSplitter).last;
-                        final token = prefixText.split(_tokenSplitRegex).last;
-                        if (token.isEmpty) {
-                          return const Iterable<String>.empty();
-                        }
 
                       final suggestions =
-                          _languageSuggestions[widget.block.language] ?? const [];
+                          _languageSuggestions[widget.block.language] ??
+                              const [];
                       return suggestions.where(
-                        (option) => option.toLowerCase().startsWith(token.toLowerCase()),
+                        (option) => option
+                            .toLowerCase()
+                            .startsWith(token.toLowerCase()),
                       );
                     },
                     onSelected: (selection) {
@@ -369,8 +302,7 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                       final cursorIndex = selectionRange.baseOffset;
                       final prefixText = currentText.substring(0, cursorIndex);
                       final suffixText = currentText.substring(cursorIndex);
-                      final token =
-                          prefixText.split(_tokenSplitRegex).last;
+                      final token = prefixText.split(_tokenSplitRegex).last;
                       final tokenStart = cursorIndex - token.length;
                       final newText =
                           '${currentText.substring(0, tokenStart)}$selection$suffixText';
@@ -383,8 +315,8 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                       );
                       widget.onChanged?.call();
                     },
-                    fieldViewBuilder:
-                        (context, textEditingController, focusNode, onFieldSubmitted) {
+                    fieldViewBuilder: (context, textEditingController,
+                        focusNode, onFieldSubmitted) {
                       return TextField(
                         controller: textEditingController,
                         focusNode: focusNode,
@@ -392,7 +324,10 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                         keyboardType: TextInputType.multiline,
                         textInputAction: TextInputAction.newline,
                         autofocus: true,
-                        onChanged: (v) => widget.onChanged?.call(),
+                        onChanged: (v) {
+                          widget.block.content = v;
+                          widget.onChanged?.call();
+                        },
                         style: const TextStyle(
                           fontFamily: 'Consolas',
                           fontSize: 13,
@@ -400,8 +335,10 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                           height: 1.5,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'Enter ${widget.block.language} code...',
-                          hintStyle: TextStyle(color: Colors.white.withAlpha(40)),
+                          hintText:
+                              'Enter ${widget.block.language.displayName} code...',
+                          hintStyle:
+                              TextStyle(color: Colors.white.withAlpha(40)),
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
@@ -416,7 +353,8 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                           elevation: 6,
                           borderRadius: BorderRadius.circular(8),
                           child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 180, maxWidth: 260),
+                            constraints: const BoxConstraints(
+                                maxHeight: 180, maxWidth: 260),
                             child: ListView.builder(
                               padding: EdgeInsets.zero,
                               shrinkWrap: true,
@@ -436,78 +374,6 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                                         color: Colors.white,
                                         fontSize: 12,
                                         fontFamily: 'Consolas',
-                        final cursorIndex = selectionRange.baseOffset;
-                        final prefixText = currentText.substring(0, cursorIndex);
-                        final suffixText = currentText.substring(cursorIndex);
-                        final token =
-                            prefixText.split(_tokenSplitter).last;
-                            prefixText.split(_tokenSplitRegex).last;
-                        final tokenStart = cursorIndex - token.length;
-                        final newText =
-                            '${currentText.substring(0, tokenStart)}$selection$suffixText';
-
-                        _controller.value = TextEditingValue(
-                          text: newText,
-                          selection: TextSelection.collapsed(
-                            offset: tokenStart + selection.length,
-                          ),
-                        );
-                        widget.onChanged?.call(_controller.text);
-                      },
-                      fieldViewBuilder:
-                          (context, textEditingController, focusNode, onFieldSubmitted) {
-                        return TextField(
-                          controller: textEditingController,
-                          focusNode: focusNode,
-                          maxLines: null,
-                          keyboardType: TextInputType.multiline,
-                          textInputAction: TextInputAction.newline,
-                          autofocus: true,
-                          onChanged: (v) => widget.onChanged?.call(v),
-                          style: const TextStyle(
-                            fontFamily: 'Consolas',
-                            fontSize: 13,
-                            color: Colors.white,
-                            height: 1.5,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Enter ${widget.block.language.displayName} code...',
-                            hintStyle: TextStyle(color: Colors.white.withAlpha(40)),
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        );
-                      },
-                      optionsViewBuilder: (context, onSelected, options) {
-                        return Align(
-                          alignment: Alignment.topLeft,
-                          child: Material(
-                            color: const Color(0xFF252540),
-                            elevation: 6,
-                            borderRadius: BorderRadius.circular(8),
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxHeight: 180, maxWidth: 260),
-                              child: ListView.builder(
-                                padding: EdgeInsets.zero,
-                                shrinkWrap: true,
-                                itemCount: options.length,
-                                itemBuilder: (context, index) {
-                                  final option = options.elementAt(index);
-                                  return InkWell(
-                                    onTap: () => onSelected(option),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 8,
-                                      ),
-                                      child: Text(
-                                        option,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontFamily: 'Consolas',
-                                        ),
                                       ),
                                     ),
                                   ),
@@ -527,33 +393,8 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                       ? Padding(
                           padding: const EdgeInsets.all(12),
                           child: Text(
-                            'Tap to enter ${widget.block.language} code...',
+                            'Tap to enter ${widget.block.language.displayName} code...',
                             style: TextStyle(
-                        );
-                      },
-                    ),
-                  )
-                : Container(
-                    constraints: const BoxConstraints(minHeight: 80),
-                    width: double.infinity,
-                    child: _controller.text.isEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Text(
-                              'Tap to enter ${widget.block.language.displayName} code...',
-                              style: TextStyle(
-                                fontFamily: 'Consolas',
-                                fontSize: 13,
-                                color: Colors.white.withAlpha(40),
-                              ),
-                            ),
-                          )
-                        : HighlightView(
-                            _controller.text,
-                            language: widget.block.language.name,
-                            theme: monokaiSublimeTheme,
-                            padding: const EdgeInsets.all(12),
-                            textStyle: const TextStyle(
                               fontFamily: 'Consolas',
                               fontSize: 13,
                               color: Colors.white.withAlpha(40),
@@ -562,9 +403,7 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                         )
                       : HighlightView(
                           _controller.text,
-                          language: widget.block.language == 'cpp'
-                              ? 'cpp'
-                              : widget.block.language,
+                          language: widget.block.language.name,
                           theme: monokaiSublimeTheme,
                           padding: const EdgeInsets.all(12),
                           textStyle: const TextStyle(
@@ -606,8 +445,8 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                         _showOutput = false;
                         widget.block.output = '';
                       }),
-                      child:
-                          const Icon(Icons.close, size: 12, color: Colors.white24),
+                      child: const Icon(Icons.close,
+                          size: 12, color: Colors.white24),
                     ),
                   ],
                 ),

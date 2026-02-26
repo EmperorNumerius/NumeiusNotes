@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notes_app/models/content_block.dart';
+import 'package:notes_app/widgets/content_blocks/base_block_widget.dart';
 
 /// Flashcard content block.
 ///
@@ -10,21 +11,23 @@ import 'package:notes_app/models/content_block.dart';
 /// - difficulty: int (1-5)
 /// - reviewCount: int
 /// - lastReviewed: ISO timestamp String
-class FlashcardBlockWidget extends StatefulWidget {
-  final ContentBlock block;
-  final VoidCallback onChanged;
-
+class FlashcardBlockWidget extends BaseBlockWidget {
   const FlashcardBlockWidget({
     super.key,
-    required this.block,
-    required this.onChanged,
+    required super.block,
+    super.onChanged,
+    super.onDelete,
+    super.onDragStart,
+    super.onDragUpdate,
+    super.onDragEnd,
+    super.isDragging,
   });
 
   @override
   State<FlashcardBlockWidget> createState() => _FlashcardBlockWidgetState();
 }
 
-class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
+class _FlashcardBlockWidgetState extends BaseBlockState<FlashcardBlockWidget> {
   bool _showAnswer = false;
 
   String get _answer => (widget.block.metadata['answer'] as String?) ?? '';
@@ -64,7 +67,7 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
 
   void _setMetadata(String key, dynamic value) {
     widget.block.metadata[key] = value;
-    widget.onChanged();
+    widget.onChanged?.call();
   }
 
   void _recordReview() {
@@ -73,9 +76,12 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Color get backgroundColor => const Color(0xFF1E152A);
+
+  @override
+  Widget buildContent(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -86,7 +92,7 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
               ),
             onChanged: (val) {
               widget.block.content = val;
-              widget.onChanged();
+              widget.onChanged?.call();
             },
             style: const TextStyle(
               color: Colors.white,
@@ -253,8 +259,8 @@ class _FlashcardBlockWidgetState extends State<FlashcardBlockWidget> {
                   _showAnswer
                       ? (_answer.isEmpty ? 'No answer yet.' : _answer)
                       : (widget.block.content.isEmpty
-                            ? 'No prompt yet.'
-                            : widget.block.content),
+                          ? 'No prompt yet.'
+                          : widget.block.content),
                   key: ValueKey(_showAnswer),
                   style: const TextStyle(color: Colors.white, height: 1.5),
                 ),

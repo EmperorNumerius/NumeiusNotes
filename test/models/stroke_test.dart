@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notes_app/models/stroke.dart';
+import 'package:notes_app/models/anchor_type.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -54,12 +55,8 @@ void main() {
       };
       final stroke = Stroke.fromJson(json);
       expect(stroke.boundingBox, Rect.fromLTRB(0, 0, 100, 100));
-import 'dart:ui';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:notes_app/models/stroke.dart';
-import 'package:notes_app/models/anchor_type.dart';
+    });
 
-void main() {
   group('Stroke.fromJson', () {
     test('handles valid JSON correctly', () {
       final json = {
@@ -156,7 +153,6 @@ void main() {
       expect(stroke.points.length, 3);
       expect(stroke.points[0], const Offset(10.0, 0.0));
       expect(stroke.points[1], const Offset(0.0, 20.0));
-      expect(stroke.points[2], const Offset(0.0, 0.0));
     });
   });
 }

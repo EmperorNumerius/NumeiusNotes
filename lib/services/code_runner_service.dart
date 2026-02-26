@@ -5,9 +5,12 @@ import 'package:notes_app/models/code_language.dart';
 
 /// Service for executing code snippets on a remote backend.
 class CodeRunnerService {
-  static final _jsLogRegex = RegExp(r'''console\.log\((.*?)\)''', multiLine: true);
-  static final _cppCoutRegex = RegExp(r'''cout\s*<<\s*(.*?)\s*;''', multiLine: true);
-  static final _pythonAssignmentRegex = RegExp(r'''^([a-zA-Z_]\w*)\s*=\s*(.+)$''');
+  static final _jsLogRegex =
+      RegExp(r'''console\.log\((.*?)\)''', multiLine: true);
+  static final _cppCoutRegex =
+      RegExp(r'''cout\s*<<\s*(.*?)\s*;''', multiLine: true);
+  static final _pythonAssignmentRegex =
+      RegExp(r'''^([a-zA-Z_]\w*)\s*=\s*(.+)$''');
   static final _pythonPrintRegex = RegExp(r'''^print\((.*)\)$''');
 
   static String get baseUrl => AppConfig.endpoints.codeRunnerBaseUrl;
@@ -21,14 +24,16 @@ class CodeRunnerService {
     }
 
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/execute'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'language': language.name,
-          'code': code,
-        }),
-      ).timeout(const Duration(seconds: 30));
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/execute'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'language': language.name,
+              'code': code,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
@@ -53,7 +58,8 @@ class CodeRunnerService {
     }
   }
 
-  static Future<CodeResult> _mockExecute(String code, CodeLanguage language) async {
+  static Future<CodeResult> _mockExecute(
+      String code, CodeLanguage language) async {
     await Future.delayed(const Duration(milliseconds: 500));
 
     final trimmed = code.trim();
@@ -66,9 +72,6 @@ class CodeRunnerService {
     }
 
     if (language == CodeLanguage.javascript) {
-      final logRegex = RegExp(r'''console\.log\((.*?)\)''', multiLine: true);
-      final logs = logRegex
-    if (language == 'javascript') {
       final logs = _jsLogRegex
           .allMatches(code)
           .map((match) => _stripWrappedQuotes((match.group(1) ?? '').trim()))
@@ -83,9 +86,6 @@ class CodeRunnerService {
     }
 
     if (language == CodeLanguage.cpp) {
-      final coutRegex = RegExp(r'''cout\s*<<\s*(.*?)\s*;''', multiLine: true);
-      final lines = coutRegex
-    if (language == 'cpp') {
       final lines = _cppCoutRegex
           .allMatches(code)
           .map((match) => _stripWrappedQuotes((match.group(1) ?? '').trim()))
@@ -93,7 +93,9 @@ class CodeRunnerService {
           .toList();
 
       return CodeResult(
-        stdout: lines.isEmpty ? '[Mock] C++ code parsed. No cout output found.' : lines.join('\n'),
+        stdout: lines.isEmpty
+            ? '[Mock] C++ code parsed. No cout output found.'
+            : lines.join('\n'),
         stderr: '',
         exitCode: 0,
       );
@@ -139,7 +141,8 @@ class CodeRunnerService {
     );
   }
 
-  static String _resolvePythonValue(String expression, Map<String, String> variables) {
+  static String _resolvePythonValue(
+      String expression, Map<String, String> variables) {
     final raw = expression.trim();
     if (raw.isEmpty) return '';
 
@@ -170,5 +173,6 @@ class CodeResult {
   final String stderr;
   final int exitCode;
 
-  CodeResult({required this.stdout, required this.stderr, required this.exitCode});
+  CodeResult(
+      {required this.stdout, required this.stderr, required this.exitCode});
 }

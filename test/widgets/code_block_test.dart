@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:notes_app/models/content_block.dart';
 import 'package:notes_app/widgets/code_block.dart';
+import 'package:notes_app/models/code_language.dart';
 
 void main() {
   testWidgets('CodeBlockWidget shows autocomplete suggestions', (tester) async {
@@ -9,7 +10,7 @@ void main() {
       id: 'test_block',
       type: ContentBlockType.code,
       content: '',
-      language: 'python',
+      language: CodeLanguage.python,
     );
 
     await tester.pumpWidget(
