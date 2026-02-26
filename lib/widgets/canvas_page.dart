@@ -482,6 +482,7 @@ class _CanvasPageState extends State<CanvasPage> {
             // Positioned content blocks
             ...doc.blocks
                 .where((b) => !hasPdfFile || b.anchorType == AnchorType.canvas)
+                .toList()
                 .asMap()
                 .entries
                 .map<Widget>((entry) {
