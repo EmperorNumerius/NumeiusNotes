@@ -1,4 +1,5 @@
 import 'package:notes_app/models/anchor_type.dart';
+import 'package:notes_app/models/code_language.dart';
 
 /// Types of content that can exist in a document.
 enum ContentBlockType {
@@ -18,7 +19,7 @@ class ContentBlock {
   final String id;
   final ContentBlockType type;
   String content;
-  String language; // for code blocks: 'python', 'cpp', etc.
+  CodeLanguage language; // for code blocks: 'python', 'cpp', etc.
   String output; // execution output for code blocks
   AnchorType anchorType;
 
@@ -42,7 +43,7 @@ class ContentBlock {
     required this.id,
     this.type = ContentBlockType.text,
     this.content = '',
-    this.language = 'python',
+    this.language = CodeLanguage.python,
     this.output = '',
     this.anchorType = AnchorType.canvas,
     this.x = 100,
@@ -58,7 +59,7 @@ class ContentBlock {
     'id': id,
     'type': type.name,
     'content': content,
-    'language': language,
+    'language': language.name,
     'output': output,
     'anchorType': anchorType.name,
     'x': x,
@@ -84,7 +85,7 @@ class ContentBlock {
       id: json['id'] as String,
       type: blockType,
       content: json['content'] as String? ?? '',
-      language: json['language'] as String? ?? 'python',
+      language: CodeLanguage.fromId(json['language'] as String?),
       output: json['output'] as String? ?? '',
       anchorType: inferredAnchor,
       x: (json['x'] as num?)?.toDouble() ?? 100,

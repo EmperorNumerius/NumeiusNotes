@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:notes_app/config/app_config.dart';
+import 'package:notes_app/models/code_language.dart';
 
 /// Service for executing code snippets on a remote backend.
 class CodeRunnerService {
@@ -13,7 +14,7 @@ class CodeRunnerService {
   static bool get useMock => AppConfig.flags.mockCodeExecution;
 
   /// Execute a code snippet and return the result.
-  static Future<CodeResult> execute(String code, String language) async {
+  static Future<CodeResult> execute(String code, CodeLanguage language) async {
     final shouldMock = useMock || baseUrl.isEmpty;
     if (shouldMock) {
       return _mockExecute(code, language);
@@ -24,7 +25,7 @@ class CodeRunnerService {
         Uri.parse('$baseUrl/execute'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'language': language,
+          'language': language.name,
           'code': code,
         }),
       ).timeout(const Duration(seconds: 30));
@@ -52,7 +53,7 @@ class CodeRunnerService {
     }
   }
 
-  static Future<CodeResult> _mockExecute(String code, String language) async {
+  static Future<CodeResult> _mockExecute(String code, CodeLanguage language) async {
     await Future.delayed(const Duration(milliseconds: 500));
 
     final trimmed = code.trim();
@@ -60,10 +61,13 @@ class CodeRunnerService {
       return CodeResult(stdout: '(no code provided)', stderr: '', exitCode: 0);
     }
 
-    if (language == 'python') {
+    if (language == CodeLanguage.python) {
       return _mockPythonExecute(code);
     }
 
+    if (language == CodeLanguage.javascript) {
+      final logRegex = RegExp(r'''console\.log\((.*?)\)''', multiLine: true);
+      final logs = logRegex
     if (language == 'javascript') {
       final logs = _jsLogRegex
           .allMatches(code)
@@ -78,6 +82,9 @@ class CodeRunnerService {
       );
     }
 
+    if (language == CodeLanguage.cpp) {
+      final coutRegex = RegExp(r'''cout\s*<<\s*(.*?)\s*;''', multiLine: true);
+      final lines = coutRegex
     if (language == 'cpp') {
       final lines = _cppCoutRegex
           .allMatches(code)
@@ -93,7 +100,7 @@ class CodeRunnerService {
     }
 
     return CodeResult(
-      stdout: '[Mock] Executed $language code successfully.',
+      stdout: '[Mock] Executed ${language.name} code successfully.',
       stderr: '',
       exitCode: 0,
     );

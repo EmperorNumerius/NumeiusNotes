@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/monokai-sublime.dart';
+import 'package:notes_app/models/code_language.dart';
 import 'package:notes_app/models/content_block.dart';
 import 'package:notes_app/services/code_runner_service.dart';
 
@@ -29,6 +30,8 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
   bool _showOutput = false;
   bool _isEditing = false;
 
+  static const Map<CodeLanguage, List<String>> _languageSuggestions = {
+    CodeLanguage.python: [
   static final _tokenSplitRegex = RegExp(r'[\s\(\)\{\}\[\],;]');
 
   static const Map<String, List<String>> _languageSuggestions = {
@@ -50,7 +53,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
       'try',
       'except',
     ],
-    'javascript': [
+    CodeLanguage.javascript: [
       'console.log()',
       'function',
       'const',
@@ -68,7 +71,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
       'map()',
       'filter()',
     ],
-    'cpp': [
+    CodeLanguage.cpp: [
       '#include <iostream>',
       'int main()',
       'std::cout <<',
@@ -179,7 +182,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: widget.block.language == 'python'
+                    color: widget.block.language == CodeLanguage.python
                         ? const Color(0xFF3776AB)
                         : const Color(0xFF00599C),
                     shape: BoxShape.circle,
@@ -187,17 +190,18 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
                 ),
                 const SizedBox(width: 8),
                 // Language dropdown
-                DropdownButton<String>(
+                DropdownButton<CodeLanguage>(
                   value: widget.block.language,
                   dropdownColor: const Color(0xFF252540),
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                   underline: const SizedBox(),
                   isDense: true,
-                  items: const [
-                    DropdownMenuItem(value: 'python', child: Text('Python')),
-                    DropdownMenuItem(value: 'cpp', child: Text('C++')),
-                    DropdownMenuItem(value: 'javascript', child: Text('JavaScript')),
-                  ],
+                  items: CodeLanguage.values.map((lang) {
+                    return DropdownMenuItem(
+                      value: lang,
+                      child: Text(lang.displayName),
+                    );
+                  }).toList(),
                   onChanged: (v) {
                     if (v != null) {
                       setState(() => widget.block.language = v);
@@ -339,7 +343,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
                             height: 1.5,
                           ),
                           decoration: InputDecoration(
-                            hintText: 'Enter ${widget.block.language} code...',
+                            hintText: 'Enter ${widget.block.language.displayName} code...',
                             hintStyle: TextStyle(color: Colors.white.withAlpha(40)),
                             border: InputBorder.none,
                             isDense: true,
@@ -394,7 +398,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
                         ? Padding(
                             padding: const EdgeInsets.all(12),
                             child: Text(
-                              'Tap to enter ${widget.block.language} code...',
+                              'Tap to enter ${widget.block.language.displayName} code...',
                               style: TextStyle(
                                 fontFamily: 'Consolas',
                                 fontSize: 13,
@@ -404,9 +408,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
                           )
                         : HighlightView(
                             _controller.text,
-                            language: widget.block.language == 'cpp'
-                                ? 'cpp'
-                                : widget.block.language,
+                            language: widget.block.language.name,
                             theme: monokaiSublimeTheme,
                             padding: const EdgeInsets.all(12),
                             textStyle: const TextStyle(
