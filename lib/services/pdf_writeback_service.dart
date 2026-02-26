@@ -25,6 +25,7 @@ class PdfWritebackResult {
 
 /// Rebuilds the editable PDF working copy from the immutable source + anchored annotations.
 class PdfWritebackService {
+  static final _originalSuffixRegex = RegExp(r'_original$');
   static final Map<String, Future<PdfWritebackResult>> _queues = {};
 
   Future<PdfWritebackResult> writeback(
@@ -198,7 +199,7 @@ class PdfWritebackService {
     if (name.endsWith('_original')) {
       return p.join(
         p.dirname(sourcePath),
-        '${name.replaceAll(RegExp(r'_original$'), '_working')}$ext',
+        '${name.replaceAll(_originalSuffixRegex, '_working')}$ext',
       );
     }
     return p.join(p.dirname(sourcePath), '${name}_working$ext');

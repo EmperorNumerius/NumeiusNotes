@@ -50,6 +50,10 @@ class StudyContextResult {
 }
 
 class StudyContextService {
+  static final _newlineRegex = RegExp(r'\r\n?');
+  static final _whitespaceRegex = RegExp(r'[ \t]+');
+  static final _excessiveNewlineRegex = RegExp(r'\n{3,}');
+
   static StudyContextResult build(
     NoteDocument document, {
     StudyContextBuildOptions options = const StudyContextBuildOptions(),
@@ -222,9 +226,9 @@ class StudyContextService {
   static String _sanitize(String? raw) {
     if (raw == null || raw.trim().isEmpty) return '';
     final collapsedWhitespace = raw
-        .replaceAll(RegExp(r'\r\n?'), '\n')
-        .replaceAll(RegExp(r'[ \t]+'), ' ')
-        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .replaceAll(_newlineRegex, '\n')
+        .replaceAll(_whitespaceRegex, ' ')
+        .replaceAll(_excessiveNewlineRegex, '\n\n')
         .trim();
     return collapsedWhitespace;
   }
