@@ -730,6 +730,15 @@ class _HomePageState extends State<HomePage> {
         hintText: 'Folder name',
         onAction: (text) =>
             docMgr.createFolder(parentId: _currentFolderId, name: text),
+      builder: (ctx) => _TextInputDialog(
+        title: 'New Folder',
+        initialText: 'New Folder',
+        hintText: 'Folder name',
+        confirmLabel: 'Create',
+        onConfirm: (text) => docMgr.createFolder(
+          parentId: _currentFolderId,
+          name: text,
+        ),
       ),
     );
   }
@@ -839,6 +848,11 @@ class _HomePageState extends State<HomePage> {
         initialText: folder.name,
         actionLabel: 'Rename',
         onAction: (text) => docMgr.renameFolder(folder.id, text),
+      builder: (ctx) => _TextInputDialog(
+        title: 'Rename Folder',
+        initialText: folder.name,
+        confirmLabel: 'Rename',
+        onConfirm: (text) => docMgr.renameFolder(folder.id, text),
       ),
     );
   }
@@ -851,6 +865,11 @@ class _HomePageState extends State<HomePage> {
         initialText: note.title,
         actionLabel: 'Rename',
         onAction: (text) => docMgr.renameDocument(note.id, text),
+      builder: (ctx) => _TextInputDialog(
+        title: 'Rename Note',
+        initialText: note.title,
+        confirmLabel: 'Rename',
+        onConfirm: (text) => docMgr.renameDocument(note.id, text),
       ),
     );
   }
@@ -926,16 +945,39 @@ class _NameInputDialog extends StatefulWidget {
 
 class _NameInputDialogState extends State<_NameInputDialog> {
   late TextEditingController _ctrl;
+class _TextInputDialog extends StatefulWidget {
+  final String title;
+  final String initialText;
+  final String? hintText;
+  final String confirmLabel;
+  final ValueChanged<String> onConfirm;
+
+  const _TextInputDialog({
+    required this.title,
+    required this.initialText,
+    this.hintText,
+    required this.confirmLabel,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_TextInputDialog> createState() => _TextInputDialogState();
+}
+
+class _TextInputDialogState extends State<_TextInputDialog> {
+  late final TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
     _ctrl = TextEditingController(text: widget.initialText);
+    _controller = TextEditingController(text: widget.initialText);
   }
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -947,6 +989,7 @@ class _NameInputDialogState extends State<_NameInputDialog> {
           style: const TextStyle(color: Colors.white, fontSize: 16)),
       content: TextField(
         controller: _ctrl,
+        controller: _controller,
         autofocus: true,
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
@@ -966,6 +1009,10 @@ class _NameInputDialogState extends State<_NameInputDialog> {
             Navigator.pop(context);
           },
           child: Text(widget.actionLabel),
+            widget.onConfirm(_controller.text.trim());
+            Navigator.pop(context);
+          },
+          child: Text(widget.confirmLabel),
         ),
       ],
     );
