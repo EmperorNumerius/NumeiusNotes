@@ -79,22 +79,29 @@ class Stroke {
         : (normalizedRaw != null ? AnchorType.pdfPage : AnchorType.canvas);
 
     return Stroke(
-      points: (json['points'] as List)
-          .map((p) => Offset(
-                (p['dx'] as num).toDouble(),
-                (p['dy'] as num).toDouble(),
-              ))
-          .toList(),
-      color: Color(json['color'] as int),
-      width: (json['width'] as num).toDouble(),
+      points: (json['points'] as List?)?.map((p) {
+            if (p is Map) {
+              return Offset(
+                (p['dx'] as num?)?.toDouble() ?? 0.0,
+                (p['dy'] as num?)?.toDouble() ?? 0.0,
+              );
+            }
+            return Offset.zero;
+          }).toList() ??
+          [],
+      color: Color((json['color'] as int?) ?? 0xFFFFFFFF),
+      width: (json['width'] as num?)?.toDouble() ?? 2.0,
       anchorType: inferredAnchor,
       pageIndex: (json['pageIndex'] as num?)?.toInt() ?? 0,
-      normalizedPoints: normalizedRaw
-          ?.map((p) => Offset(
-                (p['dx'] as num).toDouble(),
-                (p['dy'] as num).toDouble(),
-              ))
-          .toList(),
+      normalizedPoints: normalizedRaw?.map((p) {
+        if (p is Map) {
+          return Offset(
+            (p['dx'] as num?)?.toDouble() ?? 0.0,
+            (p['dy'] as num?)?.toDouble() ?? 0.0,
+          );
+        }
+        return Offset.zero;
+      }).toList(),
       relativeTimestamp: json['relativeTimestamp'] as int?,
     );
   }
