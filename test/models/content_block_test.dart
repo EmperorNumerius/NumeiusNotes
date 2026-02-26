@@ -93,6 +93,12 @@ void main() {
       expect(block.anchorType, AnchorType.pdfPage);
     });
 
+     test('infers AnchorType.canvas when anchorType is invalid and normalized coords missing', () {
+      final json = {
+        'id': '8',
+        'type': 'text',
+        'content': 'test',
+        'anchorType': 'invalidAnchor',
     test('fromJson defaults to canvas anchor if no info provided', () {
       final json = {
         'id': '1',
