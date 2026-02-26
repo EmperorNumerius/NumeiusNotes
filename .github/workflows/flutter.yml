@@ -34,3 +34,19 @@ jobs:
       # want to change this to 'flutter test'.
       - name: Run tests
         run: flutter test
+
+  build-ios:
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
+      - name: Upload iOS Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-bundle
+          path: build/ios/iphoneos/Runner.app
