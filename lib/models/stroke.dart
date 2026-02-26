@@ -20,6 +20,8 @@ class Stroke {
   /// Null if no recording was active when the stroke was made.
   final int? relativeTimestamp;
 
+  late final Rect boundingBox;
+
   Stroke({
     required this.points,
     this.color = const Color(0xFFFFFFFF),
@@ -28,7 +30,33 @@ class Stroke {
     this.pageIndex = 0,
     this.normalizedPoints,
     this.relativeTimestamp,
-  });
+  }) {
+    boundingBox = _computeBoundingBox();
+  }
+
+  Rect _computeBoundingBox() {
+    if (points.isEmpty) return Rect.zero;
+    double minX = points[0].dx;
+    double maxX = points[0].dx;
+    double minY = points[0].dy;
+    double maxY = points[0].dy;
+
+    for (int i = 1; i < points.length; i++) {
+      final p = points[i];
+      if (p.dx < minX) {
+        minX = p.dx;
+      } else if (p.dx > maxX) {
+        maxX = p.dx;
+      }
+
+      if (p.dy < minY) {
+        minY = p.dy;
+      } else if (p.dy > maxY) {
+        maxY = p.dy;
+      }
+    }
+    return Rect.fromLTRB(minX, minY, maxX, maxY);
+  }
 
   Map<String, dynamic> toJson() => {
         'points': points.map((p) => {'dx': p.dx, 'dy': p.dy}).toList(),
@@ -51,22 +79,29 @@ class Stroke {
         : (normalizedRaw != null ? AnchorType.pdfPage : AnchorType.canvas);
 
     return Stroke(
-      points: (json['points'] as List)
-          .map((p) => Offset(
-                (p['dx'] as num).toDouble(),
-                (p['dy'] as num).toDouble(),
-              ))
-          .toList(),
-      color: Color(json['color'] as int),
-      width: (json['width'] as num).toDouble(),
+      points: (json['points'] as List?)?.map((p) {
+            if (p is Map) {
+              return Offset(
+                (p['dx'] as num?)?.toDouble() ?? 0.0,
+                (p['dy'] as num?)?.toDouble() ?? 0.0,
+              );
+            }
+            return Offset.zero;
+          }).toList() ??
+          [],
+      color: Color((json['color'] as int?) ?? 0xFFFFFFFF),
+      width: (json['width'] as num?)?.toDouble() ?? 2.0,
       anchorType: inferredAnchor,
       pageIndex: (json['pageIndex'] as num?)?.toInt() ?? 0,
-      normalizedPoints: normalizedRaw
-          ?.map((p) => Offset(
-                (p['dx'] as num).toDouble(),
-                (p['dy'] as num).toDouble(),
-              ))
-          .toList(),
+      normalizedPoints: normalizedRaw?.map((p) {
+        if (p is Map) {
+          return Offset(
+            (p['dx'] as num?)?.toDouble() ?? 0.0,
+            (p['dy'] as num?)?.toDouble() ?? 0.0,
+          );
+        }
+        return Offset.zero;
+      }).toList(),
       relativeTimestamp: json['relativeTimestamp'] as int?,
     );
   }
