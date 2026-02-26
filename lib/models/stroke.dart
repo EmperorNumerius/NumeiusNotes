@@ -43,11 +43,17 @@ class Stroke {
 
     for (int i = 1; i < points.length; i++) {
       final p = points[i];
-      if (p.dx < minX) minX = p.dx;
-      else if (p.dx > maxX) maxX = p.dx;
+      if (p.dx < minX) {
+        minX = p.dx;
+      } else if (p.dx > maxX) {
+        maxX = p.dx;
+      }
 
-      if (p.dy < minY) minY = p.dy;
-      else if (p.dy > maxY) maxY = p.dy;
+      if (p.dy < minY) {
+        minY = p.dy;
+      } else if (p.dy > maxY) {
+        maxY = p.dy;
+      }
     }
     return Rect.fromLTRB(minX, minY, maxX, maxY);
   }
