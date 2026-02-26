@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:notes_app/models/content_block.dart';
+import 'package:notes_app/widgets/content_blocks/base_block_widget.dart';
 
 /// Markdown block with editing + preview modes and a lightweight formatting bar.
-class MarkdownBlockWidget extends StatefulWidget {
-  final ContentBlock block;
-  final VoidCallback? onChanged;
-
-  const MarkdownBlockWidget({super.key, required this.block, this.onChanged});
+class MarkdownBlockWidget extends BaseBlockWidget {
+  const MarkdownBlockWidget({
+    super.key,
+    required super.block,
+    super.onChanged,
+    super.onDelete,
+    super.onDragStart,
+    super.onDragUpdate,
+    super.onDragEnd,
+    super.isDragging,
+  });
 
   @override
   State<MarkdownBlockWidget> createState() => _MarkdownBlockWidgetState();
 }
 
-class _MarkdownBlockWidgetState extends State<MarkdownBlockWidget> {
+class _MarkdownBlockWidgetState extends BaseBlockState<MarkdownBlockWidget> {
   late TextEditingController _controller;
   bool _isEditing = true;
   final ScrollController _previewScrollController = ScrollController();
@@ -89,15 +95,12 @@ class _MarkdownBlockWidgetState extends State<MarkdownBlockWidget> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+  Color get backgroundColor => const Color(0xFF101626);
+
+  @override
+  Widget buildContent(BuildContext context) {
+    return Padding(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF101626),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFF6B6B).withAlpha(55)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

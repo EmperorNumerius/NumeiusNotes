@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:notes_app/models/anchor_type.dart';
 import 'package:notes_app/controllers/canvas_controller.dart';
 import 'package:notes_app/controllers/audio_controller.dart';
 import 'package:notes_app/controllers/document_manager.dart';
+import 'package:notes_app/models/document.dart';
 import 'package:notes_app/painters/ink_painter.dart';
 import 'package:notes_app/models/content_block.dart';
 import 'package:notes_app/models/stroke.dart';
@@ -17,6 +19,7 @@ import 'package:notes_app/widgets/calculator_block.dart';
 import 'package:notes_app/widgets/draggable_block_shell.dart';
 import 'package:notes_app/services/pdf_annotation_export_service.dart';
 import 'package:notes_app/widgets/markdown_block.dart';
+import 'package:notes_app/widgets/feynman_block.dart';
 import 'package:notes_app/widgets/flashcard_block.dart';
 import 'package:uuid/uuid.dart';
 
@@ -249,6 +252,13 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                 _addBlock(doc, docMgr, ContentBlockType.chemistry, width: 680),
           ),
           _paletteItem(
+            icon: Icons.lightbulb_outline_rounded,
+            label: 'Feynman',
+            color: const Color(0xFFFFAA5C), // Orange-ish
+            onTap: () =>
+                _addBlock(doc, docMgr, ContentBlockType.feynman, width: 500),
+          ),
+          _paletteItem(
             icon: Icons.calculate_rounded,
             label: 'Calculator',
             color: const Color(0xFFFFAA5C),
@@ -346,7 +356,7 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
 
   Widget _buildPositionedBlock(
     ContentBlock block,
-    dynamic doc,
+    NoteDocument doc,
     DocumentManager docMgr,
   ) {
     final isDragging = _draggingBlockId == block.id;
@@ -362,12 +372,11 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
     return Positioned(
       left: block.x,
       top: block.y,
-      child: DraggableBlockShell(
-        block: block,
-        isDragging: isDragging,
-        backgroundColor: const Color(0xFF141428).withAlpha(230),
-        onDragStart: (details) => setState(() => _draggingBlockId = block.id),
-        onDragUpdate: (details) {
+      child: _buildBlockWidget(
+        block,
+        isDragging,
+        (details) => setState(() => _draggingBlockId = block.id),
+        (details) {
           setState(() {
             block.x += details.delta.dx;
             block.y += details.delta.dy;
@@ -378,23 +387,106 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             );
           });
         },
-        onDragEnd: (details) {
+        (details) {
           _draggingBlockId = null;
           docMgr.saveActiveDocument();
           setState(() {});
         },
-        onDelete: () {
-          _disposeTextEditingResources(block.id);
-          doc.blocks.remove(block);
-          docMgr.saveActiveDocument();
-          setState(() {});
-        },
-        content: _buildBlockContent(block, doc, docMgr),
+        doc,
+        docMgr,
       ),
     );
   }
 
-  Widget _buildBlockContent(
+  Widget _buildBlockWidget(
+    ContentBlock block,
+    bool isDragging,
+    GestureDragStartCallback onDragStart,
+    GestureDragUpdateCallback onDragUpdate,
+    GestureDragEndCallback onDragEnd,
+    NoteDocument doc,
+    DocumentManager docMgr,
+  ) {
+    // 1. Refactored blocks (handle their own shell)
+    switch (block.type) {
+      case ContentBlockType.code:
+        return KeyedSubtree(
+          key: ValueKey('code_${block.id}'),
+          child: CodeBlockWidget(
+            block: block,
+            isDragging: isDragging,
+            onDragStart: onDragStart,
+            onDragUpdate: onDragUpdate,
+            onDragEnd: onDragEnd,
+            onChanged: () {
+              doc.touch();
+              docMgr.saveActiveDocument();
+            },
+            onDelete: () {
+              doc.blocks.remove(block);
+              docMgr.saveActiveDocument();
+              setState(() {});
+            },
+          ),
+        );
+      case ContentBlockType.markdown:
+        return MarkdownBlockWidget(
+          block: block,
+          isDragging: isDragging,
+          onDragStart: onDragStart,
+          onDragUpdate: onDragUpdate,
+          onDragEnd: onDragEnd,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+          onDelete: () {
+            doc.blocks.remove(block);
+            docMgr.saveActiveDocument();
+            setState(() {});
+          },
+        );
+      case ContentBlockType.feynman:
+        return FeynmanBlockWidget(
+          block: block,
+          isDragging: isDragging,
+          onDragStart: onDragStart,
+          onDragUpdate: onDragUpdate,
+          onDragEnd: onDragEnd,
+          onChanged: () {
+            doc.touch();
+            docMgr.saveActiveDocument();
+          },
+          onDelete: () {
+            doc.blocks.remove(block);
+            docMgr.saveActiveDocument();
+            setState(() {});
+          },
+        );
+      default:
+        // 2. Legacy blocks (need external shell)
+        return DraggableBlockShell(
+          key: block.anchorType == AnchorType.pdfPage
+              ? ValueKey('pdf_${block.id}')
+              : null,
+          block: block,
+          isDragging: isDragging,
+          backgroundColor: const Color(0xFF141428).withAlpha(230),
+          onDragStart: onDragStart,
+          onDragUpdate: onDragUpdate,
+          onDragEnd: onDragEnd,
+          onDelete: () {
+            _disposeTextEditingResources(block.id);
+            doc.blocks.remove(block);
+            docMgr.saveActiveDocument();
+            setState(() {});
+          },
+          content: _buildLegacyBlockContent(block, doc, docMgr),
+        );
+    }
+  }
+
+  Widget _buildLegacyBlockContent(
     ContentBlock block,
     dynamic doc,
     DocumentManager docMgr,
@@ -426,25 +518,8 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             ),
           ),
         );
-      case ContentBlockType.code:
-        return CodeBlockWidget(
-          block: block,
-          onChanged: (val) {
-            block.content = val;
-            doc.touch();
-            docMgr.saveActiveDocument();
-          },
-        );
       case ContentBlockType.latex:
         return LatexBlockWidget(
-          block: block,
-          onChanged: () {
-            doc.touch();
-            docMgr.saveActiveDocument();
-          },
-        );
-      case ContentBlockType.markdown:
-        return MarkdownBlockWidget(
           block: block,
           onChanged: () {
             doc.touch();
@@ -476,9 +551,11 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           },
         );
       case ContentBlockType.image:
-        // Assuming ImageBlockWidget exists or just returning a placeholder for now
-        // to satisfy exhaustive switch. Looking at the imports, it's not imported.
-        // Wait, I should check if it's imported.
+        // Not imported, fallback
+        return const SizedBox.shrink();
+      case ContentBlockType.code:
+      case ContentBlockType.markdown:
+      case ContentBlockType.feynman:
         return const SizedBox.shrink();
     }
   }
