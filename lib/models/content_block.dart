@@ -11,6 +11,7 @@ enum ContentBlockType {
   flashcard,
   markdown,
   image,
+  feynman,
 }
 
 /// A block of typed content (text, code, LaTeX, chemistry, or calculator) in a document.

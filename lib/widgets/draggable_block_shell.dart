@@ -192,5 +192,11 @@ _BlockMetadata _blockMetadata(ContentBlockType type) {
         icon: Icons.image_rounded,
         label: 'Image',
       );
+    case ContentBlockType.feynman:
+      return const _BlockMetadata(
+        color: Color(0xFFFFAA5C),
+        icon: Icons.lightbulb_outline_rounded,
+        label: 'Feynman',
+      );
   }
 }
