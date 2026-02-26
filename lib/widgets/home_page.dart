@@ -307,6 +307,19 @@ class _HomePageState extends State<HomePage> {
                           TextStyle(color: Colors.white.withAlpha(60), fontSize: 13),
                       prefixIcon: Icon(Icons.search,
                           color: Colors.white.withAlpha(60), size: 18),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.clear_rounded,
+                                  color: Colors.white.withAlpha(60), size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                              tooltip: 'Clear search',
+                              splashRadius: 20,
+                              constraints: const BoxConstraints(),
+                            )
+                          : null,
                       border: InputBorder.none,
                       contentPadding:
                           const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
