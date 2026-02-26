@@ -41,7 +41,14 @@ class PdfWritebackService {
       ),
     );
 
-    final next = previous.catchError((_) {}).then(
+    final next = previous.catchError((_) {
+      return PdfWritebackResult(
+        success: false,
+        message: 'Previous writeback failed',
+        writtenAt: DateTime.now(),
+        revision: doc.pdfWritebackRevision,
+      );
+    }).then(
       (_) => _writebackNow(doc, includeTextBlocks: includeTextBlocks),
     );
     _queues[docId] = next;
