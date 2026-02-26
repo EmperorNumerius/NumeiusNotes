@@ -31,6 +31,38 @@ class MockDocumentManager extends DocumentManager {
   List<NoteDocument> searchNotes(String query) => [];
 
   @override
+  NoteFolder createFolder({String? parentId, String name = 'New Folder'}) {
+    return NoteFolder(id: 'new', name: name);
+  }
+
+  @override
+  void renameFolder(String folderId, String newName) {}
+
+  @override
+  void renameDocument(String docId, String newTitle) {}
+
+  @override
+  void deleteFolder(String folderId) {}
+
+  @override
+  void deleteDocument(String docId) {}
+
+  @override
+  void moveToFolder(String docId, String? folderId) {}
+}
+
+void main() {
+  testWidgets('HomePage dialogs open and close correctly', (tester) async {
+    // Set explicit size for tablet layout to ensure sidebar and main area are visible if needed,
+    // though for compact layout (default 800x600 for tests) it might show sidebar in drawer.
+    // HomePage uses `constraints.maxWidth < 700` for compact.
+    // Default test surface size is 800x600. So it is NOT compact.
+    // Sidebar is visible.
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ChangeNotifierProvider<DocumentManager>(
+          create: (_) => MockDocumentManager(),
   List<NoteDocument> getNotesBySubject(String subject) => [];
 
   @override
