@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:notes_app/controllers/document_manager.dart';
 import 'package:notes_app/models/folder.dart';
@@ -17,6 +18,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _searchFocusNode = FocusNode();
   String _searchQuery = '';
   String? _selectedSubject; // null = "All"
   String? _currentFolderId; // null = root
@@ -25,6 +28,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -32,15 +36,41 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final docMgr = context.watch<DocumentManager>();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A0A1A),
-      body: Row(
-        children: [
-          // ─── Sidebar ───────────────────────────────────
-          _buildSidebar(docMgr),
-          // ─── Main Area ─────────────────────────────────
-          Expanded(child: _buildMainArea(docMgr)),
-        ],
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyN, control: true): () =>
+            _createNote(docMgr),
+        const SingleActivator(LogicalKeyboardKey.keyN, meta: true): () =>
+            _createNote(docMgr),
+        const SingleActivator(LogicalKeyboardKey.keyN, control: true, shift: true):
+            () => _createFolder(docMgr),
+        const SingleActivator(LogicalKeyboardKey.keyN, meta: true, shift: true):
+            () => _createFolder(docMgr),
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true): () =>
+            _searchFocusNode.requestFocus(),
+        const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () =>
+            _searchFocusNode.requestFocus(),
+      },
+      child: Focus(
+        autofocus: true,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxWidth < 700;
+            return Scaffold(
+              key: _scaffoldKey,
+              backgroundColor: const Color(0xFF0A0A1A),
+              drawer: isCompact ? Drawer(child: _buildSidebar(docMgr)) : null,
+              body: Row(
+                children: [
+                  // ─── Sidebar ───────────────────────────────────
+                  if (!isCompact) _buildSidebar(docMgr),
+                  // ─── Main Area ─────────────────────────────────
+                  Expanded(child: _buildMainArea(docMgr, isCompact)),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -212,7 +242,7 @@ class _HomePageState extends State<HomePage> {
 
   // ─── Main Area ──────────────────────────────────────────────
 
-  Widget _buildMainArea(DocumentManager docMgr) {
+  Widget _buildMainArea(DocumentManager docMgr, bool isCompact) {
     // Determine which notes to show
     List<NoteDocument> notes;
     List<NoteFolder> subFolders;
@@ -245,6 +275,14 @@ class _HomePageState extends State<HomePage> {
           ),
           child: Row(
             children: [
+              if (isCompact) ...[
+                IconButton(
+                  icon: const Icon(Icons.menu_rounded, color: Colors.white70),
+                  onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                  tooltip: 'Menu',
+                ),
+                const SizedBox(width: 8),
+              ],
               // Breadcrumb
               if (breadcrumb != null) ...[
                 breadcrumb,
@@ -260,6 +298,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   child: TextField(
                     controller: _searchController,
+                    focusNode: _searchFocusNode,
                     onChanged: (v) => setState(() => _searchQuery = v),
                     style: const TextStyle(color: Colors.white, fontSize: 13),
                     decoration: InputDecoration(
@@ -268,6 +307,19 @@ class _HomePageState extends State<HomePage> {
                           TextStyle(color: Colors.white.withAlpha(60), fontSize: 13),
                       prefixIcon: Icon(Icons.search,
                           color: Colors.white.withAlpha(60), size: 18),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.clear_rounded,
+                                  color: Colors.white.withAlpha(60), size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                              tooltip: 'Clear search',
+                              splashRadius: 20,
+                              constraints: const BoxConstraints(),
+                            )
+                          : null,
                       border: InputBorder.none,
                       contentPadding:
                           const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
