@@ -723,13 +723,15 @@ class _HomePageState extends State<HomePage> {
   void _createFolder(DocumentManager docMgr) {
     showDialog(
       context: context,
-      builder: (ctx) => _TextEntryDialog(
+      builder: (ctx) => _TextInputDialog(
         title: 'New Folder',
         initialText: 'New Folder',
         hintText: 'Folder name',
-        actionLabel: 'Create',
-        onAction: (name) =>
-            docMgr.createFolder(parentId: _currentFolderId, name: name),
+        confirmLabel: 'Create',
+        onConfirm: (text) => docMgr.createFolder(
+          parentId: _currentFolderId,
+          name: text,
+        ),
       ),
     );
   }
@@ -839,6 +841,11 @@ class _HomePageState extends State<HomePage> {
         initialText: folder.name,
         actionLabel: 'Rename',
         onAction: (name) => docMgr.renameFolder(folder.id, name),
+      builder: (ctx) => _TextInputDialog(
+        title: 'Rename Folder',
+        initialText: folder.name,
+        confirmLabel: 'Rename',
+        onConfirm: (text) => docMgr.renameFolder(folder.id, text),
       ),
     );
   }
@@ -846,11 +853,11 @@ class _HomePageState extends State<HomePage> {
   void _renameNote(NoteDocument note, DocumentManager docMgr) {
     showDialog(
       context: context,
-      builder: (ctx) => _TextEntryDialog(
+      builder: (ctx) => _TextInputDialog(
         title: 'Rename Note',
         initialText: note.title,
-        actionLabel: 'Rename',
-        onAction: (name) => docMgr.renameDocument(note.id, name),
+        confirmLabel: 'Rename',
+        onConfirm: (text) => docMgr.renameDocument(note.id, text),
       ),
     );
   }
@@ -905,37 +912,37 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _TextEntryDialog extends StatefulWidget {
+class _TextInputDialog extends StatefulWidget {
   final String title;
   final String initialText;
   final String? hintText;
-  final String actionLabel;
-  final ValueChanged<String> onAction;
+  final String confirmLabel;
+  final ValueChanged<String> onConfirm;
 
-  const _TextEntryDialog({
+  const _TextInputDialog({
     required this.title,
     required this.initialText,
     this.hintText,
-    required this.actionLabel,
-    required this.onAction,
+    required this.confirmLabel,
+    required this.onConfirm,
   });
 
   @override
-  State<_TextEntryDialog> createState() => _TextEntryDialogState();
+  State<_TextInputDialog> createState() => _TextInputDialogState();
 }
 
-class _TextEntryDialogState extends State<_TextEntryDialog> {
-  late final TextEditingController _ctrl;
+class _TextInputDialogState extends State<_TextInputDialog> {
+  late final TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = TextEditingController(text: widget.initialText);
+    _controller = TextEditingController(text: widget.initialText);
   }
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -946,7 +953,7 @@ class _TextEntryDialogState extends State<_TextEntryDialog> {
       title: Text(widget.title,
           style: const TextStyle(color: Colors.white, fontSize: 16)),
       content: TextField(
-        controller: _ctrl,
+        controller: _controller,
         autofocus: true,
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
@@ -954,7 +961,6 @@ class _TextEntryDialogState extends State<_TextEntryDialog> {
           hintStyle: TextStyle(color: Colors.white.withAlpha(60)),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        onSubmitted: (_) => _submit(),
       ),
       actions: [
         TextButton(
@@ -962,15 +968,13 @@ class _TextEntryDialogState extends State<_TextEntryDialog> {
           child: const Text('Cancel'),
         ),
         TextButton(
-          onPressed: _submit,
-          child: Text(widget.actionLabel),
+          onPressed: () {
+            widget.onConfirm(_controller.text.trim());
+            Navigator.pop(context);
+          },
+          child: Text(widget.confirmLabel),
         ),
       ],
     );
-  }
-
-  void _submit() {
-    widget.onAction(_ctrl.text.trim());
-    Navigator.pop(context);
   }
 }
