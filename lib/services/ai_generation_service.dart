@@ -49,7 +49,16 @@ class AiGenerationException implements Exception {
 }
 
 List<QuizQuestion> parseAndValidateQuiz(String body) {
-  final decoded = jsonDecode(body);
+  dynamic decoded;
+  try {
+    decoded = jsonDecode(body);
+  } on FormatException catch (_) {
+    throw AiGenerationException(
+      'Quiz payload was not valid JSON',
+      userMessage: 'AI response format was invalid. Please try again.',
+    );
+  }
+
   if (decoded is! Map<String, dynamic>) {
     throw AiGenerationException(
       'Quiz payload was not a JSON object',
