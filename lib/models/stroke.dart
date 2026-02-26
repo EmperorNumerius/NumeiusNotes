@@ -20,6 +20,8 @@ class Stroke {
   /// Null if no recording was active when the stroke was made.
   final int? relativeTimestamp;
 
+  late final Rect boundingBox;
+
   Stroke({
     required this.points,
     this.color = const Color(0xFFFFFFFF),
@@ -28,7 +30,33 @@ class Stroke {
     this.pageIndex = 0,
     this.normalizedPoints,
     this.relativeTimestamp,
-  });
+  }) {
+    boundingBox = _computeBoundingBox();
+  }
+
+  Rect _computeBoundingBox() {
+    if (points.isEmpty) return Rect.zero;
+    double minX = points[0].dx;
+    double maxX = points[0].dx;
+    double minY = points[0].dy;
+    double maxY = points[0].dy;
+
+    for (int i = 1; i < points.length; i++) {
+      final p = points[i];
+      if (p.dx < minX) {
+        minX = p.dx;
+      } else if (p.dx > maxX) {
+        maxX = p.dx;
+      }
+
+      if (p.dy < minY) {
+        minY = p.dy;
+      } else if (p.dy > maxY) {
+        maxY = p.dy;
+      }
+    }
+    return Rect.fromLTRB(minX, minY, maxX, maxY);
+  }
 
   Map<String, dynamic> toJson() => {
         'points': points.map((p) => {'dx': p.dx, 'dy': p.dy}).toList(),

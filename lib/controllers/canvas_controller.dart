@@ -185,7 +185,9 @@ class CanvasController extends ChangeNotifier {
   /// Full-stroke eraser — removes entire stroke if any point is within range.
   void _eraseAt(Offset point) {
     final before = _strokes.length;
+    final eraserRect = Rect.fromCircle(center: point, radius: 20);
     _strokes.removeWhere((s) {
+      if (!s.boundingBox.overlaps(eraserRect)) return false;
       for (final p in s.points) {
         if ((p - point).distance < 20) return true;
       }
@@ -197,16 +199,19 @@ class CanvasController extends ChangeNotifier {
   /// Partial eraser — removes only the points near the eraser, splitting strokes.
   void _partialEraseAt(Offset point) {
     const radius = 12.0;
+    final eraserRect = Rect.fromCircle(center: point, radius: radius);
     bool changed = false;
     final newStrokes = <Stroke>[];
 
     for (final stroke in _strokes) {
       // Check if any point is within range
       bool hasErasedPoint = false;
-      for (final p in stroke.points) {
-        if ((p - point).distance < radius) {
-          hasErasedPoint = true;
-          break;
+      if (stroke.boundingBox.overlaps(eraserRect)) {
+        for (final p in stroke.points) {
+          if ((p - point).distance < radius) {
+            hasErasedPoint = true;
+            break;
+          }
         }
       }
 
