@@ -25,9 +25,12 @@ class CodeBlockWidget extends StatefulWidget {
 
 class _CodeBlockWidgetState extends State<CodeBlockWidget> {
   late TextEditingController _controller;
+  late FocusNode _focusNode;
   bool _isRunning = false;
   bool _showOutput = false;
   bool _isEditing = false;
+
+  static final RegExp _tokenSplitter = RegExp(r'[\s\(\)\{\}\[\],;]');
 
   static const Map<String, List<String>> _languageSuggestions = {
     'python': [
@@ -86,6 +89,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.block.content);
+    _focusNode = FocusNode();
     _showOutput = widget.block.output.isNotEmpty;
   }
 
@@ -123,6 +127,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -272,6 +277,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
                     padding: const EdgeInsets.all(12),
                     child: RawAutocomplete<String>(
                       textEditingController: _controller,
+                      focusNode: _focusNode,
                       optionsBuilder: (textEditingValue) {
                         final input = textEditingValue.text;
                         final cursorIndex = textEditingValue.selection.baseOffset;
@@ -280,7 +286,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
                         }
 
                         final prefixText = input.substring(0, cursorIndex);
-                        final token = prefixText.split(RegExp(r'[\s\(\)\{\}\[\],;]')).last;
+                        final token = prefixText.split(_tokenSplitter).last;
                         if (token.isEmpty) {
                           return const Iterable<String>.empty();
                         }
@@ -307,7 +313,7 @@ class _CodeBlockWidgetState extends State<CodeBlockWidget> {
                         final prefixText = currentText.substring(0, cursorIndex);
                         final suffixText = currentText.substring(cursorIndex);
                         final token =
-                            prefixText.split(RegExp(r'[\s\(\)\{\}\[\],;]')).last;
+                            prefixText.split(_tokenSplitter).last;
                         final tokenStart = cursorIndex - token.length;
                         final newText =
                             '${currentText.substring(0, tokenStart)}$selection$suffixText';
