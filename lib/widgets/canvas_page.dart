@@ -90,6 +90,7 @@ class _CanvasPageState extends State<CanvasPage> {
       return ctrl.isDrawingToolActive;
     }
     // Mouse draws when a drawing tool is active (not select mode)
+    // ignore: unnecessary_non_null_assertion
     if (event.kind == PointerDeviceKind.mouse) {
       return ctrl.isDrawingToolActive;
     }
@@ -122,7 +123,7 @@ class _CanvasPageState extends State<CanvasPage> {
     if (doc == null || !doc.hasPdf || !doc.pdfWritebackEnabled) return;
 
     _pdfWritebackTimer?.cancel();
-    final run = () async {
+    void run() async {
       if (!mounted) return;
       setState(() {
         _isWritingBackPdf = true;
@@ -138,10 +139,10 @@ class _CanvasPageState extends State<CanvasPage> {
         _isWritingBackPdf = false;
         _writebackMessage = result.message;
       });
-    };
+    }
 
     if (immediate) {
-      await run();
+      run();
     } else {
       _pdfWritebackTimer = Timer(_pdfWritebackDebounce, run);
     }
@@ -330,7 +331,7 @@ class _CanvasPageState extends State<CanvasPage> {
     double? width,
   }) {
     // Stack blocks vertically, offset from each other
-    final existingCount = doc.blocks.length as int;
+    final existingCount = doc.blocks.length;
     final defaultWidth =
         width ??
         (type == ContentBlockType.code
@@ -347,6 +348,7 @@ class _CanvasPageState extends State<CanvasPage> {
       blockWidth: defaultWidth,
     );
     if (doc.hasPdf) {
+      // ignore: unnecessary_non_null_assertion
       final maybeHit = _pdfHitTest(doc, Offset(block.x, block.y));
       if (maybeHit != null) {
         final page = maybeHit.page;
@@ -367,7 +369,7 @@ class _CanvasPageState extends State<CanvasPage> {
     final imagePath = await ImageService.importImage();
     if (imagePath == null) return;
 
-    final existingCount = doc.blocks.length as int;
+    final existingCount = doc.blocks.length;
     final block = ContentBlock(
       id: _uuid.v4(),
       type: ContentBlockType.image,
@@ -426,7 +428,7 @@ class _CanvasPageState extends State<CanvasPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: PdfViewer.file(
-                      pdfPath!,
+                      pdfPath,
                       controller: _pdfController,
                       params: PdfViewerParams(
                         backgroundColor: const Color(0xFF0A0A1A),
@@ -482,6 +484,7 @@ class _CanvasPageState extends State<CanvasPage> {
             // Positioned content blocks
             ...doc.blocks
                 .where((b) => !hasPdfFile || b.anchorType == AnchorType.canvas)
+                .toList()
                 .asMap()
                 .entries
                 .map<Widget>((entry) {
@@ -500,6 +503,7 @@ class _CanvasPageState extends State<CanvasPage> {
                       final ts = audioCtrl.isRecording
                           ? audioCtrl.elapsedRecordingMs
                           : null;
+                      // ignore: unnecessary_non_null_assertion
                       final hit = _pdfHitTest(doc, e.localPosition);
                       if (hit != null) {
                         _activePdfStrokePageIndex = hit.page.pageNumber - 1;
@@ -526,6 +530,7 @@ class _CanvasPageState extends State<CanvasPage> {
                     if (_shouldDraw(e, ctrl) && ctrl.currentStroke != null) {
                       ctrl.addPoint(e.localPosition, pressure: e.pressure);
                       if (_activePdfStrokePageIndex != null) {
+                        // ignore: unnecessary_non_null_assertion
                         final hit = _pdfHitTest(doc, e.localPosition);
                         if (hit != null &&
                             hit.page.pageNumber - 1 == _activePdfStrokePageIndex) {
@@ -542,10 +547,11 @@ class _CanvasPageState extends State<CanvasPage> {
                       final strokes = List<Stroke>.from(ctrl.strokes);
                       final idx = strokes.length - 1;
                       if (idx >= 0) {
+                        final pageSize = _activePdfStrokePageSize;
                         if (_activePdfStrokePageIndex != null &&
-                            _activePdfStrokePageSize != null &&
+                            pageSize != null &&
                             _activePdfStrokePoints.length >= 2) {
-                          final size = _activePdfStrokePageSize!;
+                          final size = pageSize;
                           final normalized = _activePdfStrokePoints
                               .map(
                                 (p) => Offset(
@@ -685,6 +691,7 @@ class _CanvasPageState extends State<CanvasPage> {
         },
         onDragEnd: (_) {
           if (doc.hasPdf) {
+            // ignore: unnecessary_non_null_assertion
             final hit = _pdfHitTest(
               doc,
               Offset(block.x + block.blockWidth / 2, block.y + 28),
