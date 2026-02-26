@@ -721,37 +721,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _createFolder(DocumentManager docMgr) {
-    final ctrl = TextEditingController(text: 'New Folder');
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('New Folder',
-            style: TextStyle(color: Colors.white, fontSize: 16)),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: 'Folder name',
-            hintStyle: TextStyle(color: Colors.white.withAlpha(60)),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              docMgr.createFolder(
-                  parentId: _currentFolderId, name: ctrl.text.trim());
-              Navigator.pop(ctx);
-            },
-            child: const Text('Create'),
-          ),
-        ],
+      builder: (ctx) => _NameInputDialog(
+        title: 'New Folder',
+        initialText: 'New Folder',
+        actionLabel: 'Create',
+        hintText: 'Folder name',
+        onAction: (text) =>
+            docMgr.createFolder(parentId: _currentFolderId, name: text),
       ),
     );
   }
@@ -854,65 +832,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _renameFolder(NoteFolder folder, DocumentManager docMgr) {
-    final ctrl = TextEditingController(text: folder.name);
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('Rename Folder',
-            style: TextStyle(color: Colors.white, fontSize: 16)),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              docMgr.renameFolder(folder.id, ctrl.text.trim());
-              Navigator.pop(ctx);
-            },
-            child: const Text('Rename'),
-          ),
-        ],
+      builder: (ctx) => _NameInputDialog(
+        title: 'Rename Folder',
+        initialText: folder.name,
+        actionLabel: 'Rename',
+        onAction: (text) => docMgr.renameFolder(folder.id, text),
       ),
     );
   }
 
   void _renameNote(NoteDocument note, DocumentManager docMgr) {
-    final ctrl = TextEditingController(text: note.title);
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('Rename Note',
-            style: TextStyle(color: Colors.white, fontSize: 16)),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              docMgr.renameDocument(note.id, ctrl.text.trim());
-              Navigator.pop(ctx);
-            },
-            child: const Text('Rename'),
-          ),
-        ],
+      builder: (ctx) => _NameInputDialog(
+        title: 'Rename Note',
+        initialText: note.title,
+        actionLabel: 'Rename',
+        onAction: (text) => docMgr.renameDocument(note.id, text),
       ),
     );
   }
@@ -964,5 +902,72 @@ class _HomePageState extends State<HomePage> {
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
     return '${dt.month}/${dt.day}/${dt.year}';
+  }
+}
+
+class _NameInputDialog extends StatefulWidget {
+  final String title;
+  final String initialText;
+  final String actionLabel;
+  final String? hintText;
+  final ValueChanged<String> onAction;
+
+  const _NameInputDialog({
+    required this.title,
+    required this.initialText,
+    required this.actionLabel,
+    this.hintText,
+    required this.onAction,
+  });
+
+  @override
+  State<_NameInputDialog> createState() => _NameInputDialogState();
+}
+
+class _NameInputDialogState extends State<_NameInputDialog> {
+  late TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController(text: widget.initialText);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF1A1A2E),
+      title: Text(widget.title,
+          style: const TextStyle(color: Colors.white, fontSize: 16)),
+      content: TextField(
+        controller: _ctrl,
+        autofocus: true,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: widget.hintText,
+          hintStyle: TextStyle(color: Colors.white.withAlpha(60)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            widget.onAction(_ctrl.text.trim());
+            Navigator.pop(context);
+          },
+          child: Text(widget.actionLabel),
+        ),
+      ],
+    );
   }
 }
