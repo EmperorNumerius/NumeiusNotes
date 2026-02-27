@@ -28,8 +28,9 @@ class MockDocumentManager extends DocumentManager {
 }
 
 class MockCanvasController extends CanvasController {
-  @override
-  bool playbackMode = false;
+  MockCanvasController() {
+    playbackMode = false;
+  }
 }
 
 void main() {
