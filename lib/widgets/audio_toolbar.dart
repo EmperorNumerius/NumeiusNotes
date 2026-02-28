@@ -28,6 +28,7 @@ class AudioToolbar extends StatelessWidget {
         children: [
           // Record button
           _CircleButton(
+            tooltip: audioCtrl.isRecording ? 'Stop Recording' : 'Start Recording',
             icon: audioCtrl.isRecording ? Icons.stop : Icons.fiber_manual_record,
             color: audioCtrl.isRecording
                 ? const Color(0xFFFF6B6B)
@@ -49,6 +50,7 @@ class AudioToolbar extends StatelessWidget {
           const SizedBox(width: 12),
           // Play / Pause button
           _CircleButton(
+            tooltip: audioCtrl.isPlaying ? 'Pause' : 'Play',
             icon: audioCtrl.isPlaying ? Icons.pause : Icons.play_arrow,
             color: const Color(0xFF00D2FF),
             size: 32,
@@ -146,6 +148,7 @@ class AudioToolbar extends StatelessWidget {
           // Sync mode indicator
           if (doc?.audioPath != null)
             _CircleButton(
+              tooltip: canvasCtrl.playbackMode ? 'Disable Sync Mode' : 'Enable Sync Mode',
               icon: Icons.sync,
               color: canvasCtrl.playbackMode
                   ? const Color(0xFF51CF66)
@@ -173,12 +176,14 @@ class _CircleButton extends StatefulWidget {
   final double size;
   final VoidCallback onTap;
   final bool pulse;
+  final String tooltip;
 
   const _CircleButton({
     required this.icon,
     required this.color,
     required this.size,
     required this.onTap,
+    required this.tooltip,
     this.pulse = false,
   });
 
@@ -223,16 +228,15 @@ class _CircleButtonState extends State<_CircleButton>
       animation: _pulseCtrl,
       builder: (_, child) {
         final scale = widget.pulse ? 1.0 + _pulseCtrl.value * 0.15 : 1.0;
-        return GestureDetector(
-          onTap: widget.onTap,
-          child: Transform.scale(
-            scale: scale,
+        return Transform.scale(
+          scale: scale,
+          child: Tooltip(
+            message: widget.tooltip,
             child: Container(
               width: widget.size,
               height: widget.size,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: widget.color.withAlpha(30),
                 border: Border.all(color: widget.color.withAlpha(120)),
                 boxShadow: [
                   BoxShadow(
@@ -241,9 +245,17 @@ class _CircleButtonState extends State<_CircleButton>
                   )
                 ],
               ),
-              child: Icon(widget.icon,
-                  color: widget.color,
-                  size: widget.size * 0.5),
+              child: Material(
+                color: widget.color.withAlpha(30),
+                shape: const CircleBorder(),
+                clipBehavior: Clip.hardEdge,
+                child: InkWell(
+                  onTap: widget.onTap,
+                  child: Icon(widget.icon,
+                      color: widget.color,
+                      size: widget.size * 0.5),
+                ),
+              ),
             ),
           ),
         );

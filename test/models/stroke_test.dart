@@ -56,6 +56,7 @@ void main() {
       final stroke = Stroke.fromJson(json);
       expect(stroke.boundingBox, Rect.fromLTRB(0, 0, 100, 100));
     });
+  });
 
   group('Stroke.fromJson', () {
     test('handles valid JSON correctly', () {
