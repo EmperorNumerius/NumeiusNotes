@@ -22,7 +22,7 @@ void main() {
     );
 
     // Tap to enter edit mode (the GestureDetector is around the code area)
-    await tester.tap(find.text('Tap to enter python code...'));
+    await tester.tap(find.text('Tap to enter Python code...'));
     await tester.pump();
 
     // Enter text "pri" into the TextField
