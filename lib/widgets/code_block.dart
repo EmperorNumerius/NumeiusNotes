@@ -31,61 +31,6 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
   bool _showOutput = false;
   bool _isEditing = false;
 
-  static final _tokenSplitRegex = RegExp(r'[\s\(\)\{\}\[\],;]');
-
-  static const Map<CodeLanguage, List<String>> _languageSuggestions = {
-    CodeLanguage.python: [
-      'print()',
-      'def',
-      'class',
-      'import',
-      'for',
-      'while',
-      'if',
-      'elif',
-      'else',
-      'return',
-      'len()',
-      'range()',
-      'list',
-      'dict',
-      'try',
-      'except',
-    ],
-    CodeLanguage.javascript: [
-      'console.log()',
-      'function',
-      'const',
-      'let',
-      'var',
-      'if',
-      'else',
-      'for',
-      'while',
-      'return',
-      'async',
-      'await',
-      'Array',
-      'Object',
-      'map()',
-      'filter()',
-    ],
-    CodeLanguage.cpp: [
-      '#include <iostream>',
-      'int main()',
-      'std::cout <<',
-      'std::cin >>',
-      'if',
-      'else',
-      'for',
-      'while',
-      'return 0;',
-      'std::vector',
-      'std::string',
-      'using namespace std;',
-    ],
-  };
-
   @override
   void initState() {
     super.initState();
@@ -262,128 +207,31 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
               ? Container(
                   constraints: const BoxConstraints(minHeight: 80),
                   padding: const EdgeInsets.all(12),
-                  child: RawAutocomplete<String>(
-                    textEditingController: _controller,
+                  child: TextField(
+                    controller: _controller,
                     focusNode: _focusNode,
-                    optionsBuilder: (textEditingValue) {
-                      final input = textEditingValue.text;
-                      final cursorIndex = textEditingValue.selection.baseOffset;
-                      if (input.isEmpty || cursorIndex < 0) {
-                        return const Iterable<String>.empty();
-                      }
-
-                      final prefixText = input.substring(0, cursorIndex);
-                      final token = prefixText.split(_tokenSplitRegex).last;
-                      if (token.isEmpty) {
-                        return const Iterable<String>.empty();
-                      }
-
-                      final suggestions =
-                          _languageSuggestions[widget.block.language] ??
-                              const [];
-                      return suggestions.where(
-                        (option) => option
-                            .toLowerCase()
-                            .startsWith(token.toLowerCase()),
-                      );
-                    },
-                    onSelected: (selection) {
-                      final currentText = _controller.text;
-                      final selectionRange = _controller.selection;
-                      if (!selectionRange.isValid) {
-                        _controller.text = '$currentText$selection';
-                        _controller.selection = TextSelection.collapsed(
-                          offset: _controller.text.length,
-                        );
-                        widget.onChanged?.call();
-                        return;
-                      }
-
-                      final cursorIndex = selectionRange.baseOffset;
-                      final prefixText = currentText.substring(0, cursorIndex);
-                      final suffixText = currentText.substring(cursorIndex);
-                      final token = prefixText.split(_tokenSplitRegex).last;
-                      final tokenStart = cursorIndex - token.length;
-                      final newText =
-                          '${currentText.substring(0, tokenStart)}$selection$suffixText';
-
-                      _controller.value = TextEditingValue(
-                        text: newText,
-                        selection: TextSelection.collapsed(
-                          offset: tokenStart + selection.length,
-                        ),
-                      );
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    autofocus: true,
+                    onChanged: (v) {
+                      widget.block.content = v;
                       widget.onChanged?.call();
                     },
-                    fieldViewBuilder: (context, textEditingController,
-                        focusNode, onFieldSubmitted) {
-                      return TextField(
-                        controller: textEditingController,
-                        focusNode: focusNode,
-                        maxLines: null,
-                        keyboardType: TextInputType.multiline,
-                        textInputAction: TextInputAction.newline,
-                        autofocus: true,
-                        onChanged: (v) {
-                          widget.block.content = v;
-                          widget.onChanged?.call();
-                        },
-                        style: const TextStyle(
-                          fontFamily: 'Consolas',
-                          fontSize: 13,
-                          color: Colors.white,
-                          height: 1.5,
-                        ),
-                        decoration: InputDecoration(
-                          hintText:
-                              'Enter ${widget.block.language.displayName} code...',
-                          hintStyle:
-                              TextStyle(color: Colors.white.withAlpha(40)),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      );
-                    },
-                    optionsViewBuilder: (context, onSelected, options) {
-                      return Align(
-                        alignment: Alignment.topLeft,
-                        child: Material(
-                          color: const Color(0xFF252540),
-                          elevation: 6,
-                          borderRadius: BorderRadius.circular(8),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                                maxHeight: 180, maxWidth: 260),
-                            child: ListView.builder(
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              itemCount: options.length,
-                              itemBuilder: (context, index) {
-                                final option = options.elementAt(index);
-                                return InkWell(
-                                  onTap: () => onSelected(option),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 8,
-                                    ),
-                                    child: Text(
-                                      option,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontFamily: 'Consolas',
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                    style: const TextStyle(
+                      fontFamily: 'Consolas',
+                      fontSize: 13,
+                      color: Colors.white,
+                      height: 1.5,
+                    ),
+                    decoration: InputDecoration(
+                      hintText:
+                          'Enter ${widget.block.language.displayName} code...',
+                      hintStyle: TextStyle(color: Colors.white.withAlpha(40)),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
                 )
               : Container(

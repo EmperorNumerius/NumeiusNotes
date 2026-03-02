@@ -56,6 +56,7 @@ void main() {
       final stroke = Stroke.fromJson(json);
       expect(stroke.boundingBox, Rect.fromLTRB(0, 0, 100, 100));
     });
+  });
 
   group('Stroke.fromJson', () {
     test('handles valid JSON correctly', () {
@@ -153,6 +154,7 @@ void main() {
       expect(stroke.points.length, 3);
       expect(stroke.points[0], const Offset(10.0, 0.0));
       expect(stroke.points[1], const Offset(0.0, 20.0));
+      expect(stroke.points[2], const Offset(0.0, 0.0));
     });
   });
 }
