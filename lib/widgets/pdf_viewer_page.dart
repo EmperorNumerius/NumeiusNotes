@@ -41,6 +41,14 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   final Map<String, FocusNode> _textFocusNodes = {};
   final Map<String, Timer> _textSaveDebouncers = {};
 
+  // Page-accurate stroke tracking (mirrors canvas_page.dart logic)
+  int? _activePdfStrokePageIndex;
+  Size? _activePdfStrokePageSize;
+  final List<Offset> _activePdfStrokePoints = [];
+
+  /// Most recently active PDF page (0-indexed); used for block placement.
+  int _currentPdfPageIndex = 0;
+
   static const _textSaveDebounce = Duration(milliseconds: 700);
   Size _pdfViewportSize = Size.zero;
   bool _isExporting = false;
@@ -135,6 +143,31 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                             final ts = audioCtrl.isRecording
                                 ? audioCtrl.elapsedRecordingMs
                                 : null;
+                            if (_pdfController.isReady) {
+                              final hit = _pdfController
+                                  .getPdfPageHitTestResult(
+                                e.localPosition,
+                                useDocumentLayoutCoordinates: false,
+                              );
+                              if (hit != null) {
+                                _activePdfStrokePageIndex =
+                                    hit.page.pageNumber - 1;
+                                _currentPdfPageIndex =
+                                    hit.page.pageNumber - 1;
+                                _activePdfStrokePageSize =
+                                    Size(hit.page.width, hit.page.height);
+                                _activePdfStrokePoints
+                                  ..clear()
+                                  ..add(Offset(
+                                    hit.offset.x,
+                                    hit.page.height - hit.offset.y,
+                                  ));
+                              } else {
+                                _activePdfStrokePageIndex = null;
+                                _activePdfStrokePageSize = null;
+                                _activePdfStrokePoints.clear();
+                              }
+                            }
                             ctrl.startStroke(
                               e.localPosition,
                               relativeTimestamp: ts,
@@ -149,24 +182,62 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                               e.localPosition,
                               pressure: e.pressure,
                             );
+                            if (_activePdfStrokePageIndex != null &&
+                                _pdfController.isReady) {
+                              final hit = _pdfController
+                                  .getPdfPageHitTestResult(
+                                e.localPosition,
+                                useDocumentLayoutCoordinates: false,
+                              );
+                              if (hit != null &&
+                                  hit.page.pageNumber - 1 ==
+                                      _activePdfStrokePageIndex) {
+                                _activePdfStrokePoints.add(Offset(
+                                  hit.offset.x,
+                                  hit.page.height - hit.offset.y,
+                                ));
+                              }
+                            }
                           }
                         },
                         onPointerUp: (e) {
                           if (ctrl.currentStroke != null) {
                             ctrl.endStroke();
-                            final normalized = ctrl.strokes
-                                .map(
-                                  (s) => s.withNormalizedPoints(
-                                    _pdfViewportSize,
-                                    pageIndex: 0,
-                                  ),
-                                )
-                                .toList();
-                            ctrl.loadStrokes(normalized);
-                            doc.strokes = List<Stroke>.from(normalized);
+                            final strokes = List<Stroke>.from(ctrl.strokes);
+                            final idx = strokes.length - 1;
+                            if (idx >= 0) {
+                              final pageSize = _activePdfStrokePageSize;
+                              // At least 2 points are required to form a drawable line
+                              // segment in the PDF output (single-tap produces 1 point
+                              // which would be a no-op on the PDF canvas).
+                              if (_activePdfStrokePageIndex != null &&
+                                  pageSize != null &&
+                                  _activePdfStrokePoints.length >= 2) {
+                                final normalized = _activePdfStrokePoints
+                                    .map(
+                                      (p) => Offset(
+                                        (p.dx / pageSize.width)
+                                            .clamp(0.0, 1.0),
+                                        (p.dy / pageSize.height)
+                                            .clamp(0.0, 1.0),
+                                      ),
+                                    )
+                                    .toList();
+                                strokes[idx] = strokes[idx].copyWith(
+                                  anchorType: AnchorType.pdfPage,
+                                  pageIndex: _activePdfStrokePageIndex,
+                                  normalizedPoints: normalized,
+                                );
+                              }
+                            }
+                            ctrl.loadStrokes(strokes);
+                            doc.strokes = strokes;
                             doc.pdfViewportWidth = _pdfViewportSize.width;
                             doc.pdfViewportHeight = _pdfViewportSize.height;
                             docMgr.saveActiveDocument();
+                            _activePdfStrokePageIndex = null;
+                            _activePdfStrokePageSize = null;
+                            _activePdfStrokePoints.clear();
                           }
                         },
                         child: RepaintBoundary(
@@ -332,18 +403,19 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             : type == ContentBlockType.markdown
             ? 460
             : 360);
+    final currentPage = _currentPdfPageIndex;
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
       x: 80.0 + (count % 3) * 30.0,
       y: 80.0 + count * 60.0,
       blockWidth: defaultWidth,
-      pageIndex: 0,
+      pageIndex: currentPage,
     );
     block.updateNormalizedAnchor(
       viewportWidth: _pdfViewportSize.width,
       viewportHeight: _pdfViewportSize.height,
-      page: 0,
+      page: currentPage,
     );
     doc.blocks.add(block);
     docMgr.saveActiveDocument();
