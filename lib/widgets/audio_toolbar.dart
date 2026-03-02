@@ -33,6 +33,7 @@ class AudioToolbar extends StatelessWidget {
                 ? const Color(0xFFFF6B6B)
                 : const Color(0xFFFF6B6B).withAlpha(180),
             size: 32,
+            tooltip: audioCtrl.isRecording ? 'Stop recording' : 'Start recording',
             pulse: audioCtrl.isRecording,
             onTap: () async {
               if (audioCtrl.isRecording) {
@@ -52,6 +53,7 @@ class AudioToolbar extends StatelessWidget {
             icon: audioCtrl.isPlaying ? Icons.pause : Icons.play_arrow,
             color: const Color(0xFF00D2FF),
             size: 32,
+            tooltip: audioCtrl.isPlaying ? 'Pause' : 'Play',
             onTap: () async {
               if (audioCtrl.isPlaying) {
                 await audioCtrl.pause();
@@ -151,6 +153,7 @@ class AudioToolbar extends StatelessWidget {
                   ? const Color(0xFF51CF66)
                   : Colors.white24,
               size: 28,
+              tooltip: 'Toggle sync mode',
               onTap: () {
                 canvasCtrl.setPlaybackMode(!canvasCtrl.playbackMode);
               },
@@ -173,12 +176,14 @@ class _CircleButton extends StatefulWidget {
   final double size;
   final VoidCallback onTap;
   final bool pulse;
+  final String tooltip;
 
   const _CircleButton({
     required this.icon,
     required this.color,
     required this.size,
     required this.onTap,
+    required this.tooltip,
     this.pulse = false,
   });
 
@@ -223,27 +228,35 @@ class _CircleButtonState extends State<_CircleButton>
       animation: _pulseCtrl,
       builder: (_, child) {
         final scale = widget.pulse ? 1.0 + _pulseCtrl.value * 0.15 : 1.0;
-        return GestureDetector(
-          onTap: widget.onTap,
+        return Tooltip(
+          message: widget.tooltip,
           child: Transform.scale(
             scale: scale,
-            child: Container(
-              width: widget.size,
-              height: widget.size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: widget.color.withAlpha(30),
-                border: Border.all(color: widget.color.withAlpha(120)),
-                boxShadow: [
-                  BoxShadow(
-                    color: widget.color.withAlpha(40),
-                    blurRadius: 8,
-                  )
-                ],
+            child: Material(
+              color: Colors.transparent,
+              shape: const CircleBorder(),
+              child: InkWell(
+                onTap: widget.onTap,
+                customBorder: const CircleBorder(),
+                child: Ink(
+                  width: widget.size,
+                  height: widget.size,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: widget.color.withAlpha(30),
+                    border: Border.all(color: widget.color.withAlpha(120)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: widget.color.withAlpha(40),
+                        blurRadius: 8,
+                      )
+                    ],
+                  ),
+                  child: Icon(widget.icon,
+                      color: widget.color,
+                      size: widget.size * 0.5),
+                ),
               ),
-              child: Icon(widget.icon,
-                  color: widget.color,
-                  size: widget.size * 0.5),
             ),
           ),
         );
