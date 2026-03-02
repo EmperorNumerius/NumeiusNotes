@@ -7,6 +7,120 @@ import 'package:notes_app/models/code_language.dart';
 import 'package:notes_app/services/code_runner_service.dart';
 import 'package:notes_app/widgets/content_blocks/base_block_widget.dart';
 
+/// Keyword / snippet completions per language.
+const Map<CodeLanguage, List<String>> _kCompletions = {
+  CodeLanguage.python: [
+    'print()',
+    'len()',
+    'range()',
+    'enumerate()',
+    'zip()',
+    'map()',
+    'filter()',
+    'sorted()',
+    'isinstance()',
+    'type()',
+    'int()',
+    'str()',
+    'list()',
+    'dict()',
+    'set()',
+    'tuple()',
+    'def ',
+    'class ',
+    'import ',
+    'from ',
+    'return ',
+    'if ',
+    'else:',
+    'elif ',
+    'for ',
+    'while ',
+    'try:',
+    'except ',
+    'finally:',
+    'with ',
+    'lambda ',
+    'pass',
+    'break',
+    'continue',
+    'None',
+    'True',
+    'False',
+  ],
+  CodeLanguage.javascript: [
+    'console.log()',
+    'console.error()',
+    'function ',
+    'const ',
+    'let ',
+    'var ',
+    'return ',
+    'if (',
+    'else {',
+    'else if (',
+    'for (',
+    'while (',
+    'class ',
+    'new ',
+    'typeof ',
+    'instanceof ',
+    'null',
+    'undefined',
+    'true',
+    'false',
+    'async ',
+    'await ',
+    'Promise',
+    'Array.from()',
+    'Object.keys()',
+    'Object.values()',
+    'JSON.stringify()',
+    'JSON.parse()',
+  ],
+  CodeLanguage.cpp: [
+    '#include ',
+    'int main()',
+    'return 0;',
+    'std::cout <<',
+    'std::cin >>',
+    'std::endl',
+    'std::string',
+    'std::vector',
+    'std::map',
+    'namespace ',
+    'using namespace std;',
+    'void ',
+    'int ',
+    'double ',
+    'float ',
+    'char ',
+    'bool ',
+    'if (',
+    'else {',
+    'for (',
+    'while (',
+    'class ',
+    'struct ',
+    'nullptr',
+    'true',
+    'false',
+    'auto ',
+    'const ',
+    'static ',
+  ],
+};
+
+List<String> _getSuggestions(String prefix, CodeLanguage language) {
+  if (prefix.isEmpty) return [];
+  final lower = prefix.toLowerCase();
+  final completions = _kCompletions[language] ?? [];
+  return completions
+      .where((s) => s.toLowerCase().startsWith(lower))
+      .take(6)
+      .toList();
+}
+
 /// Jupyter-style code block with syntax highlighting and execution.
 class CodeBlockWidget extends BaseBlockWidget {
   const CodeBlockWidget({
@@ -30,6 +144,29 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
   bool _isRunning = false;
   bool _showOutput = false;
   bool _isEditing = false;
+  List<String> _suggestions = [];
+  Timer? _suggestionDebounce;
+
+  /// Extracts the last incomplete word before the cursor for autocomplete matching.
+  String _lastWordBeforeCursor() {
+    final text = _controller.text;
+    final cursorPos = _controller.selection.baseOffset;
+    final before = cursorPos >= 0 && cursorPos <= text.length
+        ? text.substring(0, cursorPos)
+        : text;
+    return before.split(RegExp(r'[\s\n\(\)\{\}\[\]]')).last;
+  }
+
+  /// Returns the start index of the last incomplete word before the cursor.
+  int _lastWordStart() {
+    final text = _controller.text;
+    final cursorPos = _controller.selection.baseOffset;
+    final before = cursorPos >= 0 && cursorPos <= text.length
+        ? text.substring(0, cursorPos)
+        : text;
+    final match = RegExp(r'[^\s\n\(\)\{\}\[\]]*$').firstMatch(before);
+    return match != null ? match.start : before.length;
+  }
 
   @override
   void initState() {
@@ -51,6 +188,7 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
             TextSelection.collapsed(offset: widget.block.content.length);
       _isEditing = false;
       _showOutput = widget.block.output.isNotEmpty;
+      _suggestions = [];
       return;
     }
 
@@ -72,6 +210,7 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
 
   @override
   void dispose() {
+    _suggestionDebounce?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -217,6 +356,21 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                     onChanged: (v) {
                       widget.block.content = v;
                       widget.onChanged?.call();
+                      // Debounce autocomplete suggestion updates
+                      _suggestionDebounce?.cancel();
+                      _suggestionDebounce = Timer(
+                        const Duration(milliseconds: 80),
+                        () {
+                          if (mounted) {
+                            setState(() {
+                              _suggestions = _getSuggestions(
+                                _lastWordBeforeCursor(),
+                                widget.block.language,
+                              );
+                            });
+                          }
+                        },
+                      );
                     },
                     style: const TextStyle(
                       fontFamily: 'Consolas',
@@ -262,6 +416,55 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                         ),
                 ),
         ),
+        // Autocomplete suggestions
+        if (_isEditing && _suggestions.isNotEmpty)
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E3A),
+              border: Border.all(color: const Color(0xFF3A3A5A)),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: _suggestions.map((suggestion) {
+                return InkWell(
+                  onTap: () {
+                    final text = _controller.text;
+                    final cursorPos = _controller.selection.baseOffset;
+                    final after = cursorPos >= 0 && cursorPos <= text.length
+                        ? text.substring(cursorPos)
+                        : '';
+                    final wordStart = _lastWordStart();
+                    final before = wordStart <= text.length
+                        ? text.substring(0, wordStart)
+                        : text;
+                    final newText = before + suggestion + after;
+                    final newCursor = wordStart + suggestion.length;
+                    _controller.value = TextEditingValue(
+                      text: newText,
+                      selection: TextSelection.collapsed(offset: newCursor),
+                    );
+                    widget.block.content = newText;
+                    widget.onChanged?.call();
+                    setState(() => _suggestions = []);
+                  },
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: Text(
+                      suggestion,
+                      style: const TextStyle(
+                        fontFamily: 'Consolas',
+                        fontSize: 12,
+                        color: Color(0xFF00D2FF),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
         // Output area
         if (_showOutput)
           Container(
