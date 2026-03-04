@@ -178,8 +178,8 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
         const SizedBox(height: 6),
         Row(children: [
           Expanded(child: Text('Result: ${_result.isEmpty ? '-' : _result}', style: TextStyle(color: _result == 'Error' ? const Color(0xFFFF6B6B) : const Color(0xFF00D2FF), fontWeight: FontWeight.w700))),
-          IconButton(onPressed: () { _expr.clear(); _result = ''; _save(); setState(() {}); }, icon: const Icon(Icons.clear_rounded, size: 16)),
-          IconButton(onPressed: _run, icon: const Icon(Icons.play_arrow_rounded, size: 18)),
+          IconButton(tooltip: 'Clear expression', onPressed: () { _expr.clear(); _result = ''; _save(); setState(() {}); }, icon: const Icon(Icons.clear_rounded, size: 16)),
+          IconButton(tooltip: 'Calculate result', onPressed: _run, icon: const Icon(Icons.play_arrow_rounded, size: 18)),
         ]),
         ...keys.map((r) => Row(children: r.map((k) => Expanded(
           child: Padding(
