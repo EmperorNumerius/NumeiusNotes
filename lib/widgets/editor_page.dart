@@ -255,17 +255,20 @@ class _EditorPageState extends State<EditorPage> {
           // Back to home
           Material(
             color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                docMgr.saveActiveDocument();
-                Navigator.of(context).pop();
-              },
-              child: Container(
-                width: barHeight,
-                height: barHeight,
-                alignment: Alignment.center,
-                child: Icon(Icons.arrow_back_rounded,
-                    color: Colors.white.withAlpha(150), size: 18),
+            child: Tooltip(
+              message: 'Back to Home',
+              child: InkWell(
+                onTap: () {
+                  docMgr.saveActiveDocument();
+                  Navigator.of(context).pop();
+                },
+                child: Container(
+                  width: barHeight,
+                  height: barHeight,
+                  alignment: Alignment.center,
+                  child: Icon(Icons.arrow_back_rounded,
+                      color: Colors.white.withAlpha(150), size: 18),
+                ),
               ),
             ),
           ),
