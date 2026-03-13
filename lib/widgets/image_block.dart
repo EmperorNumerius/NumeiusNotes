@@ -108,18 +108,21 @@ class _ImageBlockWidgetState extends State<ImageBlockWidget> {
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.bottomRight,
-            child: GestureDetector(
-              onPanUpdate: _resizeImage,
-              child: Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4DABF7).withAlpha(28),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFF4DABF7).withAlpha(120)),
+            child: Tooltip(
+              message: 'Drag to resize image',
+              child: GestureDetector(
+                onPanUpdate: _resizeImage,
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4DABF7).withAlpha(28),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFF4DABF7).withAlpha(120)),
+                  ),
+                  child: const Icon(Icons.open_in_full_rounded,
+                      color: Color(0xFF4DABF7), size: 14),
                 ),
-                child: const Icon(Icons.open_in_full_rounded,
-                    color: Color(0xFF4DABF7), size: 14),
               ),
             ),
           ),
@@ -174,12 +177,15 @@ class _ImageBlockWidgetState extends State<ImageBlockWidget> {
           child: Material(
             color: Colors.black.withAlpha(120),
             borderRadius: BorderRadius.circular(18),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(18),
-              onTap: _pickImage,
-              child: const Padding(
-                padding: EdgeInsets.all(6),
-                child: Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 14),
+            child: Tooltip(
+              message: 'Replace image',
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: _pickImage,
+                child: const Padding(
+                  padding: EdgeInsets.all(6),
+                  child: Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 14),
+                ),
               ),
             ),
           ),

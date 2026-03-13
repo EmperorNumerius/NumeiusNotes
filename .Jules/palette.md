@@ -1,0 +1,3 @@
+## 2026-03-13 - Tooltips on Icon-only Actionable Elements
+**Learning:** In a Flutter application where icon-only elements (like `IconButton`, `InkWell`, `GestureDetector`) are frequently used for micro-interactions (e.g. replacing an image, dragging to resize, or clearing a calculator), these interactions lack screen reader labels and on-hover accessible descriptions by default.
+**Action:** When adding new icon-only controls for micro-interactions or interacting with existing ones, always wrap `InkWell`/`GestureDetector` inside a `Tooltip(message: '...')` and ensure `IconButton` sets the `tooltip` property.
