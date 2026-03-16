@@ -116,23 +116,53 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
               );
               return Stack(
                 children: [
-                  // PDF viewer base layer
+                  // PDF viewer — strokes are rendered via pageOverlaysBuilder
+                  // (widget-level CustomPaint) so they update on every Flutter
+                  // rebuild without relying on pdfrx's tile-cache invalidation.
                   PdfViewer.file(
                     widget.pdfPath,
                     controller: _pdfController,
                     params: PdfViewerParams(
                       backgroundColor: const Color(0xFF0A0A1A),
                       enableTextSelection: !ctrl.isDrawingToolActive,
+                      pageOverlaysBuilder: (context, pageRect, page) {
+                        final pageIndex = page.pageNumber - 1;
+                        final pageStrokes = doc.strokes
+                            .where(
+                              (s) =>
+                                  s.anchorType == AnchorType.pdfPage &&
+                                  s.pageIndex == pageIndex &&
+                                  s.normalizedPoints != null &&
+                                  s.normalizedPoints!.length >= 2,
+                            )
+                            .toList();
+                        final blockWidgets = _buildPdfPageOverlayBlocks(
+                          pageRect: pageRect,
+                          page: page,
+                          doc: doc,
+                          docMgr: docMgr,
+                        );
+                        return [
+                          // Stroke overlay as a Flutter widget — always in sync
+                          // with the latest doc.strokes list.
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: CustomPaint(
+                                painter: _NormalizedStrokePainter(
+                                  strokes: pageStrokes,
+                                  pageRect: pageRect,
+                                ),
+                              ),
+                            ),
+                          ),
+                          ...blockWidgets,
+                        ];
+                      },
                     ),
                   ),
 
-                  // Positioned content blocks (on top of PDF)
-                  ...doc.blocks.asMap().entries.map<Widget>((entry) {
-                    final block = entry.value;
-                    return _buildPositionedBlock(block, doc, docMgr);
-                  }),
-
-                  // Ink annotation layer
+                  // Ink annotation layer — only renders the live currentStroke;
+                  // committed strokes are painted directly onto PDF pages via pagePaintCallbacks.
                   Positioned.fill(
                     child: IgnorePointer(
                       ignoring: ctrl.isSelectMode,
@@ -241,9 +271,12 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                           }
                         },
                         child: RepaintBoundary(
+                          // Only render the live current stroke here; committed
+                          // strokes are drawn inside pagePaintCallbacks so they
+                          // stay anchored to the PDF page through zoom & scroll.
                           child: CustomPaint(
                             painter: InkPainter(
-                              strokes: ctrl.visibleStrokes,
+                              strokes: const [],
                               currentStroke: ctrl.currentStroke,
                             ),
                             size: Size.infinite,
@@ -404,70 +437,76 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
             ? 460
             : 360);
     final currentPage = _currentPdfPageIndex;
+    // Place new block at top-left area of the page with a small stagger
     final block = ContentBlock(
       id: _uuid.v4(),
       type: type,
-      x: 80.0 + (count % 3) * 30.0,
-      y: 80.0 + count * 60.0,
+      x: 0,
+      y: 0,
       blockWidth: defaultWidth,
       pageIndex: currentPage,
     );
-    block.updateNormalizedAnchor(
-      viewportWidth: _pdfViewportSize.width,
-      viewportHeight: _pdfViewportSize.height,
-      page: currentPage,
-    );
+    // Initialise normalised position near the top-left of the current page
+    block.anchorType = AnchorType.pdfPage;
+    block.normalizedX = (0.05 + (count % 3) * 0.02).clamp(0.0, 0.9);
+    block.normalizedY = (0.05 + count * 0.04).clamp(0.0, 0.9);
     doc.blocks.add(block);
     docMgr.saveActiveDocument();
     setState(() {});
   }
 
   // ═══════════════════════════════════════════════════════
-  // POSITIONED BLOCKS
+  // PDF PAGE OVERLAY BLOCKS
+  // Blocks are anchored to a specific PDF page using normalised
+  // (0..1) coordinates so they follow the page through zoom/scroll.
   // ═══════════════════════════════════════════════════════
 
-  Widget _buildPositionedBlock(
-    ContentBlock block,
-    NoteDocument doc,
-    DocumentManager docMgr,
-  ) {
-    final isDragging = _draggingBlockId == block.id;
-    final left = block.normalizedX != null
-        ? block.normalizedX! * _pdfViewportSize.width
-        : block.x;
-    final top = block.normalizedY != null
-        ? block.normalizedY! * _pdfViewportSize.height
-        : block.y;
-    block.x = left;
-    block.y = top;
-
-    return Positioned(
-      left: block.x,
-      top: block.y,
-      child: _buildBlockWidget(
-        block,
-        isDragging,
-        (details) => setState(() => _draggingBlockId = block.id),
-        (details) {
-          setState(() {
-            block.x += details.delta.dx;
-            block.y += details.delta.dy;
-            block.updateNormalizedAnchor(
-              viewportWidth: _pdfViewportSize.width,
-              viewportHeight: _pdfViewportSize.height,
-              page: 0,
-            );
-          });
-        },
-        (details) {
-          _draggingBlockId = null;
-          docMgr.saveActiveDocument();
-          setState(() {});
-        },
-        doc,
-        docMgr,
-      ),
+  List<Widget> _buildPdfPageOverlayBlocks({
+    required Rect pageRect,
+    required PdfPage page,
+    required NoteDocument doc,
+    required DocumentManager docMgr,
+  }) {
+    final pageIndex = page.pageNumber - 1;
+    final pageBlocks = doc.blocks.where(
+      (b) => b.anchorType == AnchorType.pdfPage && b.pageIndex == pageIndex,
     );
+
+    return pageBlocks.map((block) {
+      final left = pageRect.left + (block.normalizedX ?? 0) * pageRect.width;
+      final top = pageRect.top + (block.normalizedY ?? 0) * pageRect.height;
+      final isDragging = _draggingBlockId == block.id;
+
+      return Positioned(
+        left: left,
+        top: top,
+        child: _buildBlockWidget(
+          block,
+          isDragging,
+          (_) => setState(() => _draggingBlockId = block.id),
+          (details) {
+            setState(() {
+              block.normalizedX = ((block.normalizedX ?? 0) +
+                      details.delta.dx / pageRect.width)
+                  .clamp(0.0, 1.0);
+              block.normalizedY = ((block.normalizedY ?? 0) +
+                      details.delta.dy / pageRect.height)
+                  .clamp(0.0, 1.0);
+              block.pageIndex = pageIndex;
+              block.anchorType = AnchorType.pdfPage;
+            });
+          },
+          (_) {
+            _draggingBlockId = null;
+            doc.touch();
+            docMgr.saveActiveDocument();
+            setState(() {});
+          },
+          doc,
+          docMgr,
+        ),
+      );
+    }).toList();
   }
 
   Widget _buildBlockWidget(
@@ -705,16 +744,16 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
 
   Widget _buildToolbar(CanvasController ctrl, DocumentManager docMgr) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF141428).withAlpha(240),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withAlpha(12)),
+        color: const Color(0xFF111122).withAlpha(245),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withAlpha(14)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(80),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+            color: Colors.black.withAlpha(100),
+            blurRadius: 24,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -983,20 +1022,21 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
       message: label,
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
-          width: 32,
-          height: 32,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
-            color: active ? color.withAlpha(25) : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
+            color: active ? color.withAlpha(28) : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
             border: Border.all(
-              color: active ? color.withAlpha(80) : Colors.transparent,
+              color: active ? color.withAlpha(90) : Colors.transparent,
             ),
           ),
           child: Icon(
             icon,
-            size: 15,
-            color: active ? color : Colors.white.withAlpha(100),
+            size: 18,
+            color: active ? color : Colors.white.withAlpha(110),
           ),
         ),
       ),
@@ -1006,24 +1046,26 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
   Widget _colorDot(CanvasController ctrl, Color color) {
     final isSelected =
         ctrl.currentColor == color && ctrl.currentTool != DrawingTool.eraser;
-    return GestureDetector(
-      onTap: () => ctrl.setColor(color),
-      child: Container(
-        width: 16,
-        height: 16,
-        margin: const EdgeInsets.symmetric(horizontal: 2),
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected ? Colors.white : Colors.transparent,
-            width: 2,
+    return Tooltip(
+      message: 'Color',
+      child: GestureDetector(
+        onTap: () => ctrl.setColor(color),
+        child: Container(
+          width: 20,
+          height: 20,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isSelected ? Colors.white : Colors.transparent,
+              width: 2.5,
+            ),
+            boxShadow: isSelected
+                ? [BoxShadow(color: color.withAlpha(100), blurRadius: 8)]
+                : null,
           ),
-          boxShadow: isSelected
-              ? [BoxShadow(color: color.withAlpha(80), blurRadius: 6)]
-              : null,
         ),
-      ),
     );
   }
 
@@ -1272,4 +1314,58 @@ class _SVPickerPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _SVPickerPainter old) =>
       old.hue != hue || old.sat != sat || old.val != val;
+}
+
+/// Renders normalised-coordinate strokes as a Flutter overlay widget so
+/// that annotations update on every rebuild — no pdfrx tile-cache issues.
+class _NormalizedStrokePainter extends CustomPainter {
+  final List<Stroke> strokes;
+  final Rect pageRect;
+
+  const _NormalizedStrokePainter({
+    required this.strokes,
+    required this.pageRect,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final stroke in strokes) {
+      final pts = stroke.normalizedPoints;
+      if (pts == null || pts.length < 2) continue;
+
+      final paint = Paint()
+        ..color = stroke.color
+        ..strokeWidth = stroke.width
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke
+        ..isAntiAlias = true;
+
+      final mapped = pts.map((p) {
+        return Offset(
+          pageRect.left + p.dx * pageRect.width,
+          pageRect.top + p.dy * pageRect.height,
+        );
+      }).toList();
+
+      final path = Path()..moveTo(mapped.first.dx, mapped.first.dy);
+      if (mapped.length == 2) {
+        path.lineTo(mapped[1].dx, mapped[1].dy);
+      } else {
+        for (var i = 1; i < mapped.length - 1; i++) {
+          final p0 = mapped[i];
+          final p1 = mapped[i + 1];
+          path.quadraticBezierTo(
+              p0.dx, p0.dy, (p0.dx + p1.dx) / 2, (p0.dy + p1.dy) / 2);
+        }
+        path.lineTo(mapped.last.dx, mapped.last.dy);
+      }
+
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _NormalizedStrokePainter old) =>
+      strokes != old.strokes || pageRect != old.pageRect;
 }
