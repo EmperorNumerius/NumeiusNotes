@@ -242,10 +242,11 @@ class _EditorPageState extends State<EditorPage> {
   }
 
   Widget _buildTopBar(DocumentManager docMgr, double barHeight) {
+    final topH = (barHeight + 8).clamp(52.0, 64.0);
     return Container(
-      height: barHeight,
+      height: topH,
       decoration: BoxDecoration(
-        color: const Color(0xFF0F0F23),
+        color: const Color(0xFF0D0D20),
         border: Border(
           bottom: BorderSide(color: Colors.white.withAlpha(10)),
         ),
@@ -253,67 +254,155 @@ class _EditorPageState extends State<EditorPage> {
       child: Row(
         children: [
           // Back to home
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                docMgr.saveActiveDocument();
-                Navigator.of(context).pop();
-              },
-              child: Container(
-                width: barHeight,
-                height: barHeight,
-                alignment: Alignment.center,
-                child: Icon(Icons.arrow_back_rounded,
-                    color: Colors.white.withAlpha(150), size: 18),
-              ),
-            ),
-          ),
-          const Expanded(child: TabManager()),
-          TextButton.icon(
-            onPressed: _isGeneratingQuiz ? null : _generateQuiz,
-            icon: _isGeneratingQuiz
-                ? const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.quiz_outlined),
-            label: const Text('Generate Quiz'),
-          ),
-          const SizedBox(width: 8),
-          TextButton.icon(
-            onPressed: _isGeneratingFlashcards ? null : _generateFlashcards,
-            icon: _isGeneratingFlashcards
-                ? const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.style_outlined),
-            label: const Text('Generate Flashcards'),
-          ),
-          const SizedBox(width: 10),
-          if ((docMgr.activeDocument?.blocks.where((b) => b.type.name == 'flashcard').length ?? 0) > 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                tooltip: 'Review flashcards',
-                onPressed: () {
-                  final doc = docMgr.activeDocument;
-                  if (doc == null) return;
-                  final cards = FlashcardReviewPage.collectCardsFromDocuments([doc]);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => FlashcardReviewPage(cards: cards),
-                    ),
-                  );
+          Tooltip(
+            message: 'Back to notes',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  docMgr.saveActiveDocument();
+                  Navigator.of(context).pop();
                 },
-                icon: const Icon(Icons.style_rounded, size: 18),
-                color: const Color(0xFFFF6B9A),
+                borderRadius: BorderRadius.circular(8),
+                hoverColor: Colors.white.withAlpha(10),
+                child: SizedBox(
+                  width: topH,
+                  height: topH,
+                  child: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white.withAlpha(160),
+                    size: 17,
+                  ),
+                ),
               ),
             ),
+          ),
+          Container(width: 1, height: 24, color: Colors.white.withAlpha(10)),
+          const Expanded(child: TabManager()),
+          // AI actions — icon only on compact, icon+label on wider screens
+          LayoutBuilder(
+            builder: (ctx, bc) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _topBarAction(
+                    icon: Icons.quiz_outlined,
+                    label: 'Generate Quiz',
+                    color: const Color(0xFF51CF66),
+                    loading: _isGeneratingQuiz,
+                    onTap: _isGeneratingQuiz ? null : _generateQuiz,
+                  ),
+                  const SizedBox(width: 4),
+                  _topBarAction(
+                    icon: Icons.style_outlined,
+                    label: 'Flashcards',
+                    color: const Color(0xFFFF6B9A),
+                    loading: _isGeneratingFlashcards,
+                    onTap:
+                        _isGeneratingFlashcards ? null : _generateFlashcards,
+                  ),
+                  if ((docMgr.activeDocument?.blocks
+                              .where((b) => b.type.name == 'flashcard')
+                              .length ??
+                          0) >
+                      0) ...[
+                    const SizedBox(width: 4),
+                    Tooltip(
+                      message: 'Review flashcards',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(9),
+                          onTap: () {
+                            final doc = docMgr.activeDocument;
+                            if (doc == null) return;
+                            final cards = FlashcardReviewPage
+                                .collectCardsFromDocuments([doc]);
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    FlashcardReviewPage(cards: cards),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF6B9A).withAlpha(18),
+                              borderRadius: BorderRadius.circular(9),
+                            ),
+                            child: const Icon(
+                              Icons.style_rounded,
+                              size: 18,
+                              color: Color(0xFFFF6B9A),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 10),
+                ],
+              );
+            },
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _topBarAction({
+    required IconData icon,
+    required String label,
+    required Color color,
+    bool loading = false,
+    VoidCallback? onTap,
+  }) {
+    return Tooltip(
+      message: label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(9),
+          onTap: onTap,
+          hoverColor: color.withAlpha(15),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: onTap == null ? color.withAlpha(10) : color.withAlpha(15),
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(color: color.withAlpha(25)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (loading)
+                  SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: color,
+                    ),
+                  )
+                else
+                  Icon(icon, size: 16, color: color),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

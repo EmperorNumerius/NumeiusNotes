@@ -88,40 +88,40 @@ class _BlockHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      height: 42,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: color.withAlpha(14),
+        color: color.withAlpha(16),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
         border: Border(
-          bottom: BorderSide(color: color.withAlpha(20)),
+          bottom: BorderSide(color: color.withAlpha(22)),
         ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.drag_indicator_rounded,
-            size: 16,
-            color: Colors.white.withAlpha(50),
-          ),
-          const SizedBox(width: 6),
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: color.withAlpha(20),
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Icon(icon, size: 12, color: color),
+            size: 18,
+            color: Colors.white.withAlpha(55),
           ),
           const SizedBox(width: 7),
+          Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              color: color.withAlpha(22),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(icon, size: 13, color: color),
+          ),
+          const SizedBox(width: 8),
           Text(
             label,
             style: TextStyle(
               color: color,
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.4,
+              letterSpacing: 0.3,
             ),
           ),
           const Spacer(),
@@ -132,16 +132,16 @@ class _BlockHeader extends StatelessWidget {
               child: MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: Container(
-                  width: 22,
-                  height: 22,
+                  width: 26,
+                  height: 26,
                   decoration: BoxDecoration(
                     color: Colors.white.withAlpha(8),
-                    borderRadius: BorderRadius.circular(5),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Icon(
                     Icons.close_rounded,
-                    size: 13,
-                    color: Colors.white.withAlpha(80),
+                    size: 14,
+                    color: Colors.white.withAlpha(90),
                   ),
                 ),
               ),
