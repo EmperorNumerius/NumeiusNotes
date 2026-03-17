@@ -16,6 +16,11 @@ class CalculatorBlockWidget extends StatefulWidget {
 }
 
 class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
+  // Threshold below which a double is treated as an integer for display.
+  static const double _kRoundingTolerance = 1e-10;
+  // Largest integer value that fits exactly in a double without loss.
+  static const double _kIntegerDisplayLimit = 1e15;
+
   static final _trailingZerosRegex = RegExp(r'\.?0+$');
   final _expr = TextEditingController();
   _Tab _tab = _Tab.calc;
@@ -100,7 +105,7 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
     if (v.isNaN) return 'NaN';
     if (!v.isFinite) return v.isNegative ? '-Inf' : 'Inf';
     final rounded = v.roundToDouble();
-    if ((v - rounded).abs() < 1e-10 && rounded.abs() < 1e15) {
+    if ((v - rounded).abs() < _kRoundingTolerance && rounded.abs() < _kIntegerDisplayLimit) {
       return rounded.toInt().toString();
     }
     return v.toStringAsFixed(10).replaceFirst(_trailingZerosRegex, '');
@@ -656,6 +661,7 @@ class _GraphPainter extends CustomPainter {
 
 double _factorial(double n) {
   if (n < 0 || n != n.truncateToDouble()) throw const FormatException();
+  // 171! overflows to infinity; cap at 170.
   if (n > 170) return double.infinity;
   var r = 1.0;
   for (var i = 2; i <= n.toInt(); i++) r *= i;
@@ -770,7 +776,7 @@ class _Parser {
       case 'log2': return math.log(a) / math.ln2;
       case 'ln': return math.log(a);
       case 'sqrt': return math.sqrt(a);
-      case 'cbrt': return math.pow(a.abs(), 1.0 / 3).toDouble() * (a < 0 ? -1 : 1);
+      case 'cbrt': return math.pow(a.abs(), 1.0 / 3.0).toDouble() * (a < 0 ? -1 : 1);
       case 'abs': return a.abs();
       case 'floor': return a.floorToDouble();
       case 'ceil': return a.ceilToDouble();

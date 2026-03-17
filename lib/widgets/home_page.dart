@@ -390,8 +390,6 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: 12),
                         LayoutBuilder(
                           builder: (ctx, bc) {
-                            final cols =
-                                (bc.maxWidth / 220).floor().clamp(2, 8);
                             return GridView.extent(
                               maxCrossAxisExtent: 220,
                               crossAxisSpacing: 12,
