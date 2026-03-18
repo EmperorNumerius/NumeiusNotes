@@ -16,12 +16,12 @@ class AudioToolbar extends StatelessWidget {
     final doc = docMgr.activeDocument;
 
     return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      height: 64,
+      padding: const EdgeInsets.symmetric(horizontal: 18),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F0F23),
+        color: const Color(0xFF0D0D20),
         border: Border(
-          top: BorderSide(color: Colors.white.withAlpha(20)),
+          top: BorderSide(color: Colors.white.withAlpha(16)),
         ),
       ),
       child: Row(
@@ -33,7 +33,7 @@ class AudioToolbar extends StatelessWidget {
             color: audioCtrl.isRecording
                 ? const Color(0xFFFF6B6B)
                 : const Color(0xFFFF6B6B).withAlpha(180),
-            size: 32,
+            size: 40,
             pulse: audioCtrl.isRecording,
             onTap: () async {
               if (audioCtrl.isRecording) {
@@ -53,7 +53,7 @@ class AudioToolbar extends StatelessWidget {
             icon: audioCtrl.isPlaying ? Icons.pause : Icons.play_arrow,
             tooltip: audioCtrl.isPlaying ? 'Pause audio' : 'Play audio',
             color: const Color(0xFF00D2FF),
-            size: 32,
+            size: 40,
             onTap: () async {
               if (audioCtrl.isPlaying) {
                 await audioCtrl.pause();
@@ -153,7 +153,7 @@ class AudioToolbar extends StatelessWidget {
               color: canvasCtrl.playbackMode
                   ? const Color(0xFF51CF66)
                   : Colors.white24,
-              size: 28,
+              size: 36,
               onTap: () {
                 canvasCtrl.setPlaybackMode(!canvasCtrl.playbackMode);
               },

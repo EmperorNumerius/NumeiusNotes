@@ -14,6 +14,7 @@ class _AiSettingsDialogState extends State<AiSettingsDialog> {
   final _fallbackKeyController = TextEditingController();
   final _fallbackEndpointController = TextEditingController();
   final _fallbackModelController = TextEditingController();
+  final _copilotKeyController = TextEditingController();
 
   @override
   void didChangeDependencies() {
@@ -23,6 +24,7 @@ class _AiSettingsDialogState extends State<AiSettingsDialog> {
     _fallbackKeyController.text = settings.fallbackApiKey;
     _fallbackEndpointController.text = settings.fallbackEndpoint;
     _fallbackModelController.text = settings.fallbackModel;
+    _copilotKeyController.text = settings.copilotApiKey;
   }
 
   @override
@@ -31,6 +33,7 @@ class _AiSettingsDialogState extends State<AiSettingsDialog> {
     _fallbackKeyController.dispose();
     _fallbackEndpointController.dispose();
     _fallbackModelController.dispose();
+    _copilotKeyController.dispose();
     super.dispose();
   }
 
@@ -48,12 +51,16 @@ class _AiSettingsDialogState extends State<AiSettingsDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<AiProviderType>(
-                initialValue: settings.provider,
+                value: settings.provider,
                 decoration: const InputDecoration(labelText: 'Provider'),
                 items: const [
                   DropdownMenuItem(
                     value: AiProviderType.huggingFace,
                     child: Text('Hugging Face (Free tier BYO token)'),
+                  ),
+                  DropdownMenuItem(
+                    value: AiProviderType.copilot,
+                    child: Text('GitHub Copilot'),
                   ),
                   DropdownMenuItem(
                     value: AiProviderType.fallback,
@@ -67,35 +74,47 @@ class _AiSettingsDialogState extends State<AiSettingsDialog> {
                 },
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: _hfController,
-                decoration: const InputDecoration(
-                  labelText: 'Hugging Face API Key',
+              if (settings.provider == AiProviderType.huggingFace) ...[
+                TextField(
+                  controller: _hfController,
+                  decoration: const InputDecoration(
+                    labelText: 'Hugging Face API Key',
+                  ),
+                  obscureText: true,
                 ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _fallbackKeyController,
-                decoration: const InputDecoration(
-                  labelText: 'Fallback API Key',
+              ] else if (settings.provider == AiProviderType.copilot) ...[
+                TextField(
+                  controller: _copilotKeyController,
+                  decoration: const InputDecoration(
+                    labelText: 'GitHub Token (with copilot scope)',
+                    helperText:
+                        'Use a GitHub personal access token with the copilot scope.',
+                  ),
+                  obscureText: true,
                 ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _fallbackEndpointController,
-                decoration: const InputDecoration(
-                  labelText: 'Fallback Endpoint',
+              ] else ...[
+                TextField(
+                  controller: _fallbackKeyController,
+                  decoration: const InputDecoration(
+                    labelText: 'Fallback API Key',
+                  ),
+                  obscureText: true,
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _fallbackModelController,
-                decoration: const InputDecoration(
-                  labelText: 'Fallback Model',
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _fallbackEndpointController,
+                  decoration: const InputDecoration(
+                    labelText: 'Fallback Endpoint',
+                  ),
                 ),
-              ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _fallbackModelController,
+                  decoration: const InputDecoration(
+                    labelText: 'Fallback Model',
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -108,6 +127,7 @@ class _AiSettingsDialogState extends State<AiSettingsDialog> {
         ElevatedButton(
           onPressed: () async {
             await settings.updateHuggingFaceApiKey(_hfController.text);
+            await settings.updateCopilotApiKey(_copilotKeyController.text);
             await settings.updateFallback(
               apiKey: _fallbackKeyController.text,
               endpoint: _fallbackEndpointController.text,

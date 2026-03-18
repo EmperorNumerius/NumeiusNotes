@@ -26,10 +26,6 @@ jobs:
           # 'stable' typically maps to the latest stable release.
           # If specific version is needed: flutter-version: '3.19.0'
           cache: true
-      # Use subosito/flutter-action to set up the Flutter environment
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
 
       - name: Install dependencies
         run: flutter pub get

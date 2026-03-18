@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -17,6 +18,10 @@ class DocumentManager extends ChangeNotifier {
   final List<NoteDocument> _openTabs = [];
   int _activeTabIndex = 0;
   final _uuid = const Uuid();
+
+  // Debounce timers to coalesce rapid saves
+  final Map<String, Timer> _saveTimers = {};
+  static const _saveDebounce = Duration(milliseconds: 500);
 
   List<NoteDocument> get documents => _documents;
   List<NoteFolder> get folders => _folders;
@@ -117,7 +122,7 @@ class DocumentManager extends ChangeNotifier {
 
     if (changed) {
       for (final doc in _documents) {
-        await saveDocument(doc);
+        await saveDocument(doc, immediate: true);
       }
     }
   }
@@ -287,7 +292,7 @@ class DocumentManager extends ChangeNotifier {
       blocks: [ContentBlock(id: _uuid.v4(), type: ContentBlockType.text)],
     );
     _documents.insert(0, doc);
-    saveDocument(doc);
+    saveDocument(doc, immediate: true);
     // Open in a tab
     openInTab(doc);
     return doc;
@@ -374,7 +379,24 @@ class DocumentManager extends ChangeNotifier {
 
   // ─── Persistence ──────────────────────────────────────────────
 
-  Future<void> saveDocument(NoteDocument doc) async {
+  Future<void> saveDocument(NoteDocument doc, {bool immediate = false}) async {
+    if (immediate) {
+      _saveTimers.remove(doc.id)?.cancel();
+      await _writeToDisk(doc);
+      return;
+    }
+    _saveTimers[doc.id]?.cancel();
+    _saveTimers[doc.id] = Timer(_saveDebounce, () async {
+      _saveTimers.remove(doc.id);
+      try {
+        await _writeToDisk(doc);
+      } catch (_) {
+        // Save will be retried on the next explicit save call
+      }
+    });
+  }
+
+  Future<void> _writeToDisk(NoteDocument doc) async {
     final dir = await _docDir();
     if (!dir.existsSync()) dir.createSync(recursive: true);
     final file = File('${dir.path}/${doc.id}.json');
@@ -386,6 +408,14 @@ class DocumentManager extends ChangeNotifier {
       activeDocument!.touch();
       await saveDocument(activeDocument!);
     }
+  }
+
+  @override
+  void dispose() {
+    for (final timer in _saveTimers.values) {
+      timer.cancel();
+    }
+    super.dispose();
   }
 
   Future<void> saveQuizSet(QuizSet quizSet) async {

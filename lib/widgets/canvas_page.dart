@@ -217,53 +217,45 @@ class _CanvasPageState extends State<CanvasPage> {
                                     backgroundColor: const Color(0xFF0A0A1A),
                                     enableTextSelection:
                                         !ctrl.isDrawingToolActive,
-                                    pagePaintCallbacks: [
-                                      (canvas, pageRect, page) {
-                                        final pageStrokes = doc.strokes.where(
-                                          (s) =>
-                                              s.anchorType ==
-                                                  AnchorType.pdfPage &&
-                                              s.pageIndex ==
-                                                  page.pageNumber - 1 &&
-                                              s.normalizedPoints != null &&
-                                              s.normalizedPoints!.length >= 2,
-                                        );
-                                        for (final stroke in pageStrokes) {
-                                          final paint = Paint()
-                                            ..color = stroke.color
-                                            ..strokeWidth = stroke.width
-                                            ..style = PaintingStyle.stroke
-                                            ..strokeCap = StrokeCap.round
-                                            ..strokeJoin = StrokeJoin.round;
-                                          final path = Path();
-                                          final pts = stroke.normalizedPoints!
-                                              .map(
-                                                (p) => Offset(
-                                                  pageRect.left +
-                                                      p.dx * pageRect.width,
-                                                  pageRect.top +
-                                                      p.dy * pageRect.height,
-                                                ),
-                                              )
-                                              .toList();
-                                          path.moveTo(
-                                              pts.first.dx, pts.first.dy);
-                                          for (var i = 1; i < pts.length; i++) {
-                                            path.lineTo(pts[i].dx, pts[i].dy);
-                                          }
-                                          canvas.drawPath(path, paint);
-                                        }
-                                      },
-                                    ],
                                     pageOverlaysBuilder:
                                         (context, pageRect, page) {
-                                      return _buildPdfPageOverlayBlocks(
+                                      final pageIndex = page.pageNumber - 1;
+                                      final pageStrokes = doc.strokes
+                                          .where(
+                                            (s) =>
+                                                s.anchorType ==
+                                                    AnchorType.pdfPage &&
+                                                s.pageIndex == pageIndex &&
+                                                s.normalizedPoints != null &&
+                                                s.normalizedPoints!.length >=
+                                                    2,
+                                          )
+                                          .toList();
+                                      final blockWidgets =
+                                          _buildPdfPageOverlayBlocks(
                                         pageRect: pageRect,
                                         page: page,
                                         doc: doc,
                                         docMgr: docMgr,
                                         panelRect: _pdfPanelRect(),
                                       );
+                                      return [
+                                        // Stroke overlay — widget-based so it
+                                        // updates on every Flutter rebuild without
+                                        // relying on pdfrx tile-cache invalidation.
+                                        Positioned.fill(
+                                          child: IgnorePointer(
+                                            child: CustomPaint(
+                                              painter:
+                                                  _NormalizedStrokePainter(
+                                                strokes: pageStrokes,
+                                                pageRect: pageRect,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        ...blockWidgets,
+                                      ];
                                     },
                                   ),
                                 ),
@@ -1024,16 +1016,16 @@ class _CanvasPageState extends State<CanvasPage> {
     NoteDocument doc,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF141428).withAlpha(240),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withAlpha(12)),
+        color: const Color(0xFF111122).withAlpha(245),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withAlpha(14)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(80),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+            color: Colors.black.withAlpha(100),
+            blurRadius: 24,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -1183,22 +1175,22 @@ class _CanvasPageState extends State<CanvasPage> {
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          width: 34,
-          height: 34,
+          duration: const Duration(milliseconds: 120),
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
-            color: isActive ? color.withAlpha(25) : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            color: isActive ? color.withAlpha(28) : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
             border: Border.all(
-              color: isActive ? color.withAlpha(80) : Colors.transparent,
+              color: isActive ? color.withAlpha(90) : Colors.transparent,
             ),
           ),
           child: Icon(
             icon,
-            size: 16,
+            size: 18,
             color: onTap == null
-                ? Colors.white.withAlpha(70)
-                : (isActive ? color : Colors.white.withAlpha(120)),
+                ? Colors.white.withAlpha(50)
+                : (isActive ? color : Colors.white.withAlpha(130)),
           ),
         ),
       ),
@@ -1208,49 +1200,55 @@ class _CanvasPageState extends State<CanvasPage> {
   Widget _colorDot(CanvasController ctrl, Color color) {
     final isSelected =
         ctrl.currentColor == color && ctrl.currentTool != DrawingTool.eraser;
-    return GestureDetector(
-      onTap: () => ctrl.setColor(color),
-      child: Container(
-        width: 18,
-        height: 18,
-        margin: const EdgeInsets.symmetric(horizontal: 2),
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected ? Colors.white : Colors.transparent,
-            width: 2,
+    return Tooltip(
+      message: 'Color',
+      child: GestureDetector(
+        onTap: () => ctrl.setColor(color),
+        child: Container(
+          width: 22,
+          height: 22,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isSelected ? Colors.white : Colors.transparent,
+              width: 2.5,
+            ),
+            boxShadow: isSelected
+                ? [BoxShadow(color: color.withAlpha(100), blurRadius: 8)]
+                : null,
           ),
-          boxShadow: isSelected
-              ? [BoxShadow(color: color.withAlpha(80), blurRadius: 6)]
-              : null,
         ),
       ),
     );
   }
 
   Widget _colorPickerButton(CanvasController ctrl) {
-    return GestureDetector(
-      onTap: () => _showColorPickerDialog(ctrl),
-      child: Container(
-        width: 18,
-        height: 18,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const SweepGradient(
-            colors: [
-              Colors.red,
-              Colors.yellow,
-              Colors.green,
-              Colors.cyan,
-              Colors.blue,
-              Colors.purple,
-              Colors.red,
-            ],
+    return Tooltip(
+      message: 'Custom color',
+      child: GestureDetector(
+        onTap: () => _showColorPickerDialog(ctrl),
+        child: Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const SweepGradient(
+              colors: [
+                Colors.red,
+                Colors.yellow,
+                Colors.green,
+                Colors.cyan,
+                Colors.blue,
+                Colors.purple,
+                Colors.red,
+              ],
+            ),
+            border: Border.all(color: Colors.white.withAlpha(40), width: 1.5),
           ),
-          border: Border.all(color: Colors.white.withAlpha(40), width: 1.5),
+          child: Icon(Icons.add, size: 11, color: Colors.white.withAlpha(200)),
         ),
-        child: Icon(Icons.add, size: 10, color: Colors.white.withAlpha(200)),
       ),
     );
   }
@@ -1382,13 +1380,19 @@ class _CanvasPageState extends State<CanvasPage> {
   }
 
   Widget _iconBtn(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 30,
-        height: 30,
-        alignment: Alignment.center,
-        child: Icon(icon, size: 16, color: Colors.white.withAlpha(120)),
+    return Tooltip(
+      message: icon == Icons.undo_rounded ? 'Undo' : 'Redo',
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 38,
+          height: 38,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(icon, size: 18, color: Colors.white.withAlpha(130)),
+        ),
       ),
     );
   }
@@ -1565,4 +1569,60 @@ class _SVPickerPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _SVPickerPainter old) =>
       old.hue != hue || old.sat != sat || old.val != val;
+}
+
+/// Renders a list of PDF-anchored strokes (stored in normalised [0,1]
+/// coordinates) onto the PDF page overlay.  Using a widget-level
+/// [CustomPainter] guarantees the overlay repaints on every Flutter
+/// rebuild — no pdfrx tile-cache issues.
+class _NormalizedStrokePainter extends CustomPainter {
+  final List<Stroke> strokes;
+  final Rect pageRect;
+
+  const _NormalizedStrokePainter({
+    required this.strokes,
+    required this.pageRect,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final stroke in strokes) {
+      final pts = stroke.normalizedPoints;
+      if (pts == null || pts.length < 2) continue;
+
+      final paint = Paint()
+        ..color = stroke.color
+        ..strokeWidth = stroke.width
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke
+        ..isAntiAlias = true;
+
+      final mapped = pts.map((p) {
+        return Offset(
+          pageRect.left + p.dx * pageRect.width,
+          pageRect.top + p.dy * pageRect.height,
+        );
+      }).toList();
+
+      final path = Path()..moveTo(mapped.first.dx, mapped.first.dy);
+      if (mapped.length == 2) {
+        path.lineTo(mapped[1].dx, mapped[1].dy);
+      } else {
+        for (var i = 1; i < mapped.length - 1; i++) {
+          final p0 = mapped[i];
+          final p1 = mapped[i + 1];
+          path.quadraticBezierTo(
+              p0.dx, p0.dy, (p0.dx + p1.dx) / 2, (p0.dy + p1.dy) / 2);
+        }
+        path.lineTo(mapped.last.dx, mapped.last.dy);
+      }
+
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _NormalizedStrokePainter old) =>
+      strokes != old.strokes || pageRect != old.pageRect;
 }

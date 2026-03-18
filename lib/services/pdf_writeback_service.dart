@@ -158,7 +158,7 @@ class PdfWritebackService {
               _blockTextForWriteback(block),
               font,
               bounds: Rect.fromLTWH(x, y, width, pageSize.height - y),
-              brush: PdfBrushes.white,
+              brush: PdfBrushes.black,
               format: PdfStringFormat(
                 lineAlignment: PdfVerticalAlignment.top,
                 alignment: PdfTextAlignment.left,
