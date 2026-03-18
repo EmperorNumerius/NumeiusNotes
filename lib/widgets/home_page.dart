@@ -464,28 +464,34 @@ class _HomePageState extends State<HomePage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        InkWell(
-          onTap: () => setState(() => _currentFolderId = null),
-          child: Icon(Icons.home_rounded,
-              color: Colors.white.withAlpha(100), size: 16),
+        Tooltip(
+          message: 'Home',
+          child: InkWell(
+            onTap: () => setState(() => _currentFolderId = null),
+            child: Icon(Icons.home_rounded,
+                color: Colors.white.withAlpha(100), size: 16),
+          ),
         ),
         ...path.map((f) => Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.chevron_right,
                     color: Colors.white.withAlpha(40), size: 16),
-                InkWell(
-                  onTap: () => setState(() => _currentFolderId = f.id),
-                  child: Text(
-                    f.name,
-                    style: TextStyle(
-                      color: f.id == _currentFolderId
-                          ? Colors.white
-                          : Colors.white.withAlpha(100),
-                      fontSize: 13,
-                      fontWeight: f.id == _currentFolderId
-                          ? FontWeight.w600
-                          : FontWeight.w400,
+                Tooltip(
+                  message: 'Open ${f.name} folder',
+                  child: InkWell(
+                    onTap: () => setState(() => _currentFolderId = f.id),
+                    child: Text(
+                      f.name,
+                      style: TextStyle(
+                        color: f.id == _currentFolderId
+                            ? Colors.white
+                            : Colors.white.withAlpha(100),
+                        fontSize: 13,
+                        fontWeight: f.id == _currentFolderId
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
                     ),
                   ),
                 ),
