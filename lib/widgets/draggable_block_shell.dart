@@ -27,24 +27,25 @@ class DraggableBlockShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final metadata = _blockMetadata(block.type);
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
       width: block.blockWidth,
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isDragging
-              ? const Color(0xFF00D2FF).withAlpha(120)
-              : Colors.white.withAlpha(12),
+              ? metadata.color.withAlpha(160)
+              : Colors.white.withAlpha(14),
           width: isDragging ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
             color: isDragging
-                ? const Color(0xFF00D2FF).withAlpha(15)
-                : Colors.black.withAlpha(40),
-            blurRadius: isDragging ? 16 : 8,
-            offset: const Offset(0, 2),
+                ? metadata.color.withAlpha(30)
+                : Colors.black.withAlpha(60),
+            blurRadius: isDragging ? 24 : 10,
+            offset: Offset(0, isDragging ? 6 : 2),
           ),
         ],
       ),
@@ -87,40 +88,62 @@ class _BlockHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 28,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      height: 42,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: color.withAlpha(10),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-        border: Border(bottom: BorderSide(color: Colors.white.withAlpha(6))),
+        color: color.withAlpha(16),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+        border: Border(
+          bottom: BorderSide(color: color.withAlpha(22)),
+        ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.drag_indicator_rounded,
-            size: 14,
-            color: Colors.white.withAlpha(40),
+            size: 18,
+            color: Colors.white.withAlpha(55),
           ),
-          const SizedBox(width: 4),
-          Icon(icon, size: 12, color: color.withAlpha(150)),
-          const SizedBox(width: 4),
+          const SizedBox(width: 7),
+          Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              color: color.withAlpha(22),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(icon, size: 13, color: color),
+          ),
+          const SizedBox(width: 8),
           Text(
             label,
             style: TextStyle(
-              color: color.withAlpha(150),
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
             ),
           ),
           const Spacer(),
-          GestureDetector(
-            onTap: onDelete,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: Icon(
-                Icons.close_rounded,
-                size: 13,
-                color: Colors.white.withAlpha(50),
+          Tooltip(
+            message: 'Delete block',
+            child: GestureDetector(
+              onTap: onDelete,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(8),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 14,
+                    color: Colors.white.withAlpha(90),
+                  ),
+                ),
               ),
             ),
           ),
@@ -200,3 +223,4 @@ _BlockMetadata _blockMetadata(ContentBlockType type) {
       );
   }
 }
+

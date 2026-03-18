@@ -81,11 +81,11 @@ class _HomePageState extends State<HomePage> {
     final subjects = docMgr.allSubjects.toList()..sort();
 
     return Container(
-      width: 220,
+      width: 240,
       decoration: BoxDecoration(
-        color: const Color(0xFF0F0F23),
+        color: const Color(0xFF0D0D20),
         border: Border(
-          right: BorderSide(color: Colors.white.withAlpha(15)),
+          right: BorderSide(color: Colors.white.withAlpha(12)),
         ),
       ),
       child: Column(
@@ -93,29 +93,38 @@ class _HomePageState extends State<HomePage> {
         children: [
           // App title
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+            padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
             child: Row(
               children: [
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFF00D2FF), Color(0xFF7C3AED)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF00D2FF).withAlpha(50),
+                        blurRadius: 12,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
                   child: const Icon(Icons.edit_note,
-                      color: Colors.white, size: 20),
+                      color: Colors.white, size: 22),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 const Text(
-                  'Notes',
+                  'NumeiusNotes',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
+                    letterSpacing: -0.3,
                   ),
                 ),
               ],
@@ -140,20 +149,20 @@ class _HomePageState extends State<HomePage> {
               _currentFolderId = null;
             }),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           // Subject filters
           if (subjects.isNotEmpty) ...[
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
               child: Row(
                 children: [
                   Text(
                     'SUBJECTS',
                     style: TextStyle(
-                      color: Colors.white.withAlpha(80),
+                      color: Colors.white.withAlpha(60),
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.4,
                     ),
                   ),
                 ],
@@ -170,10 +179,11 @@ class _HomePageState extends State<HomePage> {
                 )),
           ],
           const Spacer(),
+          Divider(color: Colors.white.withAlpha(10), height: 1),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: _sidebarItem(
-              icon: Icons.settings,
+              icon: Icons.settings_rounded,
               label: 'AI Settings',
               selected: false,
               onTap: () {
@@ -185,10 +195,10 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(left: 20, bottom: 20),
             child: Text(
               'v2.1',
-              style: TextStyle(color: Colors.white.withAlpha(40), fontSize: 11),
+              style: TextStyle(color: Colors.white.withAlpha(30), fontSize: 11),
             ),
           ),
         ],
@@ -203,31 +213,36 @@ class _HomePageState extends State<HomePage> {
     required VoidCallback onTap,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       child: Material(
-        color: selected ? const Color(0xFF1A1A3E) : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        color: selected
+            ? const Color(0xFF00D2FF).withAlpha(18)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           onTap: onTap,
+          hoverColor: Colors.white.withAlpha(8),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
             child: Row(
               children: [
                 Icon(icon,
                     size: 18,
                     color: selected
                         ? const Color(0xFF00D2FF)
-                        : Colors.white.withAlpha(120)),
+                        : Colors.white.withAlpha(100)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     label,
                     style: TextStyle(
-                      color:
-                          selected ? Colors.white : Colors.white.withAlpha(180),
-                      fontSize: 13,
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                      color: selected
+                          ? Colors.white
+                          : Colors.white.withAlpha(160),
+                      fontSize: 14,
+                      fontWeight:
+                          selected ? FontWeight.w600 : FontWeight.w400,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -365,49 +380,55 @@ class _HomePageState extends State<HomePage> {
           child: (subFolders.isEmpty && notes.isEmpty)
               ? _buildEmptyState()
               : SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Folders
                       if (subFolders.isNotEmpty) ...[
-                        Text(
-                          'FOLDERS',
-                          style: TextStyle(
-                            color: Colors.white.withAlpha(80),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
+                        _sectionHeader('FOLDERS'),
                         const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: subFolders
-                              .map((f) => _buildFolderCard(f, docMgr))
-                              .toList(),
+                        LayoutBuilder(
+                          builder: (ctx, bc) {
+                            return GridView.extent(
+                              maxCrossAxisExtent: 220,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 2.4,
+                              shrinkWrap: true,
+                              physics:
+                                  const NeverScrollableScrollPhysics(),
+                              children: subFolders
+                                  .map((f) => _buildFolderCard(f, docMgr))
+                                  .toList(),
+                            );
+                          },
                         ),
                         const SizedBox(height: 28),
                       ],
                       // Notes
                       if (notes.isNotEmpty) ...[
-                        Text(
-                          _currentFolderId != null ? 'NOTES' : 'RECENT NOTES',
-                          style: TextStyle(
-                            color: Colors.white.withAlpha(80),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.2,
-                          ),
+                        _sectionHeader(
+                          _currentFolderId != null
+                              ? 'NOTES'
+                              : 'RECENT NOTES',
                         ),
                         const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: notes
-                              .map((n) => _buildNoteCard(n, docMgr))
-                              .toList(),
+                        LayoutBuilder(
+                          builder: (ctx, bc) {
+                            return GridView.extent(
+                              maxCrossAxisExtent: 260,
+                              crossAxisSpacing: 14,
+                              mainAxisSpacing: 14,
+                              childAspectRatio: 1.15,
+                              shrinkWrap: true,
+                              physics:
+                                  const NeverScrollableScrollPhysics(),
+                              children: notes
+                                  .map((n) => _buildNoteCard(n, docMgr))
+                                  .toList(),
+                            );
+                          },
                         ),
                       ],
                     ],
@@ -415,6 +436,18 @@ class _HomePageState extends State<HomePage> {
                 ),
         ),
       ],
+    );
+  }
+
+  Widget _sectionHeader(String label) {
+    return Text(
+      label,
+      style: TextStyle(
+        color: Colors.white.withAlpha(90),
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.4,
+      ),
     );
   }
 
@@ -501,46 +534,52 @@ class _HomePageState extends State<HomePage> {
     final noteCount = docMgr.getNotesInFolder(folder.id).length;
     final color = Color(folder.colorValue);
 
-    return SizedBox(
-      width: 180,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => setState(() => _currentFolderId = folder.id),
-          onLongPress: () => _showFolderMenu(folder, docMgr),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF141428),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color.withAlpha(40)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.folder_rounded, color: color, size: 28),
-                const SizedBox(height: 10),
-                Text(
-                  folder.name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => setState(() => _currentFolderId = folder.id),
+        onLongPress: () => _showFolderMenu(folder, docMgr),
+        hoverColor: Colors.white.withAlpha(6),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF131326),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withAlpha(35)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.folder_rounded, color: color, size: 24),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      folder.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      '$noteCount note${noteCount == 1 ? '' : 's'}',
+                      style: TextStyle(
+                        color: Colors.white.withAlpha(60),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '$noteCount note${noteCount == 1 ? '' : 's'}',
-                  style: TextStyle(
-                    color: Colors.white.withAlpha(80),
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              Icon(Icons.chevron_right_rounded,
+                  color: Colors.white.withAlpha(40), size: 18),
+            ],
           ),
         ),
       ),
@@ -550,103 +589,132 @@ class _HomePageState extends State<HomePage> {
   Widget _buildNoteCard(NoteDocument note, DocumentManager docMgr) {
     final isPdf = note.pdfPath != null;
     final timeAgo = _formatTimeAgo(note.updatedAt);
+    final preview = note.blocks.isNotEmpty && note.blocks.first.content.isNotEmpty
+        ? note.blocks.first.content
+        : null;
+    final accentColor =
+        isPdf ? const Color(0xFFFF6B6B) : const Color(0xFF00D2FF);
 
-    return SizedBox(
-      width: 200,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            docMgr.openInTab(note);
-            Navigator.of(context).pushNamed('/editor');
-          },
-          onLongPress: () => _showNoteMenu(note, docMgr),
-          child: Container(
-            height: 140,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFF141428),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withAlpha(12)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      isPdf ? Icons.picture_as_pdf : Icons.description_rounded,
-                      color: isPdf
-                          ? const Color(0xFFFF6B6B)
-                          : const Color(0xFF00D2FF),
-                      size: 18,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          docMgr.openInTab(note);
+          Navigator.of(context).pushNamed('/editor');
+        },
+        onLongPress: () => _showNoteMenu(note, docMgr),
+        hoverColor: Colors.white.withAlpha(6),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF131326),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withAlpha(12)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(40),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: accentColor.withAlpha(20),
+                      borderRadius: BorderRadius.circular(7),
                     ),
-                    const SizedBox(width: 6),
-                    Expanded(
+                    child: Icon(
+                      isPdf
+                          ? Icons.picture_as_pdf_rounded
+                          : Icons.description_rounded,
+                      color: accentColor,
+                      size: 15,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      note.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _showNoteMenu(note, docMgr),
+                    child: Icon(
+                      Icons.more_horiz_rounded,
+                      size: 18,
+                      color: Colors.white.withAlpha(50),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: Text(
+                  preview ?? 'Empty note',
+                  style: TextStyle(
+                    color: Colors.white.withAlpha(preview != null ? 90 : 50),
+                    fontSize: 12,
+                    height: 1.5,
+                    fontStyle: preview != null
+                        ? FontStyle.normal
+                        : FontStyle.italic,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  if (note.subject.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7C3AED).withAlpha(25),
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(
+                          color: const Color(0xFF7C3AED).withAlpha(50),
+                        ),
+                      ),
                       child: Text(
-                        note.title,
+                        note.subject,
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
+                          color: Color(0xFFB07FFF),
+                          fontSize: 10,
                           fontWeight: FontWeight.w600,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: Text(
-                    note.blocks.isNotEmpty
-                        ? note.blocks.first.content.isEmpty
-                            ? 'Empty note'
-                            : note.blocks.first.content
-                        : 'Empty note',
+                    const Spacer(),
+                  ] else
+                    const Spacer(),
+                  Text(
+                    timeAgo,
                     style: TextStyle(
-                      color: Colors.white.withAlpha(80),
-                      fontSize: 11,
-                      height: 1.4,
+                      color: Colors.white.withAlpha(45),
+                      fontSize: 10,
                     ),
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    if (note.subject.isNotEmpty) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF7C3AED).withAlpha(30),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          note.subject,
-                          style: const TextStyle(
-                            color: Color(0xFF7C3AED),
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                    ],
-                    Text(
-                      timeAgo,
-                      style: TextStyle(
-                        color: Colors.white.withAlpha(50),
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -660,22 +728,93 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.note_add_rounded,
-              size: 48, color: Colors.white.withAlpha(40)),
-          const SizedBox(height: 16),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: const Color(0xFF00D2FF).withAlpha(15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                  color: const Color(0xFF00D2FF).withAlpha(30)),
+            ),
+            child: Icon(
+              Icons.note_add_rounded,
+              size: 36,
+              color: const Color(0xFF00D2FF).withAlpha(120),
+            ),
+          ),
+          const SizedBox(height: 20),
           Text(
             'No notes yet',
             style: TextStyle(
-                color: Colors.white.withAlpha(80),
-                fontSize: 16,
-                fontWeight: FontWeight.w500),
+              color: Colors.white.withAlpha(120),
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.3,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Create a new note or folder to get started',
-            style: TextStyle(color: Colors.white.withAlpha(40), fontSize: 13),
+            'Create a new note or import a PDF to get started',
+            style: TextStyle(
+                color: Colors.white.withAlpha(50), fontSize: 13),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _emptyStateButton(
+                label: 'New Note',
+                icon: Icons.add_rounded,
+                color: const Color(0xFF00D2FF),
+                onTap: () =>
+                    _createNote(context.read<DocumentManager>()),
+              ),
+              const SizedBox(width: 12),
+              _emptyStateButton(
+                label: 'Import PDF',
+                icon: Icons.picture_as_pdf_rounded,
+                color: const Color(0xFFFF6B6B),
+                onTap: () =>
+                    _importPdf(context.read<DocumentManager>()),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _emptyStateButton({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: color.withAlpha(18),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -688,21 +827,24 @@ class _HomePageState extends State<HomePage> {
     Color? color,
     required VoidCallback onTap,
   }) {
+    final c = color ?? Colors.white70;
     return Tooltip(
       message: tooltip,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           onTap: onTap,
+          hoverColor: c.withAlpha(15),
           child: Container(
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: (color ?? Colors.white).withAlpha(15),
-              borderRadius: BorderRadius.circular(8),
+              color: c.withAlpha(12),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: c.withAlpha(20)),
             ),
-            child: Icon(icon, color: color ?? Colors.white70, size: 18),
+            child: Icon(icon, color: c, size: 19),
           ),
         ),
       ),
