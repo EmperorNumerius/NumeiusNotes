@@ -641,8 +641,8 @@ class _CanvasPageState extends State<CanvasPage> {
     );
 
     return blocks.map((block) {
-      final left = pageRect.left + (block.normalizedX ?? 0) * pageRect.width;
-      final top = pageRect.top + (block.normalizedY ?? 0) * pageRect.height;
+      final left = (block.normalizedX ?? 0) * pageRect.width;
+      final top = (block.normalizedY ?? 0) * pageRect.height;
       final isDragging = _draggingBlockId == block.id;
 
       // Wrap in positioned, but use helper for content
@@ -656,6 +656,10 @@ class _CanvasPageState extends State<CanvasPage> {
           (_) => setState(() => _draggingBlockId = block.id),
           // onDragUpdate
           (details) {
+            // details.delta is relative to the screen. To scale to the PDF page size we must
+            // divide by the current zoom level of the interactive viewer, if applicable,
+            // or just the pageRect dimensions if it represents the rendered size.
+            // pdfrx pageOverlaysBuilder guarantees `pageRect` is the rendered physical size.
             final rawX =
                 (block.normalizedX ?? 0) + (details.delta.dx / pageRect.width);
             final rawY =
