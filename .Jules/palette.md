@@ -1,0 +1,3 @@
+## 2024-05-18 - Bare GestureDetectors on Icon Buttons
+**Learning:** This app heavily relies on bare `GestureDetector` widgets wrapping `Icon`s for icon-only buttons (like the `more_horiz_rounded` note options menu). This pattern strips accessibility labels (no ARIA/Semantics) and provides no visual interaction feedback, which is an accessibility issue specific to this app's custom components.
+**Action:** Always refactor these bare `GestureDetector` wrappers around icons to use `Tooltip` combined with `InkWell` (or standard `IconButton` if layout permits) to ensure tooltips are read by screen readers and visual focus/hover feedback is present while maintaining compact layouts.
