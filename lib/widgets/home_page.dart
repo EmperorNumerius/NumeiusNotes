@@ -653,12 +653,15 @@ class _HomePageState extends State<HomePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => _showNoteMenu(note, docMgr),
-                    child: Icon(
-                      Icons.more_horiz_rounded,
-                      size: 18,
-                      color: Colors.white.withAlpha(50),
+                  Tooltip(
+                    message: 'More options',
+                    child: GestureDetector(
+                      onTap: () => _showNoteMenu(note, docMgr),
+                      child: Icon(
+                        Icons.more_horiz_rounded,
+                        size: 18,
+                        color: Colors.white.withAlpha(50),
+                      ),
                     ),
                   ),
                 ],
