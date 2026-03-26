@@ -807,14 +807,10 @@ class _Parser {
 
   double _number() {
     final s = p;
-    while (p < i.length && _isDigit(i[p])) {
-      p++;
-    }
+    while (p < i.length && _isDigit(i[p])) p++;
     if (p < i.length && i[p] == '.') {
       p++;
-      while (p < i.length && _isDigit(i[p])) {
-        p++;
-      }
+      while (p < i.length && _isDigit(i[p])) p++;
     }
     if (s == p) throw const FormatException();
     return double.parse(i.substring(s, p));
@@ -822,25 +818,18 @@ class _Parser {
 
   String _ident() {
     final s = p;
-    while (p < i.length && (_isAlpha(i[p]) || _isDigit(i[p]) || i[p] == '_')) {
-      p++;
-    }
+    while (p < i.length && (_isAlpha(i[p]) || _isDigit(i[p]) || i[p] == '_')) p++;
     return i.substring(s, p);
   }
 
   bool _consume(String c) {
     _skip();
-    if (p < i.length && i[p] == c) {
-      p++;
-      return true;
-    }
+    if (p < i.length && i[p] == c) { p++; return true; }
     return false;
   }
 
   void _skip() {
-    while (p < i.length && i[p] == ' ') {
-      p++;
-    }
+    while (p < i.length && i[p] == ' ') p++;
   }
 
   String _peek() => p < i.length ? i[p] : '';
