@@ -136,14 +136,16 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
   Widget _buildCollapsedBar() {
     return GestureDetector(
       onTap: () => setState(() => _collapsed = false),
-      child: Container(
-        width: 36,
-        decoration: BoxDecoration(
-          color: const Color(0xFF0D0D20),
-          border: Border(
-            left: BorderSide(color: Colors.white.withAlpha(10)),
+      child: Tooltip(
+        message: 'Expand transcript',
+        child: Container(
+          width: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0D0D20),
+            border: Border(
+              left: BorderSide(color: Colors.white.withAlpha(10)),
+            ),
           ),
-        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -175,6 +177,7 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
             ],
           ],
         ),
+      ),
       ),
     );
   }
@@ -260,8 +263,11 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
           // Collapse
           GestureDetector(
             onTap: () => setState(() => _collapsed = true),
-            child: Icon(Icons.chevron_right_rounded,
-                size: 16, color: Colors.white.withAlpha(50)),
+            child: Tooltip(
+              message: 'Collapse transcript',
+              child: Icon(Icons.chevron_right_rounded,
+                  size: 16, color: Colors.white.withAlpha(50)),
+            ),
           ),
         ],
       ),
