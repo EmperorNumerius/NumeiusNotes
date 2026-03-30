@@ -64,6 +64,9 @@ class MockDocumentManager extends DocumentManager {
 void main() {
   testWidgets('Create folder dialog appears and functions correctly', (tester) async {
     final mockDocMgr = MockDocumentManager();
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() { tester.view.resetPhysicalSize(); tester.view.resetDevicePixelRatio(); });
     await tester.pumpWidget(
       MaterialApp(
         home: ChangeNotifierProvider<DocumentManager>(
@@ -98,6 +101,9 @@ void main() {
 
   testWidgets('Rename folder dialog appears and functions correctly', (tester) async {
     final mockDocMgr = MockDocumentManager();
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() { tester.view.resetPhysicalSize(); tester.view.resetDevicePixelRatio(); });
     await tester.pumpWidget(
       MaterialApp(
         home: ChangeNotifierProvider<DocumentManager>(
@@ -142,6 +148,9 @@ void main() {
 
   testWidgets('Rename note dialog appears and functions correctly', (tester) async {
     final mockDocMgr = MockDocumentManager();
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() { tester.view.resetPhysicalSize(); tester.view.resetDevicePixelRatio(); });
     await tester.pumpWidget(
       MaterialApp(
         home: ChangeNotifierProvider<DocumentManager>(
