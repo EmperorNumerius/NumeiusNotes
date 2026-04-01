@@ -42,10 +42,18 @@ class _HomePageState extends State<HomePage> {
             _createNote(docMgr),
         const SingleActivator(LogicalKeyboardKey.keyN, meta: true): () =>
             _createNote(docMgr),
-        const SingleActivator(LogicalKeyboardKey.keyN,
-            control: true, shift: true): () => _createFolder(docMgr),
-        const SingleActivator(LogicalKeyboardKey.keyN, meta: true, shift: true):
-            () => _createFolder(docMgr),
+        const SingleActivator(
+          LogicalKeyboardKey.keyN,
+          control: true,
+          shift: true,
+        ): () =>
+            _createFolder(docMgr),
+        const SingleActivator(
+          LogicalKeyboardKey.keyN,
+          meta: true,
+          shift: true,
+        ): () =>
+            _createFolder(docMgr),
         const SingleActivator(LogicalKeyboardKey.keyF, control: true): () =>
             _searchFocusNode.requestFocus(),
         const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () =>
@@ -84,9 +92,7 @@ class _HomePageState extends State<HomePage> {
       width: 240,
       decoration: BoxDecoration(
         color: const Color(0xFF0D0D20),
-        border: Border(
-          right: BorderSide(color: Colors.white.withAlpha(12)),
-        ),
+        border: Border(right: BorderSide(color: Colors.white.withAlpha(12))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,17 +120,24 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.edit_note,
-                      color: Colors.white, size: 22),
+                  child: const Icon(
+                    Icons.edit_note,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'NumeiusNotes',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
+                const Expanded(
+                  child: Text(
+                    'NumeiusNotes',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -168,15 +181,17 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            ...subjects.map((s) => _sidebarItem(
-                  icon: Icons.label_rounded,
-                  label: s,
-                  selected: _selectedSubject == s,
-                  onTap: () => setState(() {
-                    _selectedSubject = s;
-                    _currentFolderId = null;
-                  }),
-                )),
+            ...subjects.map(
+              (s) => _sidebarItem(
+                icon: Icons.label_rounded,
+                label: s,
+                selected: _selectedSubject == s,
+                onTap: () => setState(() {
+                  _selectedSubject = s;
+                  _currentFolderId = null;
+                }),
+              ),
+            ),
           ],
           const Spacer(),
           Divider(color: Colors.white.withAlpha(10), height: 1),
@@ -227,11 +242,13 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
             child: Row(
               children: [
-                Icon(icon,
-                    size: 18,
-                    color: selected
-                        ? const Color(0xFF00D2FF)
-                        : Colors.white.withAlpha(100)),
+                Icon(
+                  icon,
+                  size: 18,
+                  color: selected
+                      ? const Color(0xFF00D2FF)
+                      : Colors.white.withAlpha(100),
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -241,8 +258,7 @@ class _HomePageState extends State<HomePage> {
                           ? Colors.white
                           : Colors.white.withAlpha(160),
                       fontSize: 14,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -319,13 +335,21 @@ class _HomePageState extends State<HomePage> {
                     decoration: InputDecoration(
                       hintText: 'Search notes...',
                       hintStyle: TextStyle(
-                          color: Colors.white.withAlpha(60), fontSize: 13),
-                      prefixIcon: Icon(Icons.search,
-                          color: Colors.white.withAlpha(60), size: 18),
+                        color: Colors.white.withAlpha(60),
+                        fontSize: 13,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.white.withAlpha(60),
+                        size: 18,
+                      ),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: Icon(Icons.clear_rounded,
-                                  color: Colors.white.withAlpha(60), size: 18),
+                              icon: Icon(
+                                Icons.clear_rounded,
+                                color: Colors.white.withAlpha(60),
+                                size: 18,
+                              ),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
@@ -337,7 +361,9 @@ class _HomePageState extends State<HomePage> {
                           : null,
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ),
@@ -396,8 +422,7 @@ class _HomePageState extends State<HomePage> {
                               mainAxisSpacing: 12,
                               childAspectRatio: 2.4,
                               shrinkWrap: true,
-                              physics:
-                                  const NeverScrollableScrollPhysics(),
+                              physics: const NeverScrollableScrollPhysics(),
                               children: subFolders
                                   .map((f) => _buildFolderCard(f, docMgr))
                                   .toList(),
@@ -409,9 +434,7 @@ class _HomePageState extends State<HomePage> {
                       // Notes
                       if (notes.isNotEmpty) ...[
                         _sectionHeader(
-                          _currentFolderId != null
-                              ? 'NOTES'
-                              : 'RECENT NOTES',
+                          _currentFolderId != null ? 'NOTES' : 'RECENT NOTES',
                         ),
                         const SizedBox(height: 12),
                         LayoutBuilder(
@@ -422,8 +445,7 @@ class _HomePageState extends State<HomePage> {
                               mainAxisSpacing: 14,
                               childAspectRatio: 1.15,
                               shrinkWrap: true,
-                              physics:
-                                  const NeverScrollableScrollPhysics(),
+                              physics: const NeverScrollableScrollPhysics(),
                               children: notes
                                   .map((n) => _buildNoteCard(n, docMgr))
                                   .toList(),
@@ -499,31 +521,39 @@ class _HomePageState extends State<HomePage> {
       children: [
         InkWell(
           onTap: () => setState(() => _currentFolderId = null),
-          child: Icon(Icons.home_rounded,
-              color: Colors.white.withAlpha(100), size: 16),
+          child: Icon(
+            Icons.home_rounded,
+            color: Colors.white.withAlpha(100),
+            size: 16,
+          ),
         ),
-        ...path.map((f) => Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.chevron_right,
-                    color: Colors.white.withAlpha(40), size: 16),
-                InkWell(
-                  onTap: () => setState(() => _currentFolderId = f.id),
-                  child: Text(
-                    f.name,
-                    style: TextStyle(
-                      color: f.id == _currentFolderId
-                          ? Colors.white
-                          : Colors.white.withAlpha(100),
-                      fontSize: 13,
-                      fontWeight: f.id == _currentFolderId
-                          ? FontWeight.w600
-                          : FontWeight.w400,
-                    ),
+        ...path.map(
+          (f) => Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.chevron_right,
+                color: Colors.white.withAlpha(40),
+                size: 16,
+              ),
+              InkWell(
+                onTap: () => setState(() => _currentFolderId = f.id),
+                child: Text(
+                  f.name,
+                  style: TextStyle(
+                    color: f.id == _currentFolderId
+                        ? Colors.white
+                        : Colors.white.withAlpha(100),
+                    fontSize: 13,
+                    fontWeight: f.id == _currentFolderId
+                        ? FontWeight.w600
+                        : FontWeight.w400,
                   ),
                 ),
-              ],
-            )),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -577,8 +607,11 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded,
-                  color: Colors.white.withAlpha(40), size: 18),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.white.withAlpha(40),
+                size: 18,
+              ),
             ],
           ),
         ),
@@ -589,11 +622,13 @@ class _HomePageState extends State<HomePage> {
   Widget _buildNoteCard(NoteDocument note, DocumentManager docMgr) {
     final isPdf = note.pdfPath != null;
     final timeAgo = _formatTimeAgo(note.updatedAt);
-    final preview = note.blocks.isNotEmpty && note.blocks.first.content.isNotEmpty
+    final preview =
+        note.blocks.isNotEmpty && note.blocks.first.content.isNotEmpty
         ? note.blocks.first.content
         : null;
-    final accentColor =
-        isPdf ? const Color(0xFFFF6B6B) : const Color(0xFF00D2FF);
+    final accentColor = isPdf
+        ? const Color(0xFFFF6B6B)
+        : const Color(0xFF00D2FF);
 
     return Material(
       color: Colors.transparent,
@@ -653,12 +688,19 @@ class _HomePageState extends State<HomePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => _showNoteMenu(note, docMgr),
-                    child: Icon(
-                      Icons.more_horiz_rounded,
-                      size: 18,
-                      color: Colors.white.withAlpha(50),
+                  Tooltip(
+                    message: 'Note options',
+                    child: InkWell(
+                      onTap: () => _showNoteMenu(note, docMgr),
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: Icon(
+                          Icons.more_horiz_rounded,
+                          size: 18,
+                          color: Colors.white.withAlpha(50),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -685,7 +727,9 @@ class _HomePageState extends State<HomePage> {
                   if (note.subject.isNotEmpty) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF7C3AED).withAlpha(25),
                         borderRadius: BorderRadius.circular(5),
@@ -734,8 +778,7 @@ class _HomePageState extends State<HomePage> {
             decoration: BoxDecoration(
               color: const Color(0xFF00D2FF).withAlpha(15),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: const Color(0xFF00D2FF).withAlpha(30)),
+              border: Border.all(color: const Color(0xFF00D2FF).withAlpha(30)),
             ),
             child: Icon(
               Icons.note_add_rounded,
@@ -756,8 +799,7 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 8),
           Text(
             'Create a new note or import a PDF to get started',
-            style: TextStyle(
-                color: Colors.white.withAlpha(50), fontSize: 13),
+            style: TextStyle(color: Colors.white.withAlpha(50), fontSize: 13),
           ),
           const SizedBox(height: 24),
           Row(
@@ -767,16 +809,14 @@ class _HomePageState extends State<HomePage> {
                 label: 'New Note',
                 icon: Icons.add_rounded,
                 color: const Color(0xFF00D2FF),
-                onTap: () =>
-                    _createNote(context.read<DocumentManager>()),
+                onTap: () => _createNote(context.read<DocumentManager>()),
               ),
               const SizedBox(width: 12),
               _emptyStateButton(
                 label: 'Import PDF',
                 icon: Icons.picture_as_pdf_rounded,
                 color: const Color(0xFFFF6B6B),
-                onTap: () =>
-                    _importPdf(context.read<DocumentManager>()),
+                onTap: () => _importPdf(context.read<DocumentManager>()),
               ),
             ],
           ),
@@ -852,12 +892,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openFlashcardReview(DocumentManager docMgr) {
-    final cards =
-        FlashcardReviewPage.collectCardsFromDocuments(docMgr.documents);
+    final cards = FlashcardReviewPage.collectCardsFromDocuments(
+      docMgr.documents,
+    );
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => FlashcardReviewPage(cards: cards),
-      ),
+      MaterialPageRoute(builder: (_) => FlashcardReviewPage(cards: cards)),
     );
   }
 
@@ -869,10 +908,8 @@ class _HomePageState extends State<HomePage> {
         initialText: 'New Folder',
         hintText: 'Folder name',
         confirmLabel: 'Create',
-        onConfirm: (text) => docMgr.createFolder(
-          parentId: _currentFolderId,
-          name: text,
-        ),
+        onConfirm: (text) =>
+            docMgr.createFolder(parentId: _currentFolderId, name: text),
       ),
     );
   }
@@ -907,18 +944,24 @@ class _HomePageState extends State<HomePage> {
           children: [
             ListTile(
               leading: const Icon(Icons.edit, color: Colors.white70),
-              title:
-                  const Text('Rename', style: TextStyle(color: Colors.white)),
+              title: const Text(
+                'Rename',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 _renameFolder(folder, docMgr);
               },
             ),
             ListTile(
-              leading:
-                  const Icon(Icons.delete_outline, color: Color(0xFFFF6B6B)),
-              title: const Text('Delete',
-                  style: TextStyle(color: Color(0xFFFF6B6B))),
+              leading: const Icon(
+                Icons.delete_outline,
+                color: Color(0xFFFF6B6B),
+              ),
+              title: const Text(
+                'Delete',
+                style: TextStyle(color: Color(0xFFFF6B6B)),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 docMgr.deleteFolder(folder.id);
@@ -943,8 +986,10 @@ class _HomePageState extends State<HomePage> {
           children: [
             ListTile(
               leading: const Icon(Icons.edit, color: Colors.white70),
-              title:
-                  const Text('Rename', style: TextStyle(color: Colors.white)),
+              title: const Text(
+                'Rename',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 _renameNote(note, docMgr);
@@ -952,18 +997,24 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.drive_file_move, color: Colors.white70),
-              title: const Text('Move to Folder',
-                  style: TextStyle(color: Colors.white)),
+              title: const Text(
+                'Move to Folder',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 _moveNoteToFolder(note, docMgr);
               },
             ),
             ListTile(
-              leading:
-                  const Icon(Icons.delete_outline, color: Color(0xFFFF6B6B)),
-              title: const Text('Delete',
-                  style: TextStyle(color: Color(0xFFFF6B6B))),
+              leading: const Icon(
+                Icons.delete_outline,
+                color: Color(0xFFFF6B6B),
+              ),
+              title: const Text(
+                'Delete',
+                style: TextStyle(color: Color(0xFFFF6B6B)),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 docMgr.deleteDocument(note.id);
@@ -1005,8 +1056,10 @@ class _HomePageState extends State<HomePage> {
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1A1A2E),
-          title: const Text('Move to Folder',
-              style: TextStyle(color: Colors.white, fontSize: 16)),
+          title: const Text(
+            'Move to Folder',
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
           content: SizedBox(
             width: 300,
             child: Column(
@@ -1014,22 +1067,28 @@ class _HomePageState extends State<HomePage> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.home, color: Colors.white70),
-                  title: const Text('Root (No Folder)',
-                      style: TextStyle(color: Colors.white)),
+                  title: const Text(
+                    'Root (No Folder)',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   onTap: () {
                     docMgr.moveToFolder(note.id, null);
                     Navigator.pop(ctx);
                   },
                 ),
-                ...docMgr.folders.map((f) => ListTile(
-                      leading: Icon(Icons.folder, color: Color(f.colorValue)),
-                      title: Text(f.name,
-                          style: const TextStyle(color: Colors.white)),
-                      onTap: () {
-                        docMgr.moveToFolder(note.id, f.id);
-                        Navigator.pop(ctx);
-                      },
-                    )),
+                ...docMgr.folders.map(
+                  (f) => ListTile(
+                    leading: Icon(Icons.folder, color: Color(f.colorValue)),
+                    title: Text(
+                      f.name,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      docMgr.moveToFolder(note.id, f.id);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -1086,8 +1145,10 @@ class _TextInputDialogState extends State<_TextInputDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: const Color(0xFF1A1A2E),
-      title: Text(widget.title,
-          style: const TextStyle(color: Colors.white, fontSize: 16)),
+      title: Text(
+        widget.title,
+        style: const TextStyle(color: Colors.white, fontSize: 16),
+      ),
       content: TextField(
         controller: _controller,
         autofocus: true,
