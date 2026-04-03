@@ -141,6 +141,10 @@ void main() {
   });
 
   testWidgets('Rename note dialog appears and functions correctly', (tester) async {
+    // Increase test window size to prevent RenderFlex overflows.
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+
     final mockDocMgr = MockDocumentManager();
     await tester.pumpWidget(
       MaterialApp(
@@ -150,6 +154,7 @@ void main() {
         ),
       ),
     );
+    addTearDown(() => tester.view.resetPhysicalSize());
 
     // Find the note card
     final noteCard = find.text('Test Note');
