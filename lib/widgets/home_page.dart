@@ -118,13 +118,16 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.white, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'NumeiusNotes',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
+                const Expanded(
+                  child: Text(
+                    'NumeiusNotes',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -497,10 +500,17 @@ class _HomePageState extends State<HomePage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        InkWell(
-          onTap: () => setState(() => _currentFolderId = null),
-          child: Icon(Icons.home_rounded,
-              color: Colors.white.withAlpha(100), size: 16),
+        Tooltip(
+          message: 'Root Folder',
+          child: InkWell(
+            onTap: () => setState(() => _currentFolderId = null),
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Icon(Icons.home_rounded,
+                  color: Colors.white.withAlpha(100), size: 16),
+            ),
+          ),
         ),
         ...path.map((f) => Row(
               mainAxisSize: MainAxisSize.min,
@@ -653,12 +663,18 @@ class _HomePageState extends State<HomePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => _showNoteMenu(note, docMgr),
-                    child: Icon(
-                      Icons.more_horiz_rounded,
-                      size: 18,
-                      color: Colors.white.withAlpha(50),
+                  Tooltip(
+                    message: 'Note Options',
+                    child: GestureDetector(
+                      onTap: () => _showNoteMenu(note, docMgr),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Icon(
+                          Icons.more_horiz_rounded,
+                          size: 18,
+                          color: Colors.white.withAlpha(50),
+                        ),
+                      ),
                     ),
                   ),
                 ],
