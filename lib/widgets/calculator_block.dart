@@ -664,7 +664,9 @@ double _factorial(double n) {
   // 171! overflows to infinity; cap at 170.
   if (n > 170) return double.infinity;
   var r = 1.0;
-  for (var i = 2; i <= n.toInt(); i++) r *= i;
+  for (var i = 2; i <= n.toInt(); i++) {
+    r *= i;
+  }
   return r;
 }
 
@@ -689,9 +691,13 @@ class _Parser {
     var l = _term();
     while (true) {
       _skip();
-      if (_consume('+')) { l += _term(); }
-      else if (_consume('-')) { l -= _term(); }
-      else { return l; }
+      if (_consume('+')) {
+        l += _term();
+      } else if (_consume('-')) {
+        l -= _term();
+      } else {
+        return l;
+      }
     }
   }
 
@@ -699,9 +705,13 @@ class _Parser {
     var l = _mod();
     while (true) {
       _skip();
-      if (_consume('*')) { l *= _mod(); }
-      else if (_consume('/')) { l /= _mod(); }
-      else { return l; }
+      if (_consume('*')) {
+        l *= _mod();
+      } else if (_consume('/')) {
+        l /= _mod();
+      } else {
+        return l;
+      }
     }
   }
 
@@ -709,8 +719,11 @@ class _Parser {
     var l = _pow();
     while (true) {
       _skip();
-      if (_consume('%')) { l = l % _pow(); }
-      else { return l; }
+      if (_consume('%')) {
+        l = l % _pow();
+      } else {
+        return l;
+      }
     }
   }
 
@@ -724,7 +737,10 @@ class _Parser {
   double _fact() {
     var b = _unary();
     _skip();
-    if (p < i.length && i[p] == '!') { p++; b = _factorial(b); }
+    if (p < i.length && i[p] == '!') {
+      p++;
+      b = _factorial(b);
+    }
     return b;
   }
 
@@ -805,10 +821,14 @@ class _Parser {
 
   double _number() {
     final s = p;
-    while (p < i.length && _isDigit(i[p])) p++;
+    while (p < i.length && _isDigit(i[p])) {
+      p++;
+    }
     if (p < i.length && i[p] == '.') {
       p++;
-      while (p < i.length && _isDigit(i[p])) p++;
+      while (p < i.length && _isDigit(i[p])) {
+        p++;
+      }
     }
     if (s == p) throw const FormatException();
     return double.parse(i.substring(s, p));
@@ -816,18 +836,25 @@ class _Parser {
 
   String _ident() {
     final s = p;
-    while (p < i.length && (_isAlpha(i[p]) || _isDigit(i[p]) || i[p] == '_')) p++;
+    while (p < i.length && (_isAlpha(i[p]) || _isDigit(i[p]) || i[p] == '_')) {
+      p++;
+    }
     return i.substring(s, p);
   }
 
   bool _consume(String c) {
     _skip();
-    if (p < i.length && i[p] == c) { p++; return true; }
+    if (p < i.length && i[p] == c) {
+      p++;
+      return true;
+    }
     return false;
   }
 
   void _skip() {
-    while (p < i.length && i[p] == ' ') p++;
+    while (p < i.length && i[p] == ' ') {
+      p++;
+    }
   }
 
   String _peek() => p < i.length ? i[p] : '';
