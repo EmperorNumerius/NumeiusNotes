@@ -29,6 +29,10 @@ class MockDocumentManager extends DocumentManager {
 
 void main() {
   testWidgets('Search field shows clear button when text is entered and clears text on tap', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     await tester.pumpWidget(
       MaterialApp(
         home: ChangeNotifierProvider<DocumentManager>(
