@@ -11,11 +11,16 @@ class MockDocumentManager extends DocumentManager {
   List<NoteDocument> searchNotes(String query) => [];
 
   final List<NoteFolder> _mockFolders = [
-    NoteFolder(id: 'folder1', name: 'Test Folder', parentId: null, colorValue: 0xFF000000),
+    NoteFolder(
+        id: 'folder1',
+        name: 'Test Folder',
+        parentId: null,
+        colorValue: 0xFF000000),
   ];
 
   final List<NoteDocument> _mockDocuments = [
-     NoteDocument(id: 'note1', title: 'Test Note', blocks: [], updatedAt: DateTime.now()),
+    NoteDocument(
+        id: 'note1', title: 'Test Note', blocks: [], updatedAt: DateTime.now()),
   ];
 
   @override
@@ -62,7 +67,12 @@ class MockDocumentManager extends DocumentManager {
 }
 
 void main() {
-  testWidgets('Create folder dialog appears and functions correctly', (tester) async {
+  testWidgets('Create folder dialog appears and functions correctly',
+      (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     final mockDocMgr = MockDocumentManager();
     await tester.pumpWidget(
       MaterialApp(
@@ -96,7 +106,12 @@ void main() {
     expect(find.byType(AlertDialog), findsNothing);
   });
 
-  testWidgets('Rename folder dialog appears and functions correctly', (tester) async {
+  testWidgets('Rename folder dialog appears and functions correctly',
+      (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     final mockDocMgr = MockDocumentManager();
     await tester.pumpWidget(
       MaterialApp(
@@ -140,7 +155,12 @@ void main() {
     expect(find.byType(AlertDialog), findsNothing);
   });
 
-  testWidgets('Rename note dialog appears and functions correctly', (tester) async {
+  testWidgets('Rename note dialog appears and functions correctly',
+      (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     final mockDocMgr = MockDocumentManager();
     await tester.pumpWidget(
       MaterialApp(
