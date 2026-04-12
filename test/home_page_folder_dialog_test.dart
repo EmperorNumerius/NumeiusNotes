@@ -141,6 +141,10 @@ void main() {
   });
 
   testWidgets('Rename note dialog appears and functions correctly', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     final mockDocMgr = MockDocumentManager();
     await tester.pumpWidget(
       MaterialApp(
