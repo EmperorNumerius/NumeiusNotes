@@ -118,13 +118,16 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.white, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'NumeiusNotes',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
+                const Expanded(
+                  child: Text(
+                    'NumeiusNotes',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -921,7 +924,11 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Color(0xFFFF6B6B))),
               onTap: () {
                 Navigator.pop(ctx);
-                docMgr.deleteFolder(folder.id);
+                _confirmDelete(
+                  title: 'Delete Folder',
+                  content: 'Are you sure you want to delete this folder?',
+                  onConfirm: () => docMgr.deleteFolder(folder.id),
+                );
               },
             ),
           ],
@@ -966,11 +973,43 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Color(0xFFFF6B6B))),
               onTap: () {
                 Navigator.pop(ctx);
-                docMgr.deleteDocument(note.id);
+                _confirmDelete(
+                  title: 'Delete Note',
+                  content: 'Are you sure you want to delete this note?',
+                  onConfirm: () => docMgr.deleteDocument(note.id),
+                );
               },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmDelete({
+    required String title,
+    required String content,
+    required VoidCallback onConfirm,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 16)),
+        content: Text(content, style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              onConfirm();
+            },
+            child: const Text('Delete', style: TextStyle(color: Color(0xFFFF6B6B))),
+          ),
+        ],
       ),
     );
   }
