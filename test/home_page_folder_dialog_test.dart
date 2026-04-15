@@ -43,6 +43,18 @@ class MockDocumentManager extends DocumentManager {
   bool createFolderCalled = false;
   bool renameFolderCalled = false;
   bool renameDocumentCalled = false;
+  bool deleteFolderCalled = false;
+  bool deleteDocumentCalled = false;
+
+  @override
+  void deleteFolder(String folderId) {
+    deleteFolderCalled = true;
+  }
+
+  @override
+  void deleteDocument(String docId) {
+    deleteDocumentCalled = true;
+  }
 
   @override
   NoteFolder createFolder({String? parentId, String name = 'New Folder'}) {
@@ -63,6 +75,10 @@ class MockDocumentManager extends DocumentManager {
 
 void main() {
   testWidgets('Create folder dialog appears and functions correctly', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     final mockDocMgr = MockDocumentManager();
     await tester.pumpWidget(
       MaterialApp(
@@ -97,6 +113,10 @@ void main() {
   });
 
   testWidgets('Rename folder dialog appears and functions correctly', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     final mockDocMgr = MockDocumentManager();
     await tester.pumpWidget(
       MaterialApp(
@@ -141,6 +161,10 @@ void main() {
   });
 
   testWidgets('Rename note dialog appears and functions correctly', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     final mockDocMgr = MockDocumentManager();
     await tester.pumpWidget(
       MaterialApp(
@@ -180,6 +204,112 @@ void main() {
 
     // Verify rename called
     expect(mockDocMgr.renameDocumentCalled, isTrue);
+    // Verify dialog closed
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+
+  testWidgets('Delete folder confirmation dialog appears and works', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    final mockDocMgr = MockDocumentManager();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ChangeNotifierProvider<DocumentManager>(
+          create: (_) => mockDocMgr,
+          child: const HomePage(),
+        ),
+      ),
+    );
+
+    // Find the folder card
+    final folderCard = find.text('Test Folder');
+    expect(folderCard, findsOneWidget);
+
+    // Long press to open menu
+    await tester.longPress(folderCard);
+    await tester.pumpAndSettle();
+
+    // Tap Delete
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    // Verify confirmation dialog appears
+    expect(find.text('Delete Folder'), findsOneWidget);
+    expect(find.text('Are you sure you want to delete this folder?'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsOneWidget);
+
+    // Cancel first to make sure it doesn't delete
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(mockDocMgr.deleteFolderCalled, isFalse);
+
+    // Try again
+    await tester.longPress(folderCard);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    // Tap Delete in dialog
+    await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    // Verify delete called
+    expect(mockDocMgr.deleteFolderCalled, isTrue);
+    // Verify dialog closed
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+
+  testWidgets('Delete note confirmation dialog appears and works', (tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    final mockDocMgr = MockDocumentManager();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ChangeNotifierProvider<DocumentManager>(
+          create: (_) => mockDocMgr,
+          child: const HomePage(),
+        ),
+      ),
+    );
+
+    // Find the note card
+    final noteCard = find.text('Test Note');
+    expect(noteCard, findsOneWidget);
+
+    // Long press to open menu
+    await tester.longPress(noteCard);
+    await tester.pumpAndSettle();
+
+    // Tap Delete
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    // Verify confirmation dialog appears
+    expect(find.text('Delete Note'), findsOneWidget);
+    expect(find.text('Are you sure you want to delete this note?'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsOneWidget);
+
+    // Cancel first to make sure it doesn't delete
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(mockDocMgr.deleteDocumentCalled, isFalse);
+
+    // Try again
+    await tester.longPress(noteCard);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    // Tap Delete in dialog
+    await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    // Verify delete called
+    expect(mockDocMgr.deleteDocumentCalled, isTrue);
     // Verify dialog closed
     expect(find.byType(AlertDialog), findsNothing);
   });
