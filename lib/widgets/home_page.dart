@@ -914,7 +914,7 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Color(0xFFFF6B6B))),
               onTap: () {
                 Navigator.pop(ctx);
-                _confirmDeleteFolder(folder, docMgr);
+                docMgr.deleteFolder(folder.id);
               },
             ),
           ],
@@ -959,7 +959,7 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Color(0xFFFF6B6B))),
               onTap: () {
                 Navigator.pop(ctx);
-                _confirmDeleteNote(note, docMgr);
+                docMgr.deleteDocument(note.id);
               },
             ),
           ],
@@ -1026,68 +1026,6 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-
-  void _confirmDeleteFolder(NoteFolder folder, DocumentManager docMgr) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF1A1A2E),
-          title: const Text('Delete Folder?',
-              style: TextStyle(color: Colors.white)),
-          content: Text(
-              'Are you sure you want to delete "${folder.name}"? This action cannot be undone.',
-              style: const TextStyle(color: Colors.white70)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child:
-                  const Text('Cancel', style: TextStyle(color: Colors.white)),
-            ),
-            TextButton(
-              onPressed: () {
-                docMgr.deleteFolder(folder.id);
-                Navigator.pop(ctx);
-              },
-              child: const Text('Delete',
-                  style: TextStyle(color: Color(0xFFFF6B6B))),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _confirmDeleteNote(NoteDocument note, DocumentManager docMgr) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF1A1A2E),
-          title:
-              const Text('Delete Note?', style: TextStyle(color: Colors.white)),
-          content: Text(
-              'Are you sure you want to delete "${note.title}"? This action cannot be undone.',
-              style: const TextStyle(color: Colors.white70)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child:
-                  const Text('Cancel', style: TextStyle(color: Colors.white)),
-            ),
-            TextButton(
-              onPressed: () {
-                docMgr.deleteDocument(note.id);
-                Navigator.pop(ctx);
-              },
-              child: const Text('Delete',
-                  style: TextStyle(color: Color(0xFFFF6B6B))),
-            ),
-          ],
         );
       },
     );
