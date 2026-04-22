@@ -43,6 +43,8 @@ class MockDocumentManager extends DocumentManager {
   bool createFolderCalled = false;
   bool renameFolderCalled = false;
   bool renameDocumentCalled = false;
+  bool deleteFolderCalled = false;
+  bool deleteDocumentCalled = false;
 
   @override
   NoteFolder createFolder({String? parentId, String name = 'New Folder'}) {
@@ -59,9 +61,129 @@ class MockDocumentManager extends DocumentManager {
   void renameDocument(String docId, String newTitle) {
     renameDocumentCalled = true;
   }
+
+  @override
+  void deleteFolder(String id) {
+    deleteFolderCalled = true;
+  }
+
+  @override
+  void deleteDocument(String id) {
+    deleteDocumentCalled = true;
+  }
 }
 
 void main() {
+  testWidgets('Delete folder confirmation dialog works', (tester) async {
+    final mockDocMgr = MockDocumentManager();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ChangeNotifierProvider<DocumentManager>(
+          create: (_) => mockDocMgr,
+          child: const HomePage(),
+        ),
+      ),
+    );
+
+    // Find the folder card
+    final folderCard = find.text('Test Folder');
+    expect(folderCard, findsOneWidget);
+
+    // Long press to open menu
+    await tester.longPress(folderCard);
+    await tester.pumpAndSettle();
+
+    // Verify bottom sheet appears and Tap Delete
+    expect(find.text('Delete'), findsOneWidget);
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    // Verify dialog appears
+    expect(find.text('Delete Folder?'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsOneWidget);
+
+    // Tap Cancel
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    // Verify delete not called
+    expect(mockDocMgr.deleteFolderCalled, isFalse);
+    expect(find.byType(AlertDialog), findsNothing);
+
+    // Open menu again and delete
+    await tester.longPress(folderCard);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    // Tap Delete button in dialog
+    final confirmDeleteBtn = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.text('Delete'),
+    );
+    await tester.tap(confirmDeleteBtn);
+    await tester.pumpAndSettle();
+
+    // Verify delete called
+    expect(mockDocMgr.deleteFolderCalled, isTrue);
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+
+  testWidgets('Delete note confirmation dialog works', (tester) async {
+    final mockDocMgr = MockDocumentManager();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ChangeNotifierProvider<DocumentManager>(
+          create: (_) => mockDocMgr,
+          child: const HomePage(),
+        ),
+      ),
+    );
+
+    // Find the note card
+    final noteCard = find.text('Test Note');
+    expect(noteCard, findsOneWidget);
+
+    // Long press to open menu
+    await tester.longPress(noteCard);
+    await tester.pumpAndSettle();
+
+    // Verify bottom sheet appears and Tap Delete
+    expect(find.text('Delete'), findsOneWidget);
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    // Verify dialog appears
+    expect(find.text('Delete Note?'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsOneWidget);
+
+    // Tap Cancel
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    // Verify delete not called
+    expect(mockDocMgr.deleteDocumentCalled, isFalse);
+    expect(find.byType(AlertDialog), findsNothing);
+
+    // Open menu again and delete
+    await tester.longPress(noteCard);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    // Tap Delete button in dialog
+    final confirmDeleteBtn = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.text('Delete'),
+    );
+    await tester.tap(confirmDeleteBtn);
+    await tester.pumpAndSettle();
+
+    // Verify delete called
+    expect(mockDocMgr.deleteDocumentCalled, isTrue);
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+
   testWidgets('Create folder dialog appears and functions correctly', (tester) async {
     final mockDocMgr = MockDocumentManager();
     await tester.pumpWidget(
