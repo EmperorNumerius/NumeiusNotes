@@ -51,8 +51,8 @@ class _ImageBlockWidgetState extends State<ImageBlockWidget> {
 
   void _resizeImage(DragUpdateDetails details) {
     setState(() {
-      widget.block.blockWidth =
-          (widget.block.blockWidth + details.delta.dx).clamp(_minWidth, _maxWidth);
+      widget.block.blockWidth = (widget.block.blockWidth + details.delta.dx)
+          .clamp(_minWidth, _maxWidth);
       widget.block.metadata['imageHeight'] =
           (_imageHeight + details.delta.dy).clamp(_minHeight, _maxHeight);
     });
@@ -83,7 +83,8 @@ class _ImageBlockWidgetState extends State<ImageBlockWidget> {
           const SizedBox(height: 8),
           TextField(
             controller: TextEditingController(text: widget.block.content)
-              ..selection = TextSelection.collapsed(offset: widget.block.content.length),
+              ..selection =
+                  TextSelection.collapsed(offset: widget.block.content.length),
             onChanged: (value) {
               widget.block.content = value;
               widget.onChanged?.call();
@@ -94,7 +95,8 @@ class _ImageBlockWidgetState extends State<ImageBlockWidget> {
               hintStyle: TextStyle(color: Colors.white.withAlpha(60)),
               filled: true,
               fillColor: Colors.white.withAlpha(6),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.white.withAlpha(14)),
@@ -108,18 +110,22 @@ class _ImageBlockWidgetState extends State<ImageBlockWidget> {
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.bottomRight,
-            child: GestureDetector(
-              onPanUpdate: _resizeImage,
-              child: Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4DABF7).withAlpha(28),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFF4DABF7).withAlpha(120)),
+            child: Tooltip(
+              message: 'Drag to resize',
+              child: GestureDetector(
+                onPanUpdate: _resizeImage,
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4DABF7).withAlpha(28),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                        color: const Color(0xFF4DABF7).withAlpha(120)),
+                  ),
+                  child: const Icon(Icons.open_in_full_rounded,
+                      color: Color(0xFF4DABF7), size: 14),
                 ),
-                child: const Icon(Icons.open_in_full_rounded,
-                    color: Color(0xFF4DABF7), size: 14),
               ),
             ),
           ),
@@ -152,7 +158,8 @@ class _ImageBlockWidgetState extends State<ImageBlockWidget> {
             const SizedBox(height: 6),
             Text(
               'Image not found',
-              style: TextStyle(color: Colors.white.withAlpha(120), fontSize: 12),
+              style:
+                  TextStyle(color: Colors.white.withAlpha(120), fontSize: 12),
             ),
             const SizedBox(height: 8),
             TextButton(
@@ -171,15 +178,19 @@ class _ImageBlockWidgetState extends State<ImageBlockWidget> {
         Positioned(
           right: 8,
           top: 8,
-          child: Material(
-            color: Colors.black.withAlpha(120),
-            borderRadius: BorderRadius.circular(18),
-            child: InkWell(
+          child: Tooltip(
+            message: 'Replace image',
+            child: Material(
+              color: Colors.black.withAlpha(120),
               borderRadius: BorderRadius.circular(18),
-              onTap: _pickImage,
-              child: const Padding(
-                padding: EdgeInsets.all(6),
-                child: Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: _pickImage,
+                child: const Padding(
+                  padding: EdgeInsets.all(6),
+                  child: Icon(Icons.swap_horiz_rounded,
+                      color: Colors.white, size: 14),
+                ),
               ),
             ),
           ),
