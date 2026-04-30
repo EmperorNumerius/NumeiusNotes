@@ -1,0 +1,3 @@
+## 2024-05-24 - Accessibility Check for Icon Buttons
+**Learning:** Icon-only buttons lacking a tooltip fail accessibility heuristics (like providing a label for screen readers). Adding tooltips to these elements significantly enhances usability, providing better context. Also, text titles near buttons that overflow in tests should be wrapped in 'Expanded' to ensure tests pass on various screen sizes without RenderFlex errors.
+**Action:** Always verify icon-only buttons have a 'Tooltip' wrapper or appropriate semantic label, and wrap large UI text elements near buttons in 'Expanded' when they overflow boundaries during widget testing.
