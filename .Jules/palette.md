@@ -1,0 +1,3 @@
+## 2024-05-13 - Breadcrumb Wrap
+**Learning:** Found a layout issue with the breadcrumb element on the home page causing a `RenderFlex` overflow when screen constraints are small (particularly caught during test `Rename note dialog appears and functions correctly` and `Search field shows clear button when text is entered and clears text on tap`). The solution was to replace `Row` with `Flexible` containing a `SingleChildScrollView(scrollDirection: Axis.horizontal)`.
+**Action:** When adding horizontal lists like breadcrumbs alongside fixed/flexible elements, utilize `Flexible` and `SingleChildScrollView` to allow scrolling and avoid overflow errors under tight constraints.
