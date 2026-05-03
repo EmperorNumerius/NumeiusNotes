@@ -835,9 +835,7 @@ class _Parser {
   }
 
   void _skip() {
-    while (p < i.length && i[p] == ' ') {
-      p++;
-    }
+    while (p < i.length && i[p] == ' ') p++;
   }
 
   String _peek() => p < i.length ? i[p] : '';
