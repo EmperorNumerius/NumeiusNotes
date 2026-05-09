@@ -660,11 +660,17 @@ class _GraphPainter extends CustomPainter {
 }
 
 double _factorial(double n) {
-  if (n < 0 || n != n.truncateToDouble()) throw const FormatException();
+  if (n < 0 || n != n.truncateToDouble()) {
+    throw const FormatException();
+  }
   // 171! overflows to infinity; cap at 170.
-  if (n > 170) return double.infinity;
+  if (n > 170) {
+    return double.infinity;
+  }
   var r = 1.0;
-  for (var i = 2; i <= n.toInt(); i++) r *= i;
+  for (var i = 2; i <= n.toInt(); i++) {
+    r *= i;
+  }
   return r;
 }
 
@@ -805,29 +811,42 @@ class _Parser {
 
   double _number() {
     final s = p;
-    while (p < i.length && _isDigit(i[p])) p++;
+    while (p < i.length && _isDigit(i[p])) {
+      p++;
+    }
     if (p < i.length && i[p] == '.') {
       p++;
-      while (p < i.length && _isDigit(i[p])) p++;
+      while (p < i.length && _isDigit(i[p])) {
+        p++;
+      }
     }
-    if (s == p) throw const FormatException();
+    if (s == p) {
+      throw const FormatException();
+    }
     return double.parse(i.substring(s, p));
   }
 
   String _ident() {
     final s = p;
-    while (p < i.length && (_isAlpha(i[p]) || _isDigit(i[p]) || i[p] == '_')) p++;
+    while (p < i.length && (_isAlpha(i[p]) || _isDigit(i[p]) || i[p] == '_')) {
+      p++;
+    }
     return i.substring(s, p);
   }
 
   bool _consume(String c) {
     _skip();
-    if (p < i.length && i[p] == c) { p++; return true; }
+    if (p < i.length && i[p] == c) {
+      p++;
+      return true;
+    }
     return false;
   }
 
   void _skip() {
-    while (p < i.length && i[p] == ' ') p++;
+    while (p < i.length && i[p] == ' ') {
+      p++;
+    }
   }
 
   String _peek() => p < i.length ? i[p] : '';
