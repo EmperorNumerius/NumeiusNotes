@@ -237,12 +237,10 @@ class _HomePageState extends State<HomePage> {
                   child: Text(
                     label,
                     style: TextStyle(
-                      color: selected
-                          ? Colors.white
-                          : Colors.white.withAlpha(160),
+                      color:
+                          selected ? Colors.white : Colors.white.withAlpha(160),
                       fontSize: 14,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -396,8 +394,7 @@ class _HomePageState extends State<HomePage> {
                               mainAxisSpacing: 12,
                               childAspectRatio: 2.4,
                               shrinkWrap: true,
-                              physics:
-                                  const NeverScrollableScrollPhysics(),
+                              physics: const NeverScrollableScrollPhysics(),
                               children: subFolders
                                   .map((f) => _buildFolderCard(f, docMgr))
                                   .toList(),
@@ -409,9 +406,7 @@ class _HomePageState extends State<HomePage> {
                       // Notes
                       if (notes.isNotEmpty) ...[
                         _sectionHeader(
-                          _currentFolderId != null
-                              ? 'NOTES'
-                              : 'RECENT NOTES',
+                          _currentFolderId != null ? 'NOTES' : 'RECENT NOTES',
                         ),
                         const SizedBox(height: 12),
                         LayoutBuilder(
@@ -422,8 +417,7 @@ class _HomePageState extends State<HomePage> {
                               mainAxisSpacing: 14,
                               childAspectRatio: 1.15,
                               shrinkWrap: true,
-                              physics:
-                                  const NeverScrollableScrollPhysics(),
+                              physics: const NeverScrollableScrollPhysics(),
                               children: notes
                                   .map((n) => _buildNoteCard(n, docMgr))
                                   .toList(),
@@ -589,9 +583,10 @@ class _HomePageState extends State<HomePage> {
   Widget _buildNoteCard(NoteDocument note, DocumentManager docMgr) {
     final isPdf = note.pdfPath != null;
     final timeAgo = _formatTimeAgo(note.updatedAt);
-    final preview = note.blocks.isNotEmpty && note.blocks.first.content.isNotEmpty
-        ? note.blocks.first.content
-        : null;
+    final preview =
+        note.blocks.isNotEmpty && note.blocks.first.content.isNotEmpty
+            ? note.blocks.first.content
+            : null;
     final accentColor =
         isPdf ? const Color(0xFFFF6B6B) : const Color(0xFF00D2FF);
 
@@ -671,9 +666,8 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.white.withAlpha(preview != null ? 90 : 50),
                     fontSize: 12,
                     height: 1.5,
-                    fontStyle: preview != null
-                        ? FontStyle.normal
-                        : FontStyle.italic,
+                    fontStyle:
+                        preview != null ? FontStyle.normal : FontStyle.italic,
                   ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
@@ -734,8 +728,7 @@ class _HomePageState extends State<HomePage> {
             decoration: BoxDecoration(
               color: const Color(0xFF00D2FF).withAlpha(15),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: const Color(0xFF00D2FF).withAlpha(30)),
+              border: Border.all(color: const Color(0xFF00D2FF).withAlpha(30)),
             ),
             child: Icon(
               Icons.note_add_rounded,
@@ -756,8 +749,7 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 8),
           Text(
             'Create a new note or import a PDF to get started',
-            style: TextStyle(
-                color: Colors.white.withAlpha(50), fontSize: 13),
+            style: TextStyle(color: Colors.white.withAlpha(50), fontSize: 13),
           ),
           const SizedBox(height: 24),
           Row(
@@ -767,16 +759,14 @@ class _HomePageState extends State<HomePage> {
                 label: 'New Note',
                 icon: Icons.add_rounded,
                 color: const Color(0xFF00D2FF),
-                onTap: () =>
-                    _createNote(context.read<DocumentManager>()),
+                onTap: () => _createNote(context.read<DocumentManager>()),
               ),
               const SizedBox(width: 12),
               _emptyStateButton(
                 label: 'Import PDF',
                 icon: Icons.picture_as_pdf_rounded,
                 color: const Color(0xFFFF6B6B),
-                onTap: () =>
-                    _importPdf(context.read<DocumentManager>()),
+                onTap: () => _importPdf(context.read<DocumentManager>()),
               ),
             ],
           ),
@@ -921,7 +911,32 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Color(0xFFFF6B6B))),
               onTap: () {
                 Navigator.pop(ctx);
-                docMgr.deleteFolder(folder.id);
+                showDialog(
+                  context: context,
+                  builder: (confirmCtx) => AlertDialog(
+                    backgroundColor: const Color(0xFF1A1A2E),
+                    title: const Text('Delete Folder',
+                        style: TextStyle(color: Colors.white, fontSize: 16)),
+                    content: const Text(
+                        'Are you sure you want to delete this folder? All contents will be removed.',
+                        style: TextStyle(color: Colors.white70)),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(confirmCtx),
+                        child: const Text('Cancel',
+                            style: TextStyle(color: Colors.white70)),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          docMgr.deleteFolder(folder.id);
+                          Navigator.pop(confirmCtx);
+                        },
+                        child: const Text('Delete',
+                            style: TextStyle(color: Color(0xFFFF6B6B))),
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
           ],
@@ -966,7 +981,32 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Color(0xFFFF6B6B))),
               onTap: () {
                 Navigator.pop(ctx);
-                docMgr.deleteDocument(note.id);
+                showDialog(
+                  context: context,
+                  builder: (confirmCtx) => AlertDialog(
+                    backgroundColor: const Color(0xFF1A1A2E),
+                    title: const Text('Delete Note',
+                        style: TextStyle(color: Colors.white, fontSize: 16)),
+                    content: const Text(
+                        'Are you sure you want to delete this note?',
+                        style: TextStyle(color: Colors.white70)),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(confirmCtx),
+                        child: const Text('Cancel',
+                            style: TextStyle(color: Colors.white70)),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          docMgr.deleteDocument(note.id);
+                          Navigator.pop(confirmCtx);
+                        },
+                        child: const Text('Delete',
+                            style: TextStyle(color: Color(0xFFFF6B6B))),
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
           ],
