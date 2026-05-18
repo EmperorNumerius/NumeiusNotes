@@ -118,13 +118,15 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.white, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'NumeiusNotes',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
+                const Expanded(
+                  child: Text(
+                    'NumeiusNotes',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
                   ),
                 ),
               ],
@@ -921,11 +923,35 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Color(0xFFFF6B6B))),
               onTap: () {
                 Navigator.pop(ctx);
-                docMgr.deleteFolder(folder.id);
+                _confirmDeleteFolder(folder, docMgr);
               },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmDeleteFolder(NoteFolder folder, DocumentManager docMgr) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text('Delete Folder', style: TextStyle(color: Colors.white, fontSize: 16)),
+        content: Text('Are you sure you want to delete "${folder.name}"? This action cannot be undone.', style: TextStyle(color: Colors.white.withAlpha(180))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () {
+              docMgr.deleteFolder(folder.id);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Delete', style: TextStyle(color: Color(0xFFFF6B6B))),
+          ),
+        ],
       ),
     );
   }
@@ -966,11 +992,35 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Color(0xFFFF6B6B))),
               onTap: () {
                 Navigator.pop(ctx);
-                docMgr.deleteDocument(note.id);
+                _confirmDeleteNote(note, docMgr);
               },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmDeleteNote(NoteDocument note, DocumentManager docMgr) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text('Delete Note', style: TextStyle(color: Colors.white, fontSize: 16)),
+        content: Text('Are you sure you want to delete "${note.title}"? This action cannot be undone.', style: TextStyle(color: Colors.white.withAlpha(180))),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () {
+              docMgr.deleteDocument(note.id);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Delete', style: TextStyle(color: Color(0xFFFF6B6B))),
+          ),
+        ],
       ),
     );
   }
