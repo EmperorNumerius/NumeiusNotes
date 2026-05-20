@@ -30,6 +30,7 @@ class TabManager extends StatelessWidget {
                 );
               },
               itemCount: tabs.length,
+              // ignore: deprecated_member_use
               onReorder: (oldIdx, newIdx) {
                 docMgr.reorderTabs(oldIdx, newIdx);
               },
@@ -43,10 +44,9 @@ class TabManager extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () => docMgr.setActiveTab(i),
                     child: Container(
-                      constraints: const BoxConstraints(
-                          minWidth: 100, maxWidth: 180),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12),
+                      constraints:
+                          const BoxConstraints(minWidth: 100, maxWidth: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
                         color: isActive
                             ? const Color(0xFF1A1A3E)
