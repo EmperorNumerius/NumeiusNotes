@@ -105,7 +105,8 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
     if (v.isNaN) return 'NaN';
     if (!v.isFinite) return v.isNegative ? '-Inf' : 'Inf';
     final rounded = v.roundToDouble();
-    if ((v - rounded).abs() < _kRoundingTolerance && rounded.abs() < _kIntegerDisplayLimit) {
+    if ((v - rounded).abs() < _kRoundingTolerance &&
+        rounded.abs() < _kIntegerDisplayLimit) {
       return rounded.toInt().toString();
     }
     return v.toStringAsFixed(10).replaceFirst(_trailingZerosRegex, '');
@@ -230,7 +231,8 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
     ];
 
     final isError = _result == 'Error';
-    final resultColor = isError ? const Color(0xFFFF6B6B) : const Color(0xFF00D2FF);
+    final resultColor =
+        isError ? const Color(0xFFFF6B6B) : const Color(0xFF00D2FF);
 
     return Padding(
       padding: const EdgeInsets.all(12),
@@ -253,7 +255,8 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
             ),
             decoration: InputDecoration(
               hintText: 'Expression\u2026',
-              hintStyle: TextStyle(color: Colors.white.withAlpha(50), fontSize: 13),
+              hintStyle:
+                  TextStyle(color: Colors.white.withAlpha(50), fontSize: 13),
               border: InputBorder.none,
               isDense: true,
             ),
@@ -299,22 +302,27 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
         ),
         const SizedBox(height: 10),
         ...keys.map((row) => Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Row(
-            children: row.map((k) {
-              final isEquals = k == '=';
-              final isClear = k == 'CLR';
-              final isBack = k == 'BACK';
-              final isFunc = !_isDigitOrOp(k) && !isEquals && !isClear && !isBack;
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: _calcKey(k, isEquals: isEquals, isClear: isClear, isBack: isBack, isFunc: isFunc),
-                ),
-              );
-            }).toList(),
-          ),
-        )),
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: row.map((k) {
+                  final isEquals = k == '=';
+                  final isClear = k == 'CLR';
+                  final isBack = k == 'BACK';
+                  final isFunc =
+                      !_isDigitOrOp(k) && !isEquals && !isClear && !isBack;
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: _calcKey(k,
+                          isEquals: isEquals,
+                          isClear: isClear,
+                          isBack: isBack,
+                          isFunc: isFunc),
+                    ),
+                  );
+                }).toList(),
+              ),
+            )),
         if (_history.isNotEmpty) ...[
           const SizedBox(height: 10),
           Divider(color: Colors.white.withAlpha(12), height: 1),
@@ -343,9 +351,31 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
 
   bool _isDigitOrOp(String k) {
     const ops = {
-      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-      '.', '+', '-', '*', '/', '(', ')', '^', '%', 'pi',
-      'Ans', 'X', 'A', 'B', 'C',
+      '0',
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '.',
+      '+',
+      '-',
+      '*',
+      '/',
+      '(',
+      ')',
+      '^',
+      '%',
+      'pi',
+      'Ans',
+      'X',
+      'A',
+      'B',
+      'C',
     };
     return ops.contains(k);
   }
@@ -475,15 +505,24 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
       );
 
   static const _graphColors = [
-    Color(0xFF00D2FF), Color(0xFFFF6B6B), Color(0xFF51CF66),
-    Color(0xFFFFD43B), Color(0xFFB197FC), Color(0xFF38D9A9),
+    Color(0xFF00D2FF),
+    Color(0xFFFF6B6B),
+    Color(0xFF51CF66),
+    Color(0xFFFFD43B),
+    Color(0xFFB197FC),
+    Color(0xFF38D9A9),
   ];
 
   Widget _tableView() {
     final start = _tbl['start'] ?? -5;
     final step = _tbl['step'] ?? 1;
     final xs = List.generate(16, (i) => start + i * step);
-    final active = _y.asMap().entries.where((e) => e.value.trim().isNotEmpty).take(3).toList();
+    final active = _y
+        .asMap()
+        .entries
+        .where((e) => e.value.trim().isNotEmpty)
+        .take(3)
+        .toList();
     return Padding(
       padding: const EdgeInsets.all(12),
       child: SizedBox(
@@ -542,10 +581,9 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
                       fontSize: 13)),
               Expanded(
                 child: TextField(
-                  controller:
-                      TextEditingController(text: v?.toString() ?? '')
-                        ..selection = TextSelection.collapsed(
-                            offset: (v?.toString() ?? '').length),
+                  controller: TextEditingController(text: v?.toString() ?? '')
+                    ..selection = TextSelection.collapsed(
+                        offset: (v?.toString() ?? '').length),
                   keyboardType: const TextInputType.numberWithOptions(
                       decimal: true, signed: true),
                   onChanged: (s) {
@@ -558,9 +596,11 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
                     _save();
                   },
                   style: const TextStyle(
-                      color: Colors.white, fontSize: 12, fontFamily: 'Courier New'),
-                  decoration:
-                      const InputDecoration(border: InputBorder.none, isDense: true),
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontFamily: 'Courier New'),
+                  decoration: const InputDecoration(
+                      border: InputBorder.none, isDense: true),
                 ),
               ),
             ]),
@@ -616,20 +656,20 @@ class _GraphPainter extends CustomPainter {
       ..color = Colors.white.withAlpha(40)
       ..strokeWidth = 1;
     if (0 >= ymin && 0 <= ymax) {
-      c.drawLine(
-          Offset(0, s.height * (1 - (-ymin) / (ymax - ymin))),
-          Offset(s.width, s.height * (1 - (-ymin) / (ymax - ymin))),
-          ax);
+      c.drawLine(Offset(0, s.height * (1 - (-ymin) / (ymax - ymin))),
+          Offset(s.width, s.height * (1 - (-ymin) / (ymax - ymin))), ax);
     }
     if (0 >= xmin && 0 <= xmax) {
-      c.drawLine(
-          Offset(s.width * (-xmin) / (xmax - xmin), 0),
-          Offset(s.width * (-xmin) / (xmax - xmin), s.height),
-          ax);
+      c.drawLine(Offset(s.width * (-xmin) / (xmax - xmin), 0),
+          Offset(s.width * (-xmin) / (xmax - xmin), s.height), ax);
     }
     const colors = [
-      Color(0xFF00D2FF), Color(0xFFFF6B6B), Color(0xFF51CF66),
-      Color(0xFFFFD43B), Color(0xFFB197FC), Color(0xFF38D9A9),
+      Color(0xFF00D2FF),
+      Color(0xFFFF6B6B),
+      Color(0xFF51CF66),
+      Color(0xFFFFD43B),
+      Color(0xFFB197FC),
+      Color(0xFF38D9A9),
     ];
     for (var i = 0; i < y.length; i++) {
       final e = y[i].trim();
@@ -645,18 +685,28 @@ class _GraphPainter extends CustomPainter {
         final x = xmin + (ix / s.width) * (xmax - xmin);
         try {
           final v = eval(e, x);
-          if (!v.isFinite || v.isNaN) { started = false; continue; }
+          if (!v.isFinite || v.isNaN) {
+            started = false;
+            continue;
+          }
           final pt = px(x, v);
-          if (!started) { path.moveTo(pt.dx, pt.dy); started = true; }
-          else { path.lineTo(pt.dx, pt.dy); }
-        } catch (_) { started = false; }
+          if (!started) {
+            path.moveTo(pt.dx, pt.dy);
+            started = true;
+          } else {
+            path.lineTo(pt.dx, pt.dy);
+          }
+        } catch (_) {
+          started = false;
+        }
       }
       c.drawPath(path, p);
     }
   }
 
   @override
-  bool shouldRepaint(covariant _GraphPainter old) => old.y != y || old.win != win;
+  bool shouldRepaint(covariant _GraphPainter old) =>
+      old.y != y || old.win != win;
 }
 
 double _factorial(double n) {
@@ -664,7 +714,9 @@ double _factorial(double n) {
   // 171! overflows to infinity; cap at 170.
   if (n > 170) return double.infinity;
   var r = 1.0;
-  for (var i = 2; i <= n.toInt(); i++) r *= i;
+  for (var i = 2; i <= n.toInt(); i++) {
+    r *= i;
+  }
   return r;
 }
 
@@ -689,9 +741,13 @@ class _Parser {
     var l = _term();
     while (true) {
       _skip();
-      if (_consume('+')) { l += _term(); }
-      else if (_consume('-')) { l -= _term(); }
-      else { return l; }
+      if (_consume('+')) {
+        l += _term();
+      } else if (_consume('-')) {
+        l -= _term();
+      } else {
+        return l;
+      }
     }
   }
 
@@ -699,9 +755,13 @@ class _Parser {
     var l = _mod();
     while (true) {
       _skip();
-      if (_consume('*')) { l *= _mod(); }
-      else if (_consume('/')) { l /= _mod(); }
-      else { return l; }
+      if (_consume('*')) {
+        l *= _mod();
+      } else if (_consume('/')) {
+        l /= _mod();
+      } else {
+        return l;
+      }
     }
   }
 
@@ -709,8 +769,11 @@ class _Parser {
     var l = _pow();
     while (true) {
       _skip();
-      if (_consume('%')) { l = l % _pow(); }
-      else { return l; }
+      if (_consume('%')) {
+        l = l % _pow();
+      } else {
+        return l;
+      }
     }
   }
 
@@ -724,7 +787,10 @@ class _Parser {
   double _fact() {
     var b = _unary();
     _skip();
-    if (p < i.length && i[p] == '!') { p++; b = _factorial(b); }
+    if (p < i.length && i[p] == '!') {
+      p++;
+      b = _factorial(b);
+    }
     return b;
   }
 
@@ -748,7 +814,10 @@ class _Parser {
       if (_consume('(')) {
         final a = _expr();
         double? b;
-        if (p < i.length && i[p] == ',') { p++; b = _expr(); }
+        if (p < i.length && i[p] == ',') {
+          p++;
+          b = _expr();
+        }
         if (!_consume(')')) throw const FormatException();
         return _callFn(n, a, b);
       }
@@ -763,32 +832,60 @@ class _Parser {
     final rad = toRad ? a * math.pi / 180 : a;
     final fromRad = deg ? 180 / math.pi : 1.0;
     switch (k) {
-      case 'sin': return math.sin(rad);
-      case 'cos': return math.cos(rad);
-      case 'tan': return math.tan(rad);
-      case 'asin': return math.asin(a) * fromRad;
-      case 'acos': return math.acos(a) * fromRad;
-      case 'atan': return math.atan(a) * fromRad;
+      case 'sin':
+        return math.sin(rad);
+      case 'cos':
+        return math.cos(rad);
+      case 'tan':
+        return math.tan(rad);
+      case 'asin':
+        return math.asin(a) * fromRad;
+      case 'acos':
+        return math.acos(a) * fromRad;
+      case 'atan':
+        return math.atan(a) * fromRad;
       case 'atan2':
         if (b == null) throw const FormatException();
         return math.atan2(a, b) * fromRad;
-      case 'log': return math.log(a) / math.ln10;
-      case 'log2': return math.log(a) / math.ln2;
-      case 'ln': return math.log(a);
-      case 'sqrt': return math.sqrt(a);
-      case 'cbrt': return math.pow(a.abs(), 1.0 / 3.0).toDouble() * (a < 0 ? -1 : 1);
-      case 'abs': return a.abs();
-      case 'floor': return a.floorToDouble();
-      case 'ceil': return a.ceilToDouble();
-      case 'round': return a.roundToDouble();
-      case 'exp': return math.exp(a);
-      case 'sign': return a.sign;
-      case 'max': if (b == null) throw const FormatException(); return math.max(a, b);
-      case 'min': if (b == null) throw const FormatException(); return math.min(a, b);
-      case 'pow': if (b == null) throw const FormatException(); return math.pow(a, b).toDouble();
-      case 'ncr': if (b == null) throw const FormatException(); return _factorial(a) / (_factorial(b) * _factorial(a - b));
-      case 'npr': if (b == null) throw const FormatException(); return _factorial(a) / _factorial(a - b);
-      default: throw const FormatException();
+      case 'log':
+        return math.log(a) / math.ln10;
+      case 'log2':
+        return math.log(a) / math.ln2;
+      case 'ln':
+        return math.log(a);
+      case 'sqrt':
+        return math.sqrt(a);
+      case 'cbrt':
+        return math.pow(a.abs(), 1.0 / 3.0).toDouble() * (a < 0 ? -1 : 1);
+      case 'abs':
+        return a.abs();
+      case 'floor':
+        return a.floorToDouble();
+      case 'ceil':
+        return a.ceilToDouble();
+      case 'round':
+        return a.roundToDouble();
+      case 'exp':
+        return math.exp(a);
+      case 'sign':
+        return a.sign;
+      case 'max':
+        if (b == null) throw const FormatException();
+        return math.max(a, b);
+      case 'min':
+        if (b == null) throw const FormatException();
+        return math.min(a, b);
+      case 'pow':
+        if (b == null) throw const FormatException();
+        return math.pow(a, b).toDouble();
+      case 'ncr':
+        if (b == null) throw const FormatException();
+        return _factorial(a) / (_factorial(b) * _factorial(a - b));
+      case 'npr':
+        if (b == null) throw const FormatException();
+        return _factorial(a) / _factorial(a - b);
+      default:
+        throw const FormatException();
     }
   }
 
@@ -805,10 +902,14 @@ class _Parser {
 
   double _number() {
     final s = p;
-    while (p < i.length && _isDigit(i[p])) p++;
+    while (p < i.length && _isDigit(i[p])) {
+      p++;
+    }
     if (p < i.length && i[p] == '.') {
       p++;
-      while (p < i.length && _isDigit(i[p])) p++;
+      while (p < i.length && _isDigit(i[p])) {
+        p++;
+      }
     }
     if (s == p) throw const FormatException();
     return double.parse(i.substring(s, p));
@@ -816,18 +917,25 @@ class _Parser {
 
   String _ident() {
     final s = p;
-    while (p < i.length && (_isAlpha(i[p]) || _isDigit(i[p]) || i[p] == '_')) p++;
+    while (p < i.length && (_isAlpha(i[p]) || _isDigit(i[p]) || i[p] == '_')) {
+      p++;
+    }
     return i.substring(s, p);
   }
 
   bool _consume(String c) {
     _skip();
-    if (p < i.length && i[p] == c) { p++; return true; }
+    if (p < i.length && i[p] == c) {
+      p++;
+      return true;
+    }
     return false;
   }
 
   void _skip() {
-    while (p < i.length && i[p] == ' ') p++;
+    while (p < i.length && i[p] == ' ') {
+      p++;
+    }
   }
 
   String _peek() => p < i.length ? i[p] : '';
