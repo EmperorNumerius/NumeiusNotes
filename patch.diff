@@ -1,0 +1,10 @@
+--- lib/widgets/ai_settings_dialog.dart
++++ lib/widgets/ai_settings_dialog.dart
+@@ -51,6 +51,7 @@
+             mainAxisSize: MainAxisSize.min,
+             children: [
+               DropdownButtonFormField<AiProviderType>(
++                // ignore: deprecated_member_use
+                 value: settings.provider,
+                 decoration: const InputDecoration(labelText: 'Provider'),
+                 items: const [
