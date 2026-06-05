@@ -1,10 +1,28 @@
---- lib/widgets/ai_settings_dialog.dart
-+++ lib/widgets/ai_settings_dialog.dart
-@@ -51,6 +51,7 @@
-             mainAxisSize: MainAxisSize.min,
-             children: [
-               DropdownButtonFormField<AiProviderType>(
-+                // ignore: deprecated_member_use
-                 value: settings.provider,
-                 decoration: const InputDecoration(labelText: 'Provider'),
-                 items: const [
+--- lib/widgets/home_page.dart
++++ lib/widgets/home_page.dart
+@@ -118,14 +118,17 @@
+                       color: Colors.white, size: 22),
+                 ),
+                 const SizedBox(width: 12),
+-                const Text(
+-                  'NumeiusNotes',
+-                  style: TextStyle(
+-                    color: Colors.white,
+-                    fontSize: 17,
+-                    fontWeight: FontWeight.w700,
+-                    letterSpacing: -0.3,
+-                  ),
++                const Expanded(
++                  child: Text(
++                    'NumeiusNotes',
++                    style: TextStyle(
++                      color: Colors.white,
++                      fontSize: 17,
++                      fontWeight: FontWeight.w700,
++                      letterSpacing: -0.3,
++                    ),
++                    overflow: TextOverflow.ellipsis,
++                  ),
+                 ),
+               ],
+             ),
