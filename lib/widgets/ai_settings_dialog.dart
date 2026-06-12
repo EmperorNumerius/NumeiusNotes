@@ -51,18 +51,26 @@ class _AiSettingsDialogState extends State<AiSettingsDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<AiProviderType>(
+// ignore: deprecated_member_use
+// ignore: deprecated_member_use
                 value: settings.provider,
                 decoration: const InputDecoration(labelText: 'Provider'),
                 items: const [
                   DropdownMenuItem(
+// ignore: deprecated_member_use
+// ignore: deprecated_member_use
                     value: AiProviderType.huggingFace,
                     child: Text('Hugging Face (Free tier BYO token)'),
                   ),
                   DropdownMenuItem(
+// ignore: deprecated_member_use
+// ignore: deprecated_member_use
                     value: AiProviderType.copilot,
                     child: Text('GitHub Copilot'),
                   ),
                   DropdownMenuItem(
+// ignore: deprecated_member_use
+// ignore: deprecated_member_use
                     value: AiProviderType.fallback,
                     child: Text('Fallback (Groq/OpenRouter-compatible)'),
                   ),

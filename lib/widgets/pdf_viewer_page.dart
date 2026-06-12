@@ -176,22 +176,25 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                             if (_pdfController.isReady) {
                               final hit = _pdfController
                                   .getPdfPageHitTestResult(
-                                e.localPosition,
-                                useDocumentLayoutCoordinates: false,
-                              );
+                                    e.localPosition,
+                                    useDocumentLayoutCoordinates: false,
+                                  );
                               if (hit != null) {
                                 _activePdfStrokePageIndex =
                                     hit.page.pageNumber - 1;
-                                _currentPdfPageIndex =
-                                    hit.page.pageNumber - 1;
-                                _activePdfStrokePageSize =
-                                    Size(hit.page.width, hit.page.height);
+                                _currentPdfPageIndex = hit.page.pageNumber - 1;
+                                _activePdfStrokePageSize = Size(
+                                  hit.page.width,
+                                  hit.page.height,
+                                );
                                 _activePdfStrokePoints
                                   ..clear()
-                                  ..add(Offset(
-                                    hit.offset.x,
-                                    hit.page.height - hit.offset.y,
-                                  ));
+                                  ..add(
+                                    Offset(
+                                      hit.offset.x,
+                                      hit.page.height - hit.offset.y,
+                                    ),
+                                  );
                               } else {
                                 _activePdfStrokePageIndex = null;
                                 _activePdfStrokePageSize = null;
@@ -216,16 +219,18 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                                 _pdfController.isReady) {
                               final hit = _pdfController
                                   .getPdfPageHitTestResult(
-                                e.localPosition,
-                                useDocumentLayoutCoordinates: false,
-                              );
+                                    e.localPosition,
+                                    useDocumentLayoutCoordinates: false,
+                                  );
                               if (hit != null &&
                                   hit.page.pageNumber - 1 ==
                                       _activePdfStrokePageIndex) {
-                                _activePdfStrokePoints.add(Offset(
-                                  hit.offset.x,
-                                  hit.page.height - hit.offset.y,
-                                ));
+                                _activePdfStrokePoints.add(
+                                  Offset(
+                                    hit.offset.x,
+                                    hit.page.height - hit.offset.y,
+                                  ),
+                                );
                               }
                             }
                           }
@@ -246,10 +251,11 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
                                 final normalized = _activePdfStrokePoints
                                     .map(
                                       (p) => Offset(
-                                        (p.dx / pageSize.width)
-                                            .clamp(0.0, 1.0),
-                                        (p.dy / pageSize.height)
-                                            .clamp(0.0, 1.0),
+                                        (p.dx / pageSize.width).clamp(0.0, 1.0),
+                                        (p.dy / pageSize.height).clamp(
+                                          0.0,
+                                          1.0,
+                                        ),
                                       ),
                                     )
                                     .toList();
@@ -486,12 +492,13 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           (_) => setState(() => _draggingBlockId = block.id),
           (details) {
             setState(() {
-              block.normalizedX = ((block.normalizedX ?? 0) +
-                      details.delta.dx / pageRect.width)
-                  .clamp(0.0, 1.0);
-              block.normalizedY = ((block.normalizedY ?? 0) +
-                      details.delta.dy / pageRect.height)
-                  .clamp(0.0, 1.0);
+              block.normalizedX =
+                  ((block.normalizedX ?? 0) + details.delta.dx / pageRect.width)
+                      .clamp(0.0, 1.0);
+              block.normalizedY =
+                  ((block.normalizedY ?? 0) +
+                          details.delta.dy / pageRect.height)
+                      .clamp(0.0, 1.0);
               block.pageIndex = pageIndex;
               block.anchorType = AnchorType.pdfPage;
             });
@@ -849,29 +856,35 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           ),
           _divider(),
           // Undo/Redo
-          GestureDetector(
-            onTap: ctrl.undo,
-            child: Container(
-              width: 30,
-              height: 30,
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.undo_rounded,
-                size: 16,
-                color: Colors.white.withAlpha(120),
+          Tooltip(
+            message: 'Undo',
+            child: GestureDetector(
+              onTap: ctrl.undo,
+              child: Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.undo_rounded,
+                  size: 16,
+                  color: Colors.white.withAlpha(120),
+                ),
               ),
             ),
           ),
-          GestureDetector(
-            onTap: ctrl.redo,
-            child: Container(
-              width: 30,
-              height: 30,
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.redo_rounded,
-                size: 16,
-                color: Colors.white.withAlpha(120),
+          Tooltip(
+            message: 'Redo',
+            child: GestureDetector(
+              onTap: ctrl.redo,
+              child: Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.redo_rounded,
+                  size: 16,
+                  color: Colors.white.withAlpha(120),
+                ),
               ),
             ),
           ),
@@ -1357,7 +1370,11 @@ class _NormalizedStrokePainter extends CustomPainter {
           final p0 = mapped[i];
           final p1 = mapped[i + 1];
           path.quadraticBezierTo(
-              p0.dx, p0.dy, (p0.dx + p1.dx) / 2, (p0.dy + p1.dy) / 2);
+            p0.dx,
+            p0.dy,
+            (p0.dx + p1.dx) / 2,
+            (p0.dy + p1.dy) / 2,
+          );
         }
         path.lineTo(mapped.last.dx, mapped.last.dy);
       }
