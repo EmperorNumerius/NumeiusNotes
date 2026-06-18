@@ -1,0 +1,1 @@
+## 2026-06-18 - Added Tooltips to TabManager icon buttons\n**Learning:** Added 'Close tab' and 'New tab' tooltips to icon-only buttons in `lib/widgets/tab_manager.dart` to improve accessibility and UX.\n**Action:** Always wrap icon-only buttons with `Tooltip` widgets to ensure users and screen readers understand their function.
