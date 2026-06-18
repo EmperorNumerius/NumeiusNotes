@@ -24,10 +24,12 @@ class TabManager extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               buildDefaultDragHandles: false,
               proxyDecorator: (child, index, animation) {
-                return Material(color: Colors.transparent, child: child);
+                return Material(
+                  color: Colors.transparent,
+                  child: child,
+                );
               },
               itemCount: tabs.length,
-              // ignore: deprecated_member_use
               onReorder: (oldIdx, newIdx) {
                 docMgr.reorderTabs(oldIdx, newIdx);
               },
@@ -41,10 +43,8 @@ class TabManager extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () => docMgr.setActiveTab(i),
                     child: Container(
-                      constraints: const BoxConstraints(
-                        minWidth: 100,
-                        maxWidth: 180,
-                      ),
+                      constraints:
+                          const BoxConstraints(minWidth: 100, maxWidth: 180),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
                         color: isActive
@@ -124,11 +124,8 @@ class TabManager extends StatelessWidget {
                   width: 32,
                   height: 42,
                   alignment: Alignment.center,
-                  child: Icon(
-                    Icons.add,
-                    color: Colors.white.withAlpha(80),
-                    size: 16,
-                  ),
+                  child: Icon(Icons.add,
+                      color: Colors.white.withAlpha(80), size: 16),
                 ),
               ),
             ),
