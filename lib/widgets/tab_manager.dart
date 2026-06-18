@@ -30,6 +30,7 @@ class TabManager extends StatelessWidget {
                 );
               },
               itemCount: tabs.length,
+              // ignore: deprecated_member_use
               onReorder: (oldIdx, newIdx) {
                 docMgr.reorderTabs(oldIdx, newIdx);
               },
@@ -43,10 +44,9 @@ class TabManager extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () => docMgr.setActiveTab(i),
                     child: Container(
-                      constraints: const BoxConstraints(
-                          minWidth: 100, maxWidth: 180),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12),
+                      constraints:
+                          const BoxConstraints(minWidth: 100, maxWidth: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
                         color: isActive
                             ? const Color(0xFF1A1A3E)
@@ -92,14 +92,17 @@ class TabManager extends StatelessWidget {
                           const SizedBox(width: 4),
                           // Close button
                           if (tabs.length > 1)
-                            GestureDetector(
-                              onTap: () => docMgr.closeTab(i),
-                              child: Padding(
-                                padding: const EdgeInsets.all(2),
-                                child: Icon(
-                                  Icons.close,
-                                  size: 12,
-                                  color: Colors.white.withAlpha(60),
+                            Tooltip(
+                              message: 'Close tab',
+                              child: GestureDetector(
+                                onTap: () => docMgr.closeTab(i),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 12,
+                                    color: Colors.white.withAlpha(60),
+                                  ),
                                 ),
                               ),
                             ),
@@ -112,16 +115,19 @@ class TabManager extends StatelessWidget {
             ),
           ),
           // Add tab
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => docMgr.createDocument(),
-              child: Container(
-                width: 32,
-                height: 42,
-                alignment: Alignment.center,
-                child: Icon(Icons.add,
-                    color: Colors.white.withAlpha(80), size: 16),
+          Tooltip(
+            message: 'New tab',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => docMgr.createDocument(),
+                child: Container(
+                  width: 32,
+                  height: 42,
+                  alignment: Alignment.center,
+                  child: Icon(Icons.add,
+                      color: Colors.white.withAlpha(80), size: 16),
+                ),
               ),
             ),
           ),
