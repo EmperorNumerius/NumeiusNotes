@@ -62,10 +62,12 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
             _currentPartial = result.recognizedWords;
             if (result.finalResult && result.recognizedWords.isNotEmpty) {
               final elapsed = DateTime.now().difference(_listenStartTime!);
-              _entries.add(_TranscriptEntry(
-                text: result.recognizedWords,
-                timestamp: elapsed,
-              ));
+              _entries.add(
+                _TranscriptEntry(
+                  text: result.recognizedWords,
+                  timestamp: elapsed,
+                ),
+              );
               _currentPartial = '';
               // Save to document
               _saveTranscription();
@@ -96,11 +98,19 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
     final docMgr = context.read<DocumentManager>();
     final doc = docMgr.activeDocument;
     if (doc != null) {
-      doc.transcription = _entries.map((e) {
-        final mm = e.timestamp.inMinutes.remainder(60).toString().padLeft(2, '0');
-        final ss = e.timestamp.inSeconds.remainder(60).toString().padLeft(2, '0');
-        return '[$mm:$ss] ${e.text}';
-      }).join('\n');
+      doc.transcription = _entries
+          .map((e) {
+            final mm = e.timestamp.inMinutes
+                .remainder(60)
+                .toString()
+                .padLeft(2, '0');
+            final ss = e.timestamp.inSeconds
+                .remainder(60)
+                .toString()
+                .padLeft(2, '0');
+            return '[$mm:$ss] ${e.text}';
+          })
+          .join('\n');
       docMgr.saveActiveDocument();
     }
   }
@@ -140,15 +150,16 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
         width: 36,
         decoration: BoxDecoration(
           color: const Color(0xFF0D0D20),
-          border: Border(
-            left: BorderSide(color: Colors.white.withAlpha(10)),
-          ),
+          border: Border(left: BorderSide(color: Colors.white.withAlpha(10))),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chevron_left_rounded,
-                size: 16, color: Colors.white.withAlpha(50)),
+            Icon(
+              Icons.chevron_left_rounded,
+              size: 16,
+              color: Colors.white.withAlpha(50),
+            ),
             const SizedBox(height: 8),
             RotatedBox(
               quarterTurns: 1,
@@ -184,9 +195,7 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
       width: 280,
       decoration: BoxDecoration(
         color: const Color(0xFF0D0D20),
-        border: Border(
-          left: BorderSide(color: Colors.white.withAlpha(10)),
-        ),
+        border: Border(left: BorderSide(color: Colors.white.withAlpha(10))),
       ),
       child: Column(
         children: [
@@ -206,17 +215,17 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
       height: 40,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withAlpha(8)),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.white.withAlpha(8))),
       ),
       child: Row(
         children: [
-          Icon(Icons.mic_rounded,
-              size: 14,
-              color: _isListening
-                  ? const Color(0xFFFF6B6B)
-                  : Colors.white.withAlpha(80)),
+          Icon(
+            Icons.mic_rounded,
+            size: 14,
+            color: _isListening
+                ? const Color(0xFFFF6B6B)
+                : Colors.white.withAlpha(80),
+          ),
           const SizedBox(width: 6),
           Text(
             'Live Transcript',
@@ -252,16 +261,25 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
               },
               child: Tooltip(
                 message: 'Copy transcript',
-                child: Icon(Icons.copy_rounded,
-                    size: 13, color: Colors.white.withAlpha(50)),
+                child: Icon(
+                  Icons.copy_rounded,
+                  size: 13,
+                  color: Colors.white.withAlpha(50),
+                ),
               ),
             ),
           const SizedBox(width: 8),
           // Collapse
           GestureDetector(
             onTap: () => setState(() => _collapsed = true),
-            child: Icon(Icons.chevron_right_rounded,
-                size: 16, color: Colors.white.withAlpha(50)),
+            child: Tooltip(
+              message: 'Collapse transcript',
+              child: Icon(
+                Icons.chevron_right_rounded,
+                size: 16,
+                color: Colors.white.withAlpha(50),
+              ),
+            ),
           ),
         ],
       ),
@@ -276,8 +294,11 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.mic_off_rounded,
-                  size: 32, color: Colors.white.withAlpha(30)),
+              Icon(
+                Icons.mic_off_rounded,
+                size: 32,
+                color: Colors.white.withAlpha(30),
+              ),
               const SizedBox(height: 12),
               Text(
                 'Speech recognition\nunavailable',
@@ -309,8 +330,11 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.record_voice_over_rounded,
-                  size: 28, color: Colors.white.withAlpha(20)),
+              Icon(
+                Icons.record_voice_over_rounded,
+                size: 28,
+                color: Colors.white.withAlpha(20),
+              ),
               const SizedBox(height: 12),
               Text(
                 'Press Start to begin\nlive transcription',
@@ -333,8 +357,14 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
       itemBuilder: (_, i) {
         if (i < _entries.length) {
           final entry = _entries[i];
-          final mm = entry.timestamp.inMinutes.remainder(60).toString().padLeft(2, '0');
-          final ss = entry.timestamp.inSeconds.remainder(60).toString().padLeft(2, '0');
+          final mm = entry.timestamp.inMinutes
+              .remainder(60)
+              .toString()
+              .padLeft(2, '0');
+          final ss = entry.timestamp.inSeconds
+              .remainder(60)
+              .toString()
+              .padLeft(2, '0');
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
@@ -400,9 +430,7 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Colors.white.withAlpha(8)),
-        ),
+        border: Border(top: BorderSide(color: Colors.white.withAlpha(8))),
       ),
       child: SizedBox(
         width: double.infinity,
