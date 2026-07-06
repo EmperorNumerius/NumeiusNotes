@@ -43,10 +43,9 @@ class TabManager extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () => docMgr.setActiveTab(i),
                     child: Container(
-                      constraints: const BoxConstraints(
-                          minWidth: 100, maxWidth: 180),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12),
+                      constraints:
+                          const BoxConstraints(minWidth: 100, maxWidth: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
                         color: isActive
                             ? const Color(0xFF1A1A3E)
@@ -92,14 +91,20 @@ class TabManager extends StatelessWidget {
                           const SizedBox(width: 4),
                           // Close button
                           if (tabs.length > 1)
-                            GestureDetector(
-                              onTap: () => docMgr.closeTab(i),
-                              child: Padding(
-                                padding: const EdgeInsets.all(2),
-                                child: Icon(
-                                  Icons.close,
-                                  size: 12,
-                                  color: Colors.white.withAlpha(60),
+                            Tooltip(
+                              message: 'Close tab',
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: GestureDetector(
+                                  onTap: () => docMgr.closeTab(i),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(2),
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 12,
+                                      color: Colors.white.withAlpha(60),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
