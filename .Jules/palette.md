@@ -1,0 +1,3 @@
+## 2024-05-24 - Add Confirmation Dialogs for Destructive Actions
+**Learning:** Destructive actions like deleting folders or notes from modal bottom sheets can easily cause accidental data loss if not confirmed. Standard `AlertDialog`s inside modal callbacks enhance safety and prevent accidental deletions. In Flutter, always `Navigator.pop(context)` on the modal bottom sheet *before* showing the confirmation dialog to prevent incorrectly stacked UI elements.
+**Action:** When implementing destructive UI actions in lists or grids, explicitly verify if a confirmation dialog pattern exists and implement it if missing, ensuring parent menus are popped first.
