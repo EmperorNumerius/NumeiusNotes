@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:notes_app/widgets/tab_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:notes_app/controllers/document_manager.dart';
-import 'package:notes_app/models/document.dart';
+
 
 void main() {
   testWidgets('TabManager tooltips are present', (WidgetTester tester) async {
