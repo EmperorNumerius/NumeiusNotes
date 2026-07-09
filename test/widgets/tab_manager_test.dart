@@ -4,7 +4,6 @@ import 'package:notes_app/widgets/tab_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:notes_app/controllers/document_manager.dart';
 
-
 void main() {
   testWidgets('TabManager tooltips are present', (WidgetTester tester) async {
     final docMgr = DocumentManager();
@@ -29,6 +28,7 @@ void main() {
     expect(find.byTooltip('New Note'), findsOneWidget);
 
     // Verify 'Close' tooltip is present on the close button
-    expect(find.byTooltip('Close'), findsNWidgets(2)); // two tabs, two close buttons
+    expect(find.byTooltip('Close'),
+        findsNWidgets(2)); // two tabs, two close buttons
   });
 }
