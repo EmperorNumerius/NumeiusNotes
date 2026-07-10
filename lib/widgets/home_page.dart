@@ -46,14 +46,12 @@ class _HomePageState extends State<HomePage> {
           LogicalKeyboardKey.keyN,
           control: true,
           shift: true,
-        ): () =>
-            _createFolder(docMgr),
+        ): () => _createFolder(docMgr),
         const SingleActivator(
           LogicalKeyboardKey.keyN,
           meta: true,
           shift: true,
-        ): () =>
-            _createFolder(docMgr),
+        ): () => _createFolder(docMgr),
         const SingleActivator(LogicalKeyboardKey.keyF, control: true): () =>
             _searchFocusNode.requestFocus(),
         const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () =>
@@ -253,9 +251,8 @@ class _HomePageState extends State<HomePage> {
                   child: Text(
                     label,
                     style: TextStyle(
-                      color: selected
-                          ? Colors.white
-                          : Colors.white.withAlpha(160),
+                      color:
+                          selected ? Colors.white : Colors.white.withAlpha(160),
                       fontSize: 14,
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                     ),
@@ -623,11 +620,10 @@ class _HomePageState extends State<HomePage> {
     final timeAgo = _formatTimeAgo(note.updatedAt);
     final preview =
         note.blocks.isNotEmpty && note.blocks.first.content.isNotEmpty
-        ? note.blocks.first.content
-        : null;
-    final accentColor = isPdf
-        ? const Color(0xFFFF6B6B)
-        : const Color(0xFF00D2FF);
+            ? note.blocks.first.content
+            : null;
+    final accentColor =
+        isPdf ? const Color(0xFFFF6B6B) : const Color(0xFF00D2FF);
 
     return Material(
       color: Colors.transparent,
@@ -705,9 +701,8 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.white.withAlpha(preview != null ? 90 : 50),
                     fontSize: 12,
                     height: 1.5,
-                    fontStyle: preview != null
-                        ? FontStyle.normal
-                        : FontStyle.italic,
+                    fontStyle:
+                        preview != null ? FontStyle.normal : FontStyle.italic,
                   ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
