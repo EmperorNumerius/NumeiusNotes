@@ -653,9 +653,12 @@ class _HomePageState extends State<HomePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => _showNoteMenu(note, docMgr),
-                    child: Icon(
+                  IconButton(
+                    onPressed: () => _showNoteMenu(note, docMgr),
+                    tooltip: 'Note options',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: Icon(
                       Icons.more_horiz_rounded,
                       size: 18,
                       color: Colors.white.withAlpha(50),
