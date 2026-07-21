@@ -151,31 +151,32 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
             children: [
               Icon(Icons.chevron_left_rounded,
                   size: 16, color: Colors.white.withAlpha(50)),
-            const SizedBox(height: 8),
-            RotatedBox(
-              quarterTurns: 1,
-              child: Text(
-                'TRANSCRIPT',
-                style: TextStyle(
-                  color: Colors.white.withAlpha(40),
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ),
-            if (_isListening) ...[
               const SizedBox(height: 8),
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFF6B6B),
-                  shape: BoxShape.circle,
+              RotatedBox(
+                quarterTurns: 1,
+                child: Text(
+                  'TRANSCRIPT',
+                  style: TextStyle(
+                    color: Colors.white.withAlpha(40),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                  ),
                 ),
               ),
+              if (_isListening) ...[
+                const SizedBox(height: 8),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFF6B6B),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
