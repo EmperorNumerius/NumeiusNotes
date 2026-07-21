@@ -134,46 +134,49 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
   }
 
   Widget _buildCollapsedBar() {
-    return GestureDetector(
-      onTap: () => setState(() => _collapsed = false),
-      child: Container(
-        width: 36,
-        decoration: BoxDecoration(
-          color: const Color(0xFF0D0D20),
-          border: Border(
-            left: BorderSide(color: Colors.white.withAlpha(10)),
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.chevron_left_rounded,
-                size: 16, color: Colors.white.withAlpha(50)),
-            const SizedBox(height: 8),
-            RotatedBox(
-              quarterTurns: 1,
-              child: Text(
-                'TRANSCRIPT',
-                style: TextStyle(
-                  color: Colors.white.withAlpha(40),
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5,
-                ),
-              ),
+    return Tooltip(
+      message: 'Expand panel',
+      child: GestureDetector(
+        onTap: () => setState(() => _collapsed = false),
+        child: Container(
+          width: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0D0D20),
+            border: Border(
+              left: BorderSide(color: Colors.white.withAlpha(10)),
             ),
-            if (_isListening) ...[
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.chevron_left_rounded,
+                  size: 16, color: Colors.white.withAlpha(50)),
               const SizedBox(height: 8),
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFF6B6B),
-                  shape: BoxShape.circle,
+              RotatedBox(
+                quarterTurns: 1,
+                child: Text(
+                  'TRANSCRIPT',
+                  style: TextStyle(
+                    color: Colors.white.withAlpha(40),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                  ),
                 ),
               ),
+              if (_isListening) ...[
+                const SizedBox(height: 8),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFF6B6B),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -258,10 +261,13 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
             ),
           const SizedBox(width: 8),
           // Collapse
-          GestureDetector(
-            onTap: () => setState(() => _collapsed = true),
-            child: Icon(Icons.chevron_right_rounded,
-                size: 16, color: Colors.white.withAlpha(50)),
+          Tooltip(
+            message: 'Collapse panel',
+            child: GestureDetector(
+              onTap: () => setState(() => _collapsed = true),
+              child: Icon(Icons.chevron_right_rounded,
+                  size: 16, color: Colors.white.withAlpha(50)),
+            ),
           ),
         ],
       ),
