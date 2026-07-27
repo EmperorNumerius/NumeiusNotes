@@ -1,0 +1,1 @@
+## 2024-07-27 - IconButton Accessibility Enhancement\n**Learning:** Replaced `GestureDetector` wraps around `Icon`s with `IconButton` in Flutter to leverage native accessible tooltips.\n**Action:** Set `padding: EdgeInsets.zero` and `constraints: const BoxConstraints()` on the `IconButton` to prevent layout shifts.
