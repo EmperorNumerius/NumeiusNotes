@@ -30,6 +30,7 @@ class TabManager extends StatelessWidget {
                 );
               },
               itemCount: tabs.length,
+              // ignore: deprecated_member_use
               onReorder: (oldIdx, newIdx) {
                 docMgr.reorderTabs(oldIdx, newIdx);
               },
@@ -92,16 +93,16 @@ class TabManager extends StatelessWidget {
                           const SizedBox(width: 4),
                           // Close button
                           if (tabs.length > 1)
-                            GestureDetector(
-                              onTap: () => docMgr.closeTab(i),
-                              child: Padding(
-                                padding: const EdgeInsets.all(2),
-                                child: Icon(
-                                  Icons.close,
-                                  size: 12,
-                                  color: Colors.white.withAlpha(60),
-                                ),
+                            IconButton(
+                              onPressed: () => docMgr.closeTab(i),
+                              icon: Icon(
+                                Icons.close,
+                                size: 12,
+                                color: Colors.white.withAlpha(60),
                               ),
+                              tooltip: 'Close tab',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
                             ),
                         ],
                       ),
