@@ -1,0 +1,3 @@
+## 2024-05-24 - Accessible Icon Buttons in Flutter
+**Learning:** Wrapping `Icon` widgets directly with `GestureDetector` deprives users of native semantic labeling, missing tooltips, and hover/focus states, which are vital for screen reader and keyboard accessibility.
+**Action:** Always replace `GestureDetector(child: Icon(...))` with `IconButton(icon: Icon(...), tooltip: '...')`. If layout constraints (padding/margins) are a concern, use `padding: EdgeInsets.zero` and `constraints: const BoxConstraints()` on the `IconButton` to mimic the tight spacing of a raw `GestureDetector`.
