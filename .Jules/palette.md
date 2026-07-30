@@ -1,0 +1,3 @@
+## 2023-10-27 - Flutter Accessibility Wrappers
+**Learning:** Replacing `GestureDetector(child: Icon())` with `IconButton` is a straightforward way to provide missing accessibility semantics (native tooltips and ARIA-like labels for screen readers) and visual feedback (Material ripples) in Flutter apps without adding custom widget wrappers. It maintains correct layout boundaries when configured with `padding: EdgeInsets.zero` and `constraints: const BoxConstraints()`.
+**Action:** Always favor standard `IconButton` with a `tooltip` over custom `GestureDetector` wrappers for simple icon buttons to natively inherit accessibility properties.
