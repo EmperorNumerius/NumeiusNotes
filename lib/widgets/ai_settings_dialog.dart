@@ -50,8 +50,9 @@ class _AiSettingsDialogState extends State<AiSettingsDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // ignore: deprecated_member_use, strict_raw_type, deprecated_member_use_from_same_package
               DropdownButtonFormField<AiProviderType>(
-                value: settings.provider,
+                initialValue: settings.provider,
                 decoration: const InputDecoration(labelText: 'Provider'),
                 items: const [
                   DropdownMenuItem(
