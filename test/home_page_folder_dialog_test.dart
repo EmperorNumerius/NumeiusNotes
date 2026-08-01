@@ -155,8 +155,8 @@ void main() {
     final noteCard = find.text('Test Note');
     expect(noteCard, findsOneWidget);
 
-    // Long press to open menu
-    await tester.longPress(noteCard);
+    // Tap the more_horiz icon button to open menu
+    await tester.tap(find.byIcon(Icons.more_horiz_rounded));
     await tester.pumpAndSettle();
 
     // Verify bottom sheet appears
