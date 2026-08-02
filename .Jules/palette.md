@@ -1,0 +1,3 @@
+## 2025-01-20 - Adding Accessibility to Icon-Only Context Menus
+**Learning:** Using `GestureDetector` on unlabelled icon-only components like context menus (e.g., `Icons.more_horiz_rounded`) misses semantic grouping and accessibility tree integration in Flutter, making them invisible or cryptic to screen readers.
+**Action:** Always prefer wrapping icons in an `IconButton` (with custom padding constraints if layout dictates) because it natively provides hover states, semantic ARIA-like labels (`tooltip`), and ripple feedback out of the box, avoiding regressions while fulfilling accessibility needs.

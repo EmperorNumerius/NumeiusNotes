@@ -155,7 +155,7 @@ void main() {
     final noteCard = find.text('Old Note');
     expect(noteCard, findsOneWidget);
 
-    await tester.longPress(noteCard);
+    await tester.tap(find.byIcon(Icons.more_horiz_rounded));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Rename'));
