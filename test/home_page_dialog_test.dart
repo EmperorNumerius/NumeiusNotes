@@ -117,7 +117,7 @@ void main() {
     final folderCard = find.text('Old Folder');
     expect(folderCard, findsOneWidget);
 
-    await tester.longPress(folderCard);
+    await tester.tap(find.byIcon(Icons.more_horiz_rounded).first);
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Rename'));
@@ -155,7 +155,7 @@ void main() {
     final noteCard = find.text('Old Note');
     expect(noteCard, findsOneWidget);
 
-    await tester.longPress(noteCard);
+    await tester.tap(find.byIcon(Icons.more_horiz_rounded).last);
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Rename'));
