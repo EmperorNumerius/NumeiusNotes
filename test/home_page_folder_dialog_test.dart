@@ -112,7 +112,7 @@ void main() {
     expect(folderCard, findsOneWidget);
 
     // Long press to open menu
-    await tester.longPress(folderCard);
+    await tester.tap(find.byIcon(Icons.more_horiz_rounded).first);
     await tester.pumpAndSettle();
 
     // Verify bottom sheet appears
@@ -156,7 +156,7 @@ void main() {
     expect(noteCard, findsOneWidget);
 
     // Long press to open menu
-    await tester.longPress(noteCard);
+    await tester.tap(find.byIcon(Icons.more_horiz_rounded).last);
     await tester.pumpAndSettle();
 
     // Verify bottom sheet appears
