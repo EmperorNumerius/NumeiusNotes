@@ -1,0 +1,3 @@
+## 2024-05-20 - Accessible Note Options Button
+**Learning:** Icon-only buttons using `GestureDetector` with small icons (18x18) lack both semantic labels for screen readers and sufficient touch target size. While `IconButton` fixes this by providing a tooltip (ARIA equivalent) and a 48x48 touch target, substituting it in compact list rows can affect layouts if not accounted for. However, standard accessible touch targets should not be compromised with `BoxConstraints()` overrides.
+**Action:** Always prefer `IconButton` with the `tooltip` property over `GestureDetector` for icon-only interactions to natively support both screen reader semantics and accessible touch areas.
