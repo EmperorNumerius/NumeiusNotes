@@ -118,16 +118,13 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.white, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    'NumeiusNotes',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.3,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                const Text(
+                  'NumeiusNotes',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
                   ),
                 ),
               ],
@@ -656,11 +653,13 @@ class _HomePageState extends State<HomePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  IconButton(
-                    onPressed: () => _showNoteMenu(note, docMgr),
-                    tooltip: 'Note options',
-                    icon: const Icon(Icons.more_horiz_rounded, size: 18),
-                    color: Colors.white.withAlpha(50),
+                  GestureDetector(
+                    onTap: () => _showNoteMenu(note, docMgr),
+                    child: Icon(
+                      Icons.more_horiz_rounded,
+                      size: 18,
+                      color: Colors.white.withAlpha(50),
+                    ),
                   ),
                 ],
               ),
