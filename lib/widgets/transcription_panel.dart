@@ -97,8 +97,10 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
     final doc = docMgr.activeDocument;
     if (doc != null) {
       doc.transcription = _entries.map((e) {
-        final mm = e.timestamp.inMinutes.remainder(60).toString().padLeft(2, '0');
-        final ss = e.timestamp.inSeconds.remainder(60).toString().padLeft(2, '0');
+        final mm =
+            e.timestamp.inMinutes.remainder(60).toString().padLeft(2, '0');
+        final ss =
+            e.timestamp.inSeconds.remainder(60).toString().padLeft(2, '0');
         return '[$mm:$ss] ${e.text}';
       }).join('\n');
       docMgr.saveActiveDocument();
@@ -258,9 +260,10 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
             ),
           const SizedBox(width: 8),
           // Collapse
-          GestureDetector(
-            onTap: () => setState(() => _collapsed = true),
-            child: Icon(Icons.chevron_right_rounded,
+          IconButton(
+            tooltip: 'Collapse panel',
+            onPressed: () => setState(() => _collapsed = true),
+            icon: Icon(Icons.chevron_right_rounded,
                 size: 16, color: Colors.white.withAlpha(50)),
           ),
         ],
@@ -333,8 +336,14 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
       itemBuilder: (_, i) {
         if (i < _entries.length) {
           final entry = _entries[i];
-          final mm = entry.timestamp.inMinutes.remainder(60).toString().padLeft(2, '0');
-          final ss = entry.timestamp.inSeconds.remainder(60).toString().padLeft(2, '0');
+          final mm = entry.timestamp.inMinutes
+              .remainder(60)
+              .toString()
+              .padLeft(2, '0');
+          final ss = entry.timestamp.inSeconds
+              .remainder(60)
+              .toString()
+              .padLeft(2, '0');
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
