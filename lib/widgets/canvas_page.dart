@@ -532,22 +532,23 @@ class _CanvasPageState extends State<CanvasPage> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: IconButton(
-        tooltip: label,
-        onPressed: onTap,
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(),
-        icon: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: color.withAlpha(15),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: color.withAlpha(30)),
+    return Tooltip(
+      message: label,
+      preferBelow: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withAlpha(15),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: color.withAlpha(30)),
+            ),
+            child: Icon(icon, size: 18, color: color.withAlpha(200)),
           ),
-          child: Icon(icon, size: 18, color: color.withAlpha(200)),
         ),
       ),
     );
@@ -1169,28 +1170,28 @@ class _CanvasPageState extends State<CanvasPage> {
     Color? activeColor,
   }) {
     final color = activeColor ?? const Color(0xFF00D2FF);
-    return IconButton(
-      tooltip: label,
-      onPressed: onTap,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-      icon: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: isActive ? color.withAlpha(28) : Colors.transparent,
-          borderRadius: BorderRadius.circular(9),
-          border: Border.all(
-            color: isActive ? color.withAlpha(90) : Colors.transparent,
+    return Tooltip(
+      message: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: isActive ? color.withAlpha(28) : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(
+              color: isActive ? color.withAlpha(90) : Colors.transparent,
+            ),
           ),
-        ),
-        child: Icon(
-          icon,
-          size: 18,
-          color: onTap == null
-              ? Colors.white.withAlpha(50)
-              : (isActive ? color : Colors.white.withAlpha(130)),
+          child: Icon(
+            icon,
+            size: 18,
+            color: onTap == null
+                ? Colors.white.withAlpha(50)
+                : (isActive ? color : Colors.white.withAlpha(130)),
+          ),
         ),
       ),
     );
@@ -1379,19 +1380,19 @@ class _CanvasPageState extends State<CanvasPage> {
   }
 
   Widget _iconBtn(IconData icon, VoidCallback onTap) {
-    return IconButton(
-      tooltip: icon == Icons.undo_rounded ? 'Undo' : 'Redo',
-      onPressed: onTap,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-      icon: Container(
-        width: 38,
-        height: 38,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(9),
+    return Tooltip(
+      message: icon == Icons.undo_rounded ? 'Undo' : 'Redo',
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 38,
+          height: 38,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(icon, size: 18, color: Colors.white.withAlpha(130)),
         ),
-        child: Icon(icon, size: 18, color: Colors.white.withAlpha(130)),
       ),
     );
   }
