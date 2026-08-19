@@ -1,0 +1,3 @@
+## 2024-08-19 - Accessible Options Menu Icon
+**Learning:** Found an accessibility issue where the "more options" icon (more_horiz_rounded) on note cards was wrapped in a simple GestureDetector without semantic information or an accessible touch target. Also learned that unconstrained Text widgets next to icons in rows can cause RenderFlex overflows on narrow screens during testing.
+**Action:** Replaced the GestureDetector wrapped Icon with an IconButton, which natively provides a tooltip (ARIA label equivalent in web/desktop Flutter), a proper 48x48 accessible touch target, and hover effects. Wrapped the adjacent title Text in an Expanded widget with TextOverflow.ellipsis to prevent layout errors.
