@@ -497,6 +497,8 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                         _showOutput = false;
                         widget.block.output = '';
                       }),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                       tooltip: 'Close output',
                       icon: const Icon(Icons.close,
                           size: 12, color: Colors.white24),

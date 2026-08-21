@@ -260,6 +260,8 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
           // Collapse
           IconButton(
             onPressed: () => setState(() => _collapsed = true),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
             tooltip: 'Collapse panel',
             icon: Icon(Icons.chevron_right_rounded,
                 size: 16, color: Colors.white.withAlpha(50)),

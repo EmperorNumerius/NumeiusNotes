@@ -94,6 +94,8 @@ class TabManager extends StatelessWidget {
                           if (tabs.length > 1)
                             IconButton(
                               onPressed: () => docMgr.closeTab(i),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
                               tooltip: 'Close tab',
                               icon: Icon(
                                 Icons.close,

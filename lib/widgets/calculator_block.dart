@@ -285,6 +285,8 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: _result));
                   },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   tooltip: 'Copy result',
                   icon: Icon(
                     Icons.copy_rounded,
