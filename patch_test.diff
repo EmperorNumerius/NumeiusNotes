@@ -1,0 +1,25 @@
+--- lib/widgets/home_page.dart
++++ lib/widgets/home_page.dart
+@@ -107,13 +107,15 @@
+                 ),
+                 const SizedBox(width: 12),
+-                const Text(
+-                  'NumeiusNotes',
+-                  style: TextStyle(
+-                    color: Colors.white,
+-                    fontSize: 17,
+-                    fontWeight: FontWeight.w700,
+-                    letterSpacing: -0.3,
++                const Expanded(
++                  child: Text(
++                    'NumeiusNotes',
++                    style: TextStyle(
++                      color: Colors.white,
++                      fontSize: 17,
++                      fontWeight: FontWeight.w700,
++                      letterSpacing: -0.3,
++                    ),
++                    overflow: TextOverflow.ellipsis,
+                   ),
+                 ),
+               ],

@@ -1,0 +1,19 @@
+--- lib/widgets/code_block.dart
++++ lib/widgets/code_block.dart
+@@ -494,11 +494,12 @@
+                             fontWeight: FontWeight.bold)),
+                     const Spacer(),
+-                    GestureDetector(
+-                      onTap: () => setState(() {
++                    IconButton(
++                      onPressed: () => setState(() {
+                         _showOutput = false;
+                         widget.block.output = '';
+                       }),
+-                      child: const Icon(Icons.close,
++                      padding: EdgeInsets.zero,
++                      constraints: const BoxConstraints(),
++                      tooltip: 'Close output',
++                      icon: const Icon(Icons.close,
+                           size: 12, color: Colors.white24),
+                     ),

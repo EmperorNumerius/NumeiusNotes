@@ -1,0 +1,19 @@
+--- lib/widgets/home_page.dart
++++ lib/widgets/home_page.dart
+@@ -655,12 +655,13 @@
+                       overflow: TextOverflow.ellipsis,
+                     ),
+                   ),
+-                  GestureDetector(
+-                    onTap: () => _showNoteMenu(note, docMgr),
+-                    child: Icon(
++                  IconButton(
++                    onPressed: () => _showNoteMenu(note, docMgr),
++                    tooltip: 'More options',
++                    icon: Icon(
+                       Icons.more_horiz_rounded,
+                       size: 18,
+                       color: Colors.white.withAlpha(50),
+                     ),
+                   ),
+                 ],

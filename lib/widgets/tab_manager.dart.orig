@@ -92,13 +92,15 @@ class TabManager extends StatelessWidget {
                           const SizedBox(width: 4),
                           // Close button
                           if (tabs.length > 1)
-                            IconButton(
-                              onPressed: () => docMgr.closeTab(i),
-                              tooltip: 'Close tab',
-                              icon: Icon(
-                                Icons.close,
-                                size: 12,
-                                color: Colors.white.withAlpha(60),
+                            GestureDetector(
+                              onTap: () => docMgr.closeTab(i),
+                              child: Padding(
+                                padding: const EdgeInsets.all(2),
+                                child: Icon(
+                                  Icons.close,
+                                  size: 12,
+                                  color: Colors.white.withAlpha(60),
+                                ),
                               ),
                             ),
                         ],

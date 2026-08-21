@@ -281,15 +281,17 @@ class _CalculatorBlockWidgetState extends State<CalculatorBlockWidget> {
                 ),
               ),
               if (_result.isNotEmpty && !isError)
-                IconButton(
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: _result));
-                  },
-                  tooltip: 'Copy result',
-                  icon: Icon(
-                    Icons.copy_rounded,
-                    size: 15,
-                    color: resultColor.withAlpha(130),
+                Tooltip(
+                  message: 'Copy result',
+                  child: GestureDetector(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: _result));
+                    },
+                    child: Icon(
+                      Icons.copy_rounded,
+                      size: 15,
+                      color: resultColor.withAlpha(130),
+                    ),
                   ),
                 ),
             ],

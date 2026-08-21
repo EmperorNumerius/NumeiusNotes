@@ -258,9 +258,10 @@ class _TranscriptionPanelState extends State<TranscriptionPanel> {
             ),
           const SizedBox(width: 8),
           // Collapse
-          GestureDetector(
-            onTap: () => setState(() => _collapsed = true),
-            child: Icon(Icons.chevron_right_rounded,
+          IconButton(
+            onPressed: () => setState(() => _collapsed = true),
+            tooltip: 'Collapse panel',
+            icon: Icon(Icons.chevron_right_rounded,
                 size: 16, color: Colors.white.withAlpha(50)),
           ),
         ],
