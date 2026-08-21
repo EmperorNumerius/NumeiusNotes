@@ -492,12 +492,15 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
                             fontSize: 10,
                             fontWeight: FontWeight.bold)),
                     const Spacer(),
-                    GestureDetector(
-                      onTap: () => setState(() {
+                    IconButton(
+                      onPressed: () => setState(() {
                         _showOutput = false;
                         widget.block.output = '';
                       }),
-                      child: const Icon(Icons.close,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      tooltip: 'Close output',
+                      icon: const Icon(Icons.close,
                           size: 12, color: Colors.white24),
                     ),
                   ],
