@@ -92,16 +92,18 @@ class TabManager extends StatelessWidget {
                           const SizedBox(width: 4),
                           // Close button
                           if (tabs.length > 1)
-                            GestureDetector(
-                              onTap: () => docMgr.closeTab(i),
-                              child: Padding(
-                                padding: const EdgeInsets.all(2),
-                                child: Icon(
-                                  Icons.close,
-                                  size: 12,
-                                  color: Colors.white.withAlpha(60),
-                                ),
+                            IconButton(
+                              onPressed: () => docMgr.closeTab(i),
+                              tooltip: 'Close tab',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 24,
+                                minHeight: 24,
                               ),
+                              iconSize: 12,
+                              color: Colors.white.withAlpha(60),
+                              hoverColor: Colors.white.withAlpha(15),
+                              icon: const Icon(Icons.close),
                             ),
                         ],
                       ),
@@ -112,18 +114,18 @@ class TabManager extends StatelessWidget {
             ),
           ),
           // Add tab
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => docMgr.createDocument(),
-              child: Container(
-                width: 32,
-                height: 42,
-                alignment: Alignment.center,
-                child: Icon(Icons.add,
-                    color: Colors.white.withAlpha(80), size: 16),
-              ),
+          IconButton(
+            onPressed: () => docMgr.createDocument(),
+            tooltip: 'New tab',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 32,
+              minHeight: 42,
             ),
+            iconSize: 16,
+            color: Colors.white.withAlpha(80),
+            hoverColor: Colors.white.withAlpha(15),
+            icon: const Icon(Icons.add),
           ),
         ],
       ),
