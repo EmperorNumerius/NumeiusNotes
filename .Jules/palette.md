@@ -1,0 +1,3 @@
+## 2024-05-15 - Tab Manager Accessibility Fix
+**Learning:** Replaced `GestureDetector` and `InkWell` with `IconButton` for icon-only actions ("Close tab", "Add tab") to automatically gain `tooltip` functionality (which sets ARIA-like labels for screen readers and provides hover states) without wrapping them in separate `Tooltip` widgets, satisfying accessibility guidelines natively while addressing layout constraints with `padding` and `BoxConstraints`.
+**Action:** Always prefer `IconButton` with a `tooltip` for icon-only interactive elements in compact Flutter UIs. Ensure `BoxConstraints(minWidth, minHeight)` and `padding: EdgeInsets.zero` are utilized when space is constrained to maintain layout while meeting touch target sizes.
