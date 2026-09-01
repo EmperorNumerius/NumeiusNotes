@@ -1,0 +1,3 @@
+## 2024-05-15 - Fixed RenderFlex in HomePage Sidebar
+**Learning:** During narrow-viewport rendering, static text elements placed next to fixed-width icons within a constrained container (like a sidebar) can cause `RenderFlex` overflows. This often happens because the combined width of the icon, padding, and text exceeds the available width, which flutter tests are particularly sensitive to in simulated narrow screens.
+**Action:** When designing sidebars or similar constrained layouts, wrap text elements in `Expanded` or `Flexible` widgets and utilize `overflow: TextOverflow.ellipsis` to gracefully truncate the text rather than overflowing the layout.
