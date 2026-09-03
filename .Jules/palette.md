@@ -1,0 +1,3 @@
+## 2024-11-23 - Accessibility with IconButton
+**Learning:** Using `IconButton` instead of wrapping custom icons in `GestureDetector` automatically provides built-in tooltip/ARIA-like accessibility semantics for icon-only interactive elements in Flutter, and works well when replacing them as long as `padding` and `constraints` are set properly to prevent layout shifts. In addition, fixing test RenderFlex overflows was needed by adding `Expanded` to static text placed alongside constrained items like icons.
+**Action:** Always prefer `IconButton` for icon buttons, and enforce proper constraints (`minWidth`, `minHeight`) and zero `padding` when compact UI dictates it, rather than rolling custom `GestureDetector`s.
