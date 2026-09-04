@@ -30,6 +30,7 @@ class TabManager extends StatelessWidget {
                 );
               },
               itemCount: tabs.length,
+              // ignore: deprecated_member_use
               onReorder: (oldIdx, newIdx) {
                 docMgr.reorderTabs(oldIdx, newIdx);
               },
@@ -92,15 +93,15 @@ class TabManager extends StatelessWidget {
                           const SizedBox(width: 4),
                           // Close button
                           if (tabs.length > 1)
-                            GestureDetector(
-                              onTap: () => docMgr.closeTab(i),
-                              child: Padding(
-                                padding: const EdgeInsets.all(2),
-                                child: Icon(
-                                  Icons.close,
-                                  size: 12,
-                                  color: Colors.white.withAlpha(60),
-                                ),
+                            IconButton(
+                              onPressed: () => docMgr.closeTab(i),
+                              tooltip: 'Close Tab',
+                              padding: const EdgeInsets.all(2),
+                              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                              iconSize: 12,
+                              icon: Icon(
+                                Icons.close,
+                                color: Colors.white.withAlpha(60),
                               ),
                             ),
                         ],
@@ -114,15 +115,13 @@ class TabManager extends StatelessWidget {
           // Add tab
           Material(
             color: Colors.transparent,
-            child: InkWell(
-              onTap: () => docMgr.createDocument(),
-              child: Container(
-                width: 32,
-                height: 42,
-                alignment: Alignment.center,
-                child: Icon(Icons.add,
-                    color: Colors.white.withAlpha(80), size: 16),
-              ),
+            child: IconButton(
+              onPressed: () => docMgr.createDocument(),
+              tooltip: 'New Tab',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 42),
+              icon: Icon(Icons.add,
+                  color: Colors.white.withAlpha(80), size: 16),
             ),
           ),
         ],
