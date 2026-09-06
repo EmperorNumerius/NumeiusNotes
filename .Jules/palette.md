@@ -1,7 +1,0 @@
-## 2024-09-06 - Accessible Icon Buttons in Compact UI
-**Learning:** In highly constrained horizontal UI spaces (like a browser tab bar), standard Flutter `IconButton`s default to a `48x48` touch target that adds padding which can break existing layout constraints causing `RenderFlex` overflows, or forcing developers to use generic `GestureDetector` widgets which lack focus states, hover effects, and screen reader labels.
-**Action:** When swapping a `GestureDetector` for an `IconButton` in tight spaces (e.g. `TabManager` tab close and add buttons), explicitly override default margins using `padding: EdgeInsets.zero` and use `BoxConstraints(minWidth: X, minHeight: Y)` instead of `BoxConstraints()` to preserve the intended compact layout while maintaining semantic meaning, a minimum usable touch target area, hover states, and adding a `tooltip` for screen readers and mouse users.
-
-## 2024-09-06 - Fixing Layout Overflows for Text next to Fixed-Size elements
-**Learning:** When using fixed-width container icons next to static Text in a horizontal `Row`, shrinking the overall viewport (like during narrow-viewport widget tests) can easily cause a `RenderFlex` overflow on the right side if the text has nowhere to go.
-**Action:** Always wrap static/dynamic text elements placed next to fixed-width elements (like the app title in a sidebar, or breadcrumbs) in an `Expanded` or `Flexible` widget with `overflow: TextOverflow.ellipsis` to gracefully handle tight bounds without crashing the render pass or breaking widget tests.
