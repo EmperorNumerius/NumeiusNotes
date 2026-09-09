@@ -1,0 +1,3 @@
+## 2024-05-14 - Replace GestureDetector with IconButton for tooltips and accessibility
+**Learning:** In Flutter, wrapping an icon in a `GestureDetector` deprives the element of native hover states, ARIA-like semantic labels for screen readers, and tooltips on desktop/web.
+**Action:** Prefer using `IconButton` instead of `GestureDetector` for icon-only interactions. Supply a `tooltip` parameter. In tight layouts, override `padding: EdgeInsets.zero` and use custom `constraints` (e.g., `BoxConstraints(minWidth: 28, minHeight: 28)`) to maintain the tappable area without causing visual layout regressions.
