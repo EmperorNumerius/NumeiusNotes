@@ -118,13 +118,16 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.white, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'NumeiusNotes',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
+                const Expanded(
+                  child: Text(
+                    'NumeiusNotes',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -494,16 +497,22 @@ class _HomePageState extends State<HomePage> {
       id = f.parentId;
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        InkWell(
-          onTap: () => setState(() => _currentFolderId = null),
-          child: Icon(Icons.home_rounded,
-              color: Colors.white.withAlpha(100), size: 16),
-        ),
-        ...path.map((f) => Row(
-              mainAxisSize: MainAxisSize.min,
+    return Flexible(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.home_rounded, color: Colors.white.withAlpha(100), size: 16),
+              onPressed: () => setState(() => _currentFolderId = null),
+              tooltip: 'Home',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+              splashRadius: 16,
+            ),
+            ...path.map((f) => Row(
+                  mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.chevron_right,
                     color: Colors.white.withAlpha(40), size: 16),
@@ -524,7 +533,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             )),
-      ],
+          ],
+        ),
+      ),
     );
   }
 

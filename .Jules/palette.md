@@ -1,0 +1,3 @@
+## 2024-11-20 - Use IconButton over InkWell for accessibility in Flutter
+**Learning:** Raw `InkWell` wrapping an `Icon` lacks native accessibility traits, meaning screen readers do not identify it as a button, and desktop/web users do not receive hover tooltips. `IconButton` provides these out-of-the-box (semantic ARIA-like label + tooltips).
+**Action:** Always prefer `IconButton` with a `tooltip` parameter for icon-only buttons in Flutter. If space constrained, use `padding: EdgeInsets.zero` and `constraints: const BoxConstraints(minWidth: 24, minHeight: 24)` to preserve tap targets without breaking layouts.
