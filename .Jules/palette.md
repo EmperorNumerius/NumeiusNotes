@@ -1,0 +1,4 @@
+
+## 2024-05-24 - Note Card Tooltip
+**Learning:** Adding a `Tooltip` to a bare `GestureDetector` holding an `Icon` improves accessibility without breaking the underlying layout or tap target. However, be cautious: in Flutter, the default `IconButton` constraints might increase the tap target size and break custom, tightly-constrained layouts like this note card grid. Wrapping the existing `GestureDetector` in a `Tooltip` provides the ARIA-like label and hover state while preserving the exact layout constraints.
+**Action:** When adding accessible labels to icon-only buttons in dense, custom grid layouts, prefer wrapping the existing interaction widget (like `GestureDetector`) with a `Tooltip` rather than swapping to an `IconButton` unless you can carefully reset all its padding and constraints to match the original design.
