@@ -1,0 +1,3 @@
+## 2024-05-24 - Accessible Compact UI Elements
+**Learning:** In constrained Flutter layouts (like tab managers or note cards), replacing standard `GestureDetector`s with `IconButton`s provides superior accessibility (tooltips, better tap targets) but can cause `RenderFlex` overflows due to default padding. Alternatively, wrapping an existing `GestureDetector` with a `Tooltip` is a safer layout choice when space is extremely tight.
+**Action:** Use `IconButton` with `padding: EdgeInsets.zero` and explicit `BoxConstraints` for compact toolbars, but prefer wrapping with `Tooltip` for dense grid items.
