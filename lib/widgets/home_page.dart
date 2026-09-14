@@ -118,13 +118,16 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.white, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'NumeiusNotes',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
+                const Expanded(
+                  child: Text(
+                    'NumeiusNotes',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -494,37 +497,42 @@ class _HomePageState extends State<HomePage> {
       id = f.parentId;
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        InkWell(
-          onTap: () => setState(() => _currentFolderId = null),
-          child: Icon(Icons.home_rounded,
-              color: Colors.white.withAlpha(100), size: 16),
-        ),
-        ...path.map((f) => Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.chevron_right,
-                    color: Colors.white.withAlpha(40), size: 16),
-                InkWell(
-                  onTap: () => setState(() => _currentFolderId = f.id),
-                  child: Text(
-                    f.name,
-                    style: TextStyle(
-                      color: f.id == _currentFolderId
-                          ? Colors.white
-                          : Colors.white.withAlpha(100),
-                      fontSize: 13,
-                      fontWeight: f.id == _currentFolderId
-                          ? FontWeight.w600
-                          : FontWeight.w400,
+    return Flexible(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            InkWell(
+              onTap: () => setState(() => _currentFolderId = null),
+              child: Icon(Icons.home_rounded,
+                  color: Colors.white.withAlpha(100), size: 16),
+            ),
+            ...path.map((f) => Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.chevron_right,
+                        color: Colors.white.withAlpha(40), size: 16),
+                    InkWell(
+                      onTap: () => setState(() => _currentFolderId = f.id),
+                      child: Text(
+                        f.name,
+                        style: TextStyle(
+                          color: f.id == _currentFolderId
+                              ? Colors.white
+                              : Colors.white.withAlpha(100),
+                          fontSize: 13,
+                          fontWeight: f.id == _currentFolderId
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ],
-            )),
-      ],
+                  ],
+                )),
+          ],
+        ),
+      ),
     );
   }
 
@@ -653,12 +661,15 @@ class _HomePageState extends State<HomePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => _showNoteMenu(note, docMgr),
-                    child: Icon(
-                      Icons.more_horiz_rounded,
-                      size: 18,
-                      color: Colors.white.withAlpha(50),
+                  Tooltip(
+                    message: 'Note options',
+                    child: GestureDetector(
+                      onTap: () => _showNoteMenu(note, docMgr),
+                      child: Icon(
+                        Icons.more_horiz_rounded,
+                        size: 18,
+                        color: Colors.white.withAlpha(50),
+                      ),
                     ),
                   ),
                 ],
