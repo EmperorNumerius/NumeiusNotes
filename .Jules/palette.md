@@ -1,0 +1,3 @@
+## 2024-05-24 - Tooltip RenderFlex Regressions
+**Learning:** Wrapping deeply nested `GestureDetector` icons in custom UI components (like Note Cards) with a `Tooltip` widget can trigger `RenderFlex` overflows if sibling text elements in a `Row` are wrapped in `Expanded` instead of `Flexible` with `TextOverflow`, because `Tooltip` acts as an opaque boundary.
+**Action:** When adding accessibility tooltips inside constrained grids, prefer updating existing `IconButton` attributes. If wrapping is strictly necessary, ensure sibling text widgets rely on `TextOverflow.ellipsis` on `Expanded` rather than implicit width boundaries to prevent test failures.
