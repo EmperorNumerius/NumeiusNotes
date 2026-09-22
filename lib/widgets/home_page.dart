@@ -497,10 +497,13 @@ class _HomePageState extends State<HomePage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        InkWell(
-          onTap: () => setState(() => _currentFolderId = null),
-          child: Icon(Icons.home_rounded,
-              color: Colors.white.withAlpha(100), size: 16),
+        Tooltip(
+          message: 'Home',
+          child: InkWell(
+            onTap: () => setState(() => _currentFolderId = null),
+            child: Icon(Icons.home_rounded,
+                color: Colors.white.withAlpha(100), size: 16),
+          ),
         ),
         ...path.map((f) => Row(
               mainAxisSize: MainAxisSize.min,
