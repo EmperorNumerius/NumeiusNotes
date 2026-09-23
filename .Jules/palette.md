@@ -1,0 +1,3 @@
+## 2024-10-25 - Replace GestureDetector with Accessible IconButtons for Action Items
+**Learning:** In constrained compact UI areas like horizontal tab managers or note option items, `GestureDetector` instances for simple icon tap targets can cause accessibility problems because they lack focus rings, keyboard navigability, and screen reader semantic labeling.
+**Action:** Replace these `GestureDetector` icon blocks with `IconButton` widgets wrapped in `Tooltip` widgets, setting specific `BoxConstraints` and zero padding to maintain layout dimensions while drastically improving keyboard accessibility, tooltip visibility, and tap targets.
