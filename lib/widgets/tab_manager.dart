@@ -44,10 +44,9 @@ class TabManager extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () => docMgr.setActiveTab(i),
                     child: Container(
-                      constraints: const BoxConstraints(
-                          minWidth: 100, maxWidth: 180),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12),
+                      constraints:
+                          const BoxConstraints(minWidth: 100, maxWidth: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
                         color: isActive
                             ? const Color(0xFF1A1A3E)
@@ -96,7 +95,8 @@ class TabManager extends StatelessWidget {
                             IconButton(
                               onPressed: () => docMgr.closeTab(i),
                               padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                              constraints: const BoxConstraints(
+                                  minWidth: 16, minHeight: 16),
                               iconSize: 12,
                               tooltip: 'Close tab',
                               color: Colors.white.withAlpha(60),
