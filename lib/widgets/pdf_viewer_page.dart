@@ -849,29 +849,35 @@ class _PdfViewerPageState extends State<PdfViewerPage> {
           ),
           _divider(),
           // Undo/Redo
-          GestureDetector(
-            onTap: ctrl.undo,
-            child: Container(
-              width: 30,
-              height: 30,
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.undo_rounded,
-                size: 16,
-                color: Colors.white.withAlpha(120),
+          Tooltip(
+            message: 'Undo',
+            child: GestureDetector(
+              onTap: ctrl.undo,
+              child: Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.undo_rounded,
+                  size: 16,
+                  color: Colors.white.withAlpha(120),
+                ),
               ),
             ),
           ),
-          GestureDetector(
-            onTap: ctrl.redo,
-            child: Container(
-              width: 30,
-              height: 30,
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.redo_rounded,
-                size: 16,
-                color: Colors.white.withAlpha(120),
+          Tooltip(
+            message: 'Redo',
+            child: GestureDetector(
+              onTap: ctrl.redo,
+              child: Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.redo_rounded,
+                  size: 16,
+                  color: Colors.white.withAlpha(120),
+                ),
               ),
             ),
           ),
