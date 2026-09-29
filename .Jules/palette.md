@@ -1,0 +1,3 @@
+## 2024-05-18 - Tooltips for icon-only buttons in custom layouts
+**Learning:** While IconButton + native tooltip is ideal for accessibility, in constrained custom layouts like note cards or breadcrumbs, replacing a GestureDetector/InkWell with IconButton can trigger RenderFlex overflow issues due to default minimum tap targets and padding constraints of IconButton.
+**Action:** Instead of swapping to IconButton in these specific dense layouts, wrap the existing interactive element (GestureDetector/InkWell) with a Tooltip widget to preserve layout structure while adding the required accessibility label.
