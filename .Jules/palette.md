@@ -1,0 +1,3 @@
+## 2024-05-18 - Replacing GestureDetectors with IconButtons for A11y
+**Learning:** Found multiple instances where `GestureDetector` is used to build icon-only buttons (like note settings or close buttons). While this works visually, it's terrible for accessibility as it lacks a semantic button role, keyboard focus states, and tooltips by default.
+**Action:** Replace `GestureDetector` containing only an `Icon` with Flutter's native `IconButton` where possible to get built-in semantics, hover states, ripples, focus handling, and tooltips, while maintaining size constraints using `padding` and `constraints`.
