@@ -112,16 +112,19 @@ class TabManager extends StatelessWidget {
             ),
           ),
           // Add tab
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => docMgr.createDocument(),
-              child: Container(
-                width: 32,
-                height: 42,
-                alignment: Alignment.center,
-                child: Icon(Icons.add,
-                    color: Colors.white.withAlpha(80), size: 16),
+          Tooltip(
+            message: 'New tab',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => docMgr.createDocument(),
+                child: Container(
+                  width: 32,
+                  height: 42,
+                  alignment: Alignment.center,
+                  child: Icon(Icons.add,
+                      color: Colors.white.withAlpha(80), size: 16),
+                ),
               ),
             ),
           ),
