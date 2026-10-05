@@ -288,51 +288,54 @@ class _CodeBlockWidgetState extends BaseBlockState<CodeBlockWidget> {
               ),
               const Spacer(),
               // Run button
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(6),
-                  onTap: _isRunning ? null : _runCode,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _isRunning
-                          ? Colors.white10
-                          : const Color(0xFF51CF66).withAlpha(30),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
+              Tooltip(
+                message: 'Run code',
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(6),
+                    onTap: _isRunning ? null : _runCode,
+                    child: Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
                         color: _isRunning
-                            ? Colors.white12
-                            : const Color(0xFF51CF66).withAlpha(80),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (_isRunning)
-                          const SizedBox(
-                            width: 12,
-                            height: 12,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 1.5,
-                              color: Colors.white38,
-                            ),
-                          )
-                        else
-                          const Icon(Icons.play_arrow,
-                              size: 14, color: Color(0xFF51CF66)),
-                        const SizedBox(width: 4),
-                        Text(
-                          _isRunning ? 'Running...' : 'Run',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: _isRunning
-                                ? Colors.white38
-                                : const Color(0xFF51CF66),
-                          ),
+                            ? Colors.white10
+                            : const Color(0xFF51CF66).withAlpha(30),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: _isRunning
+                              ? Colors.white12
+                              : const Color(0xFF51CF66).withAlpha(80),
                         ),
-                      ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_isRunning)
+                            const SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1.5,
+                                color: Colors.white38,
+                              ),
+                            )
+                          else
+                            const Icon(Icons.play_arrow,
+                                size: 14, color: Color(0xFF51CF66)),
+                          const SizedBox(width: 4),
+                          Text(
+                            _isRunning ? 'Running...' : 'Run',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: _isRunning
+                                  ? Colors.white38
+                                  : const Color(0xFF51CF66),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

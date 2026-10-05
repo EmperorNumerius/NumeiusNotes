@@ -171,15 +171,18 @@ class _ImageBlockWidgetState extends State<ImageBlockWidget> {
         Positioned(
           right: 8,
           top: 8,
-          child: Material(
-            color: Colors.black.withAlpha(120),
-            borderRadius: BorderRadius.circular(18),
-            child: InkWell(
+          child: Tooltip(
+            message: 'Replace image',
+            child: Material(
+              color: Colors.black.withAlpha(120),
               borderRadius: BorderRadius.circular(18),
-              onTap: _pickImage,
-              child: const Padding(
-                padding: EdgeInsets.all(6),
-                child: Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: _pickImage,
+                child: const Padding(
+                  padding: EdgeInsets.all(6),
+                  child: Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 14),
+                ),
               ),
             ),
           ),
