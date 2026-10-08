@@ -807,14 +807,10 @@ class _Parser {
 
   double _number() {
     final s = p;
-    while (p < i.length && _isDigit(i[p])) {
-      p++;
-    }
+    while (p < i.length && _isDigit(i[p])) p++;
     if (p < i.length && i[p] == '.') {
       p++;
-      while (p < i.length && _isDigit(i[p])) {
-        p++;
-      }
+      while (p < i.length && _isDigit(i[p])) p++;
     }
     if (s == p) throw const FormatException();
     return double.parse(i.substring(s, p));
