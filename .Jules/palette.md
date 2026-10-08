@@ -1,0 +1,3 @@
+## 2024-05-24 - Accessible Icons in Constrained Layouts
+**Learning:** Replacing GestureDetector with IconButton in highly constrained grids (like TabManager or Note Cards) often breaks flex layouts unless padding is zeroed and strict BoxConstraints (e.g. 24x24) are applied. For extremely tight or custom gesture layouts, wrapping the existing GestureDetector in a Tooltip is safer while still providing the necessary semantic label/hover state.
+**Action:** Use IconButton with zeroed padding/constraints for standalone actions, but default to wrapping existing GestureDetectors with Tooltips for dense, flex-based grids to avoid overflow regressions.
