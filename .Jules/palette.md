@@ -1,0 +1,3 @@
+## 2026-10-11 - Prevent text overflow in UI elements
+**Learning:** Hardcoded constraints like `ConstraintsBox(0.0<=w<=199.0)` combined with `Row` and `Text` widgets can lead to `RenderFlex` overflows when the text doesn't fit, especially in small viewports. Also, missing tooltips on icon-only interactive elements degrade accessibility.
+**Action:** When adding text elements next to icon buttons in rows, use `Expanded` or `Flexible` widgets with `overflow: TextOverflow.ellipsis` on the text. Always ensure icon-only interactives like `GestureDetector` or `InkWell` with icons are wrapped in `Tooltip` widgets to ensure context is available to screen readers and mouse users.
