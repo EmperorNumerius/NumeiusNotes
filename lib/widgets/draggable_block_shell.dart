@@ -125,25 +125,23 @@ class _BlockHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Tooltip(
-            message: 'Delete block',
-            child: GestureDetector(
-              onTap: onDelete,
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: Container(
-                  width: 26,
-                  height: 26,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(8),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Icon(
-                    Icons.close_rounded,
-                    size: 14,
-                    color: Colors.white.withAlpha(90),
-                  ),
-                ),
+          Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(8),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: IconButton(
+              tooltip: 'Delete block',
+              padding: EdgeInsets.zero,
+              splashRadius: 13,
+              constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+              iconSize: 14,
+              onPressed: onDelete,
+              icon: Icon(
+                Icons.close_rounded,
+                color: Colors.white.withAlpha(90),
               ),
             ),
           ),
