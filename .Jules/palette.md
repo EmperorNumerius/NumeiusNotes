@@ -1,0 +1,3 @@
+## 2024-10-12 - Replaced GestureDetector with IconButton in TabManager
+**Learning:** In constrained UI components like tabs, developers often use `GestureDetector` + `Icon` instead of `IconButton` to avoid layout regressions (like `RenderFlex` overflows) caused by `IconButton`'s default padding and constraints. However, this strips away crucial accessibility semantics (role=button), hover states, keyboard focus indicators, and tooltips.
+**Action:** When replacing `GestureDetector` with `IconButton` in dense layouts, always override the defaults by explicitly setting `padding: EdgeInsets.zero`, `splashRadius`, and `constraints: const BoxConstraints(minWidth: 24, minHeight: 24)` to maintain a compact footprint while preserving the accessibility and interaction states.
