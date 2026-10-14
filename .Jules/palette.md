@@ -1,0 +1,3 @@
+## 2025-05-14 - Add ARIA Labels to Icon-Only Buttons
+**Learning:** Icon-only interactive elements without accessible labels or tooltips present significant accessibility barriers for screen reader users, violating WCAG guidelines (like SC 1.1.1 and 4.1.2). In Flutter, semantic labels are often implemented via `Tooltip` or accessible button widgets like `IconButton`.
+**Action:** When auditing or implementing icon-only buttons (such as those replacing `GestureDetector` or `InkWell` for close, more options, etc.), ensure they are wrapped with `Tooltip` or use `IconButton` with the `tooltip` property to provide accessible semantic labels and improve interaction size.
