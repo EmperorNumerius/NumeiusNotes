@@ -27,6 +27,7 @@ class TabManager extends StatelessWidget {
                 return Material(color: Colors.transparent, child: child);
               },
               itemCount: tabs.length,
+              // ignore: deprecated_member_use
               onReorder: (oldIdx, newIdx) {
                 docMgr.reorderTabs(oldIdx, newIdx);
               },
