@@ -64,6 +64,10 @@ class MockDocumentManager extends DocumentManager {
 void main() {
   testWidgets('Create folder dialog appears and functions correctly', (tester) async {
     final mockDocMgr = MockDocumentManager();
+    // Increase viewport size to prevent RenderFlex overflow
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+
     await tester.pumpWidget(
       MaterialApp(
         home: ChangeNotifierProvider<DocumentManager>(
@@ -72,6 +76,10 @@ void main() {
         ),
       ),
     );
+    // Reset viewport after test
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
 
     // Find "New Folder" button in the top bar
     final newFolderButton = find.byTooltip('New Folder');
@@ -98,6 +106,10 @@ void main() {
 
   testWidgets('Rename folder dialog appears and functions correctly', (tester) async {
     final mockDocMgr = MockDocumentManager();
+    // Increase viewport size to prevent RenderFlex overflow
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+
     await tester.pumpWidget(
       MaterialApp(
         home: ChangeNotifierProvider<DocumentManager>(
@@ -106,6 +118,10 @@ void main() {
         ),
       ),
     );
+    // Reset viewport after test
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
 
     // Find the folder card
     final folderCard = find.text('Test Folder');
@@ -142,6 +158,10 @@ void main() {
 
   testWidgets('Rename note dialog appears and functions correctly', (tester) async {
     final mockDocMgr = MockDocumentManager();
+    // Increase viewport size to prevent RenderFlex overflow
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+
     await tester.pumpWidget(
       MaterialApp(
         home: ChangeNotifierProvider<DocumentManager>(
@@ -150,6 +170,10 @@ void main() {
         ),
       ),
     );
+    // Reset viewport after test
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
 
     // Find the note card
     final noteCard = find.text('Test Note');
