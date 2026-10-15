@@ -74,6 +74,10 @@ class MockDocumentManager extends DocumentManager {
 void main() {
   testWidgets('Create Folder dialog works', (tester) async {
     final docMgr = MockDocumentManager();
+    // Increase viewport size to prevent RenderFlex overflow
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+
     await tester.pumpWidget(
       MaterialApp(
         home: ChangeNotifierProvider<DocumentManager>(
@@ -82,6 +86,10 @@ void main() {
         ),
       ),
     );
+    // Reset viewport after test
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
 
     final newFolderBtn = find.byTooltip('New Folder');
     expect(newFolderBtn, findsOneWidget);
@@ -104,6 +112,9 @@ void main() {
   testWidgets('Rename Folder dialog works', (tester) async {
     final docMgr = MockDocumentManager();
     docMgr.seedFolder(NoteFolder(id: 'f1', name: 'Old Folder'));
+    // Increase viewport size to prevent RenderFlex overflow
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -113,6 +124,10 @@ void main() {
         ),
       ),
     );
+    // Reset viewport after test
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
 
     final folderCard = find.text('Old Folder');
     expect(folderCard, findsOneWidget);
@@ -142,6 +157,9 @@ void main() {
       title: 'Old Note',
       blocks: [ContentBlock(id: 'b1', type: ContentBlockType.text)],
     ));
+    // Increase viewport size to prevent RenderFlex overflow
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -151,6 +169,10 @@ void main() {
         ),
       ),
     );
+    // Reset viewport after test
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
 
     final noteCard = find.text('Old Note');
     expect(noteCard, findsOneWidget);
