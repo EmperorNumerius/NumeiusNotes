@@ -1,0 +1,3 @@
+## 2024-10-16 - Add missing tooltips to icon-only buttons
+**Learning:** Some custom icon-only buttons in dense interactive layouts (like drag-and-drop handles or close buttons) lack tooltips and have small tap targets, making them hard to discover and interact with for keyboard/screen-reader users. Replacing custom `GestureDetector` constructs with standard `IconButton` where appropriate, or wrapping them in `Tooltip`, significantly improves accessibility.
+**Action:** Replace `GestureDetector` wrapper on the 'Close tab' icon in `TabManager` with an `IconButton` that includes a tooltip to ensure proper screen reader support and larger touch target while maintaining the layout.
