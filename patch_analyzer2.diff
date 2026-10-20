@@ -1,0 +1,33 @@
+--- lib/widgets/calculator_block.dart
++++ lib/widgets/calculator_block.dart
+@@ -805,17 +805,17 @@
+
+   double _number() {
+     final s = p;
+-    while (p < i.length && _isDigit(i[p])) { p++; }
++    while (p < i.length && _isDigit(i[p])) { p++; }
+     if (p < i.length && i[p] == '.') {
+       p++;
+-      while (p < i.length && _isDigit(i[p])) { p++; }
++      while (p < i.length && _isDigit(i[p])) { p++; }
+     }
+     if (s == p) throw const FormatException();
+     return double.parse(i.substring(s, p));
+   }
+
+   String _ident() {
+     final s = p;
+-    while (p < i.length && (_isAlpha(i[p]) || _isDigit(i[p]) || i[p] == '_')) { p++; }
++    while (p < i.length && (_isAlpha(i[p]) || _isDigit(i[p]) || i[p] == '_')) { p++; }
+     return i.substring(s, p);
+   }
+
+@@ -827,7 +827,7 @@
+   }
+
+   void _skip() {
+-    while (p < i.length && i[p] == ' ') { p++; }
++    while (p < i.length && i[p] == ' ') { p++; }
+   }
+
+   String _peek() => p < i.length ? i[p] : '';
