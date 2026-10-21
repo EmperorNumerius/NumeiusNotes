@@ -1,0 +1,3 @@
+## 2024-05-24 - Compact IconButton Accessibility
+**Learning:** In constrained Flutter layouts (like TabManager), default IconButtons cause RenderFlex overflows, leading developers to use inaccessible GestureDetector+Icon combos. However, overriding padding to EdgeInsets.zero and enforcing BoxConstraints(minWidth: 24, minHeight: 24) allows maintaining both layout stability and minimum accessible tap targets.
+**Action:** Always prefer IconButton with explicit constraints over GestureDetector for icon-only actions in compact lists to ensure tooltips and keyboard focus work without breaking layout.
