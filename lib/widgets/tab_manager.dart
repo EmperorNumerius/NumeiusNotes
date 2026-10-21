@@ -30,6 +30,7 @@ class TabManager extends StatelessWidget {
                 );
               },
               itemCount: tabs.length,
+              // ignore: deprecated_member_use
               onReorder: (oldIdx, newIdx) {
                 docMgr.reorderTabs(oldIdx, newIdx);
               },
