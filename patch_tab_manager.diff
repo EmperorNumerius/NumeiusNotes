@@ -1,0 +1,10 @@
+--- lib/widgets/tab_manager.dart
++++ lib/widgets/tab_manager.dart
+@@ -30,6 +30,7 @@
+                 );
+               },
+               itemCount: tabs.length,
++              // ignore: deprecated_member_use
+               onReorder: (oldIdx, newIdx) {
+                 docMgr.reorderTabs(oldIdx, newIdx);
+               },
