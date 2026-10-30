@@ -1,0 +1,3 @@
+## 2024-10-30 - Added Tooltips to Home Page and Note Card Icons
+**Learning:** Found that many interactive icon buttons in `HomePage` (such as the "Home" breadcrumb and "More options" on notes) lacked tooltips, reducing accessibility for users navigating the UI. Additionally, adding `Flexible` wrappers alongside `TextOverflow.ellipsis` on `Text` nodes placed in compact `Row` layouts prevents horizontal overflows when screen sizes become constrained.
+**Action:** Wrapped icon-only `InkWell` and `GestureDetector` widgets with `Tooltip` to provide descriptive labels for screen readers and mouse hover. Applied `Flexible` wrapper to text elements in compact headers.
