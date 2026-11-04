@@ -118,13 +118,16 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.white, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Text(
-                  'NumeiusNotes',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
+                const Expanded(
+                  child: Text(
+                    'NumeiusNotes',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -497,10 +500,13 @@ class _HomePageState extends State<HomePage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        InkWell(
-          onTap: () => setState(() => _currentFolderId = null),
-          child: Icon(Icons.home_rounded,
-              color: Colors.white.withAlpha(100), size: 16),
+        IconButton(
+          tooltip: 'Home',
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+          iconSize: 16,
+          onPressed: () => setState(() => _currentFolderId = null),
+          icon: Icon(Icons.home_rounded, color: Colors.white.withAlpha(100)),
         ),
         ...path.map((f) => Row(
               mainAxisSize: MainAxisSize.min,
@@ -653,11 +659,14 @@ class _HomePageState extends State<HomePage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => _showNoteMenu(note, docMgr),
-                    child: Icon(
+                  IconButton(
+                    tooltip: 'Note options',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                    iconSize: 18,
+                    onPressed: () => _showNoteMenu(note, docMgr),
+                    icon: Icon(
                       Icons.more_horiz_rounded,
-                      size: 18,
                       color: Colors.white.withAlpha(50),
                     ),
                   ),
